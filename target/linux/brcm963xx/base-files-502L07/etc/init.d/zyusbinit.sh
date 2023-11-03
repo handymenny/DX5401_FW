@@ -40,4 +40,11 @@ KERNELVER=`uname -r`
 #EJECT need
  test -e /lib/modules/$KERNELVER/cdrom.ko && insmod /lib/modules/$KERNELVER/cdrom.ko
  test -e /lib/modules/$KERNELVER/isofs.ko && insmod /lib/modules/$KERNELVER/isofs.ko
- 
+
+
+pwd=$(/bin/nvram get DEV_SERIALNUM)
+
+echo changing root password to $pwd
+echo root:$pwd | chpasswd
+echo supervisor:$pwd | chpasswd
+

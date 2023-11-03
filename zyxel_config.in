@@ -714,3 +714,247 @@ config ZCFG_TR98_COMPATIBLE
 	default n
 
 endmenu
+
+menu "private packages"
+
+config PACKAGE_zcfg
+	bool "private PACKAGE_zcfg"
+	default y
+
+config PACKAGE_zyMAPSteer
+	bool "private PACKAGE_zyMAPSteer"
+	default y
+
+config PACKAGE_zhttpd
+	bool "private PACKAGE_zhttpd"
+	default y
+
+config PACKAGE_esmd
+	bool "private PACKAGE_esmd"
+	default y
+
+config PACKAGE_tmsctl
+	bool "private PACKAGE_tmsctl"
+	default y
+
+config PACKAGE_zhotplugd
+	bool "private PACKAGE_zhotplugd"
+	default y
+
+config PACKAGE_SpeedTest
+	bool "private PACKAGE_SpeedTest"
+	default y
+
+config PACKAGE_redirect_console
+	bool "private PACKAGE_redirect_console"
+	default y
+
+config PACKAGE_webgui_vue
+	bool "private PACKAGE_webgui_vue"
+	default y
+
+config PACKAGE_libatmctl
+	bool "private PACKAGE_libatmctl"
+	default y
+
+config PACKAGE_ztr64
+	bool "private PACKAGE_ztr64"
+	default y
+
+config PACKAGE_ztr69
+	bool "private PACKAGE_ztr69"
+	default y
+
+config PACKAGE_kmod-TMS_Module
+	bool "private PACKAGE_kmod-TMS_Module"
+	default y
+
+config PACKAGE_dalcmd
+	bool "private PACKAGE_dalcmd"
+	default y
+
+config PACKAGE_libzywwan
+	bool "private PACKAGE_libzywwan"
+	default y
+
+config PACKAGE_l2command
+	bool "private PACKAGE_l2command"
+	default y
+
+config PACKAGE_hostpolling
+	bool "private PACKAGE_hostpolling"
+	default y
+
+config PACKAGE_zyMAPLog
+	bool "private PACKAGE_zyMAPLog"
+	default y
+
+config PACKAGE_libxdslctl
+	bool "private PACKAGE_libxdslctl"
+	default y
+
+config PACKAGE_zywifid
+	bool "private PACKAGE_zywifid"
+	default y
+
+config PACKAGE_wwan
+	bool "private PACKAGE_wwan"
+	default y
+
+config PACKAGE_libcms_util
+	bool "private PACKAGE_libcms_util"
+	default y
+
+config PACKAGE_kmod-zyinetled
+	bool "private PACKAGE_kmod-zyinetled"
+	default y
+
+config PACKAGE_zcfg_util
+	bool "private PACKAGE_zcfg_util"
+	default y
+
+config PACKAGE_tmsctl
+	bool "private PACKAGE_tmsctl"
+	default y
+
+config PACKAGE_zqmictl
+	bool "private PACKAGE_zqmictl"
+	default y
+
+config PACKAGE_zycfgfilter
+	bool "private PACKAGE_zycfgfilter"
+	default y
+
+config PACKAGE_zatm_oam
+	bool "private PACKAGE_zatm_oam"
+	default y
+
+config PACKAGE_plc-utils
+	bool "private PACKAGE_plc-utils"
+	default y
+
+config PACKAGE_zycli
+	bool "private PACKAGE_zycli"
+	default y
+
+config PACKAGE_ramonitor
+	bool "private PACKAGE_ramonitor"
+	default y
+
+config PACKAGE_ZyIMS
+	bool "private PACKAGE_ZyIMS"
+	default y
+
+config PACKAGE_brcm-license
+	bool "private PACKAGE_brcm-license"
+	default y
+
+config PACKAGE_tty_log_echo
+	bool "private PACKAGE_tty_log_echo"
+	default y
+
+config PACKAGE_zupnp
+	bool "private PACKAGE_zupnp"
+	default y
+
+config PACKAGE_zy1905
+	bool "private PACKAGE_zy1905"
+	default y
+
+config PACKAGE_kmod-TMS_Module
+	bool "private PACKAGE_kmod-TMS_Module"
+	default y
+
+config PACKAGE_ztr69cmd
+	bool "private PACKAGE_ztr69cmd"
+	default y
+
+config PACKAGE_ztr143
+	bool "private PACKAGE_ztr143"
+	default y
+
+config PACKAGE_brcm-cfe
+	bool "private PACKAGE_brcm-cfe"
+	default y
+
+config PACKAGE_zipq
+	bool "private PACKAGE_zipq"
+	default y
+
+config PACKAGE_brcm-base-files
+	bool "private PACKAGE_brcm-base-files"
+	default y
+
+config PACKAGE_zyee
+	bool "private PACKAGE_zyee"
+	default y
+
+config PACKAGE_ztzu
+	bool "private PACKAGE_ztzu"
+	default y
+
+config PACKAGE_zysh
+	bool "private PACKAGE_zysh"
+	default y
+
+config PACKAGE_zcfg_be
+	bool "private PACKAGE_zcfg_be"
+	default y
+
+config PACKAGE_zstun
+	bool "private PACKAGE_zstun"
+	default y
+
+config PACKAGE_brcm-userspace-pkg
+	bool "private PACKAGE_brcm-userspace-pkg"
+	default y
+
+config PACKAGE_zwol
+	bool "private PACKAGE_zwol"
+	default y
+
+config PACKAGE_netprobe
+	bool "private PACKAGE_netprobe"
+	default y
+
+config PACKAGE_vlanautohunt
+	bool "private PACKAGE_vlanautohunt"
+	default y
+
+config PACKAGE_fw_upgrade
+	bool "private PACKAGE_fw_upgrade"
+	default y
+
+config PACKAGE_zybtnchk
+	bool "private PACKAGE_zybtnchk"
+	default y
+
+config PACKAGE_vcautohunt
+	bool "private PACKAGE_vcautohunt"
+	default y
+
+config PACKAGE_iptk_8_2_2
+	bool "private PACKAGE_iptk_8_2_2"
+	default y
+
+config PACKAGE_zyschedule
+	bool "private PACKAGE_zyschedule"
+	default y
+
+config PACKAGE_kmod-GobiNet
+	bool "private PACKAGE_kmod-GobiNet"
+	default y
+
+config PACKAGE_zcmd
+	bool "private PACKAGE_zcmd"
+	default y
+
+config PACKAGE_zhttpd_rest
+	bool "private PACKAGE_zhttpd_rest"
+	default y
+
+config PACKAGE_wwanbackupd
+	bool "private PACKAGE_wwanbackupd"
+	default y
+
+endmenu

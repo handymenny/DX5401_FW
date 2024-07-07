@@ -1,0 +1,14 @@
+Index: expat-1.95.8/configure
+===================================================================
+--- expat-1.95.8.orig/configure	2013-12-31 14:32:57.000000000 +0800
++++ expat-1.95.8/configure	2020-10-14 19:23:53.597404818 +0800
+@@ -5559,7 +5559,8 @@
+   ;;
+ 
+ # This must be Linux ELF.
+-linux-gnu*)
++linux-gnu* | linux-uclibc*)
++
+   version_type=linux
+   need_lib_prefix=no
+   need_version=no

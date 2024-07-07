@@ -1,0 +1,67 @@
+Index: dropbear-2018.76/svr-authpasswd.c
+===================================================================
+--- dropbear-2018.76.orig/svr-authpasswd.c
++++ dropbear-2018.76/svr-authpasswd.c
+@@ -305,7 +305,13 @@ void svr_auth_password(int valid_user) {
+ 	
+ 			if (authResult == 1) {
+ 				/* successful authentication */
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++			syslog(LOG_INFO, "Account: User '%s' login from %s host(%s).",username, remoAddr_Type, remoteaddr);
++
++			zySetLoginInfo (username, remoAddr_Type, remoteaddr, "sshd");
++#else		
+ 				syslog(LOG_INFO, "Account: User '%s' login from the host(%s).",username,remoteaddr);
++#endif
+ 				dropbear_log(LOG_NOTICE,
+ 						"Password auth succeeded for '%s' from %s",
+ 						ses.authstate.pw_name,
+@@ -313,6 +319,10 @@ void svr_auth_password(int valid_user) {
+ 				reset_authorize_fail_cnt(cur_user_idx);
+ 				send_msg_userauth_success();
+ 			} else {//auth fail
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++			syslog(LOG_INFO, "Account: Enter an invalid password for User '%s' from %s host(%s).",username, remoAddr_Type, remoteaddr);
++#endif
++
+ 				dropbear_log(LOG_WARNING,
+ 						"Bad password attempt for '%s' from %s",
+ 						ses.authstate.pw_name,
+@@ -338,7 +348,11 @@ void svr_auth_password(int valid_user) {
+ 
+ 	/* check for empty password */
+ 	if (passwdcrypt[0] == '\0') {
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++		syslog(LOG_INFO, "Account: Enter blank password for %s User '%s', rejected.",remoAddr_Type, username);
++#else
+ 		syslog(LOG_INFO, "Account: Enter blank password for User '%s', rejected.",username);
++#endif
+ 		dropbear_log(LOG_WARNING, "User '%s' has blank password, rejected",
+ 				ses.authstate.pw_name);
+ 		send_msg_userauth_failure(0, 1);
+@@ -358,7 +372,13 @@ void svr_auth_password(int valid_user) {
+ #endif
+ //SHA512_PASSWD
+ 		/* successful authentication */
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++		syslog(LOG_INFO, "Account: User '%s' login from %s host(%s).",username, remoAddr_Type, remoteaddr);
++
++		zySetLoginInfo (username, remoAddr_Type, remoteaddr, "sshd");
++#else
+ 		syslog(LOG_INFO, "Account: User '%s' login from the host(%s) by ssh.",username,remoteaddr);
++#endif
+ 		dropbear_log(LOG_NOTICE, 
+ 				"Password auth succeeded for '%s' from %s",
+ 				ses.authstate.pw_name,
+@@ -366,7 +386,11 @@ void svr_auth_password(int valid_user) {
+ 		reset_authorize_fail_cnt(cur_user_idx);
+ 		send_msg_userauth_success();
+ 	} else {
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++		syslog(LOG_INFO, "Account: Enter an invalid password for User '%s' from %s host(%s).",username, remoAddr_Type, remoteaddr);
++#else
+ 		syslog(LOG_INFO, "Account: Enter an invalid password for User '%s' from the host(%s).",username,remoteaddr);
++#endif
+ 		dropbear_log(LOG_WARNING,
+ 				"Bad password attempt for '%s' from %s",
+ 				ses.authstate.pw_name,

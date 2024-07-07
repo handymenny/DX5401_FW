@@ -1,0 +1,16 @@
+Index: busybox-1_20_1/loginutils/login.c
+===================================================================
+--- busybox-1_20_1.orig/loginutils/login.c
++++ busybox-1_20_1/loginutils/login.c
+@@ -1293,6 +1293,11 @@ int login_main(int argc UNUSED_PARAM, ch
+ #ifdef ABOG_CUSTOMIZATION
+ 		zyTouchFile(getpid(), addr);
+ #endif
++#ifdef ZYXEL_TT_CUSTOMIZATION
++		char cmd[128] = {0};
++		sprintf(cmd,"echo %s %s telnetd>/tmp/pts%c",username,addr,*(short_tty +strlen(short_tty)-1));
++		system(cmd);
++#endif
+ 		syslog(LOG_INFO, "Account: User '%s' login from the host %s by telnetd.", username, addr);
+ 	}
+ 	if (ENABLE_FEATURE_CLEAN_UP)

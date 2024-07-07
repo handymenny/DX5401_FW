@@ -1,0 +1,41 @@
+Index: iptables-1.4.10/extensions/libxt_connlimit.c
+===================================================================
+--- iptables-1.4.10.orig/extensions/libxt_connlimit.c
++++ iptables-1.4.10/extensions/libxt_connlimit.c
+@@ -209,6 +209,36 @@ static struct xtables_match connlimit_mt
+ 		.save          = connlimit_save6,
+ 		.extra_opts    = connlimit_opts,
+ 	},
++	{
++		.name          = "connlimit",
++		.family        = NFPROTO_IPV4,
++		.revision      = 1,
++		.version       = XTABLES_VERSION,
++		.size          = XT_ALIGN(sizeof(struct xt_connlimit_info)),
++		.userspacesize = offsetof(struct xt_connlimit_info, data),
++		.help          = connlimit_help,
++		.init          = connlimit_init,
++		.parse         = connlimit_parse4,
++		.final_check   = connlimit_check,
++		.print         = connlimit_print4,
++		.save          = connlimit_save4,
++		.extra_opts    = connlimit_opts,
++	},
++	{
++		.name          = "connlimit",
++		.family        = NFPROTO_IPV6,
++		.revision      = 1,
++		.version       = XTABLES_VERSION,
++		.size          = XT_ALIGN(sizeof(struct xt_connlimit_info)),
++		.userspacesize = offsetof(struct xt_connlimit_info, data),
++		.help          = connlimit_help,
++		.init          = connlimit_init,
++		.parse         = connlimit_parse6,
++		.final_check   = connlimit_check,
++		.print         = connlimit_print6,
++		.save          = connlimit_save6,
++		.extra_opts    = connlimit_opts,
++	},
+ };
+ 
+ void _init(void)

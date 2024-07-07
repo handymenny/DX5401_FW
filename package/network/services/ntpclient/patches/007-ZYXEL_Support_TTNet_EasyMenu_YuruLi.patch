@@ -1,0 +1,277 @@
+Index: ntpclient-2007/extern.c
+===================================================================
+--- ntpclient-2007.orig/extern.c	2020-12-18 15:29:22.554512321 +0800
++++ ntpclient-2007/extern.c	2020-12-18 15:29:22.594512322 +0800
+@@ -15,7 +15,7 @@
+ 	zcfgEidInit(ZCFG_EID_NTPCLIENT, NULL);
+ }
+ 
+-static zcfgRet_t ntpclient_msg_send(int msg_type, int payloadLen, const char *payload)
++static zcfgRet_t ntpclient_msg_send(int msg_type, zcfg_msg_eid_t eid, int payloadLen, const char *payload)
+ {
+ 	zcfgRet_t ret;
+ 	void *sendBuf = NULL;
+@@ -31,7 +31,7 @@
+ 	sendMsgHdr->type = msg_type;
+ 	sendMsgHdr->length = payloadLen;
+ 	sendMsgHdr->srcEid = ZCFG_EID_NTPCLIENT;
+-	sendMsgHdr->dstEid = ZCFG_EID_ESMD;
++	sendMsgHdr->dstEid = eid;
+ 	if(payload != NULL)
+ 		memcpy(sendBuf+sizeof(zcfgMsg_t), payload, payloadLen);
+ 
+@@ -54,12 +54,22 @@
+ 	zcfgRet_t ret;
+ 
+ 	/* send ZCFG_MSG_MGABDEV_DETECT to ESMD for notification  */
+-	ret = ntpclient_msg_send(ZCFG_MSG_NTP_SYNC_SUCCESS, strlen(dateTime)+1, dateTime);
++	ret = ntpclient_msg_send(ZCFG_MSG_NTP_SYNC_SUCCESS, ZCFG_EID_ESMD, strlen(dateTime)+1, dateTime);
+ 	if(ret != ZCFG_SUCCESS && ret != ZCFG_SUCCESS_AND_NO_REPLY)
+ 		printf( "%s ntpclient_msg_send fail,ret=%d", __func__, ret);
+ 
+ }
+ 
++void handle_ntp_complete_msgsend(zcfg_msg_eid_t eid, char *payload)
++{
++	zcfgRet_t ret;
++
++	/* send ZCFG_MSG_NTP_SYNC_SUCCESS to eid for notification  */
++	ret = ntpclient_msg_send(ZCFG_MSG_NTP_SYNC_SUCCESS, eid, strlen(payload)+1, payload);
++	if(ret != ZCFG_SUCCESS && ret != ZCFG_SUCCESS_AND_NO_REPLY)
++		printf( "%s ntpclient_msg_send fail,ret=%d", __func__, ret);
++	
++}
+ 
+ #endif
+ 
+Index: ntpclient-2007/ntpclient.c
+===================================================================
+--- ntpclient-2007.orig/ntpclient.c	2020-12-18 15:29:22.566512321 +0800
++++ ntpclient-2007/ntpclient.c	2020-12-18 15:32:45.766946813 +0800
+@@ -58,6 +58,7 @@
+ #ifdef ZyXEL_PATCH
+ #include <signal.h>
+ #include <poll.h>
++#include "zcfg_msg.h"
+ #define SNTP_RESULT_FILE "/tmp/sntp.dat"
+ 
+ #ifdef __linux__
+@@ -87,8 +88,12 @@
+ 
+ #ifdef ZyXEL_PATCH
+ #define  FIRST_SYNC_OPTION   "n:"
++#define  SEND_MSG_OPTION   "m:"
++#define  DIAG_OPTION   "z"
+ #else
+ #define  FIRST_SYNC_OPTION
++#define  SEND_MSG_OPTION
++#define  DIAG_OPTION
+ #endif
+ 
+ extern char *optarg;  /* according to man 2 getopt */
+@@ -148,7 +153,12 @@
+ } NTP_SERVER;
+ static int srv_stop = 0;
+ char dateTime[32] = {0};
++char gBuff[32] = {0};
+ #endif
++#ifdef ZYXEL_TTNET_NTP_MULTIWAN//TTnet, wan interface of NTP 
++char gRouteDelCmd[128] = {0};
++#endif
++
+ 
+ struct ntp_control {
+ 	u32 time_of_send[2];
+@@ -162,6 +172,8 @@
+ #ifdef ZyXEL_PATCH	
+ 	NTP_SERVER ntp_server[NTP_MAX];
+ 	int ntp_server_count;
++	int diag_test;
++	zcfgEid_t msg_receiver_eid;
+ #endif	
+ };
+ 
+@@ -207,7 +219,7 @@
+ #endif
+ }
+ 
+-static void set_time(struct ntptime *new)
++static void set_time(struct ntptime *new, int set_clock)
+ {
+ #ifndef USE_OBSOLETE_GETTIMEOFDAY
+ 	/* POSIX 1003.1-2001 way to set the system clock
+@@ -217,12 +229,15 @@
+ 	tv_set.tv_sec  = new->coarse - JAN_1970;
+ 	/* divide xmttime.fine by 4294.967296 */
+ 	tv_set.tv_nsec = USEC(new->fine)*1000;
+-	if (clock_settime(CLOCK_REALTIME, &tv_set)<0) {
+-		perror("clock_settime");
+-		exit(1);
+-	}
+-	if (debug) {
+-		printf("set time to %lu.%.9lu\n", tv_set.tv_sec, tv_set.tv_nsec);
++
++	if(set_clock){
++		if (clock_settime(CLOCK_REALTIME, &tv_set)<0) {
++			perror("clock_settime");
++			exit(1);
++		}
++		if (debug) {
++			printf("set time to %lu.%.9lu\n", tv_set.tv_sec, tv_set.tv_nsec);
++		}
+ 	}
+ #else
+ 	/* Traditional Linux way to set the system clock
+@@ -232,12 +247,14 @@
+ 	tv_set.tv_sec  = new->coarse - JAN_1970;
+ 	/* divide xmttime.fine by 4294.967296 */
+ 	tv_set.tv_usec = USEC(new->fine);
+-	if (settimeofday(&tv_set,NULL)<0) {
+-		perror("settimeofday");
+-		exit(1);
+-	}
+-	if (debug) {
+-		printf("set time to %lu.%.6lu\n", tv_set.tv_sec, tv_set.tv_usec);
++	if(set_clock){
++		if (settimeofday(&tv_set,NULL)<0) {
++			perror("settimeofday");
++			exit(1);
++		}
++		if (debug) {
++			printf("set time to %lu.%.6lu\n", tv_set.tv_sec, tv_set.tv_usec);
++		}
+ 	}
+ #endif
+ 
+@@ -245,6 +262,7 @@
+ 	struct tm *tm_ptr;
+ 	tm_ptr = localtime(&(tv_set.tv_sec));
+ 	strftime(dateTime, sizeof(dateTime), "%Y-%m-%dT%H:%M:%S", tm_ptr);
++	strftime(gBuff, sizeof(gBuff), "%Y-%m-%d %H:%M:%S", tm_ptr);
+ #endif
+ 
+ }
+@@ -459,9 +477,7 @@
+ 	}
+ 
+ 	/* XXX should I do this if debug flag is set? */
+-	if (ntpc->set_clock) { /* you'd better be root, or ntpclient will crash! */
+-		set_time(&xmttime);
+-	}
++	set_time(&xmttime, ntpc->set_clock); /* if ntpc->set_clock = 1, you'd better be root, or ntpclient will crash! */
+ 
+ 	/* Not the ideal order for printing, but we want to be sure
+ 	 * to do all the time-sensitive thinking (and time setting)
+@@ -505,6 +521,7 @@
+ 	if (ntpserver == NULL) {
+ 		if(debug) herror(hostname);
+ #ifdef ZyXEL_PATCH
++		strcpy(gBuff, "Error_CannotResolveHostName");
+ 		return NULL;
+ #else		
+ 		exit(1);
+@@ -571,10 +588,15 @@
+ 	memcpy(ntpc->serv_addr,&(sa_dest.sin_addr),4); /* XXX asumes IPv4 */
+ 	sa_dest.sin_port=htons(port);
+ 	if (connect(usd,(struct sockaddr *)&sa_dest,sizeof sa_dest)==-1)
+-#ifdef ZyXEL_PATCH	
++#ifdef ZyXEL_PATCH
++	{
++		strcpy(gBuff, "Error_Other");
+ 		return 0;
++	}
+ 	else
++	{
+ 		return 1;
++	}
+ #else
+ 		{perror("connect");exit(1);}
+ #endif
+@@ -768,12 +790,14 @@
+ 	int ntp_idx = 0, ntp_first_sync = 0;
+ 	static int first_time = 1; /* Keep track if it's the first time enabled ntpclient */
+ 	ntpc.ntp_server_count = 0;
++	ntpc.diag_test = 0;
+ 	memset(ntpc.ntp_server, 0, sizeof(NTP_SERVER)*NTP_MAX);
++	ntpc.msg_receiver_eid = 0;
+ 	ntpclient_eid_register();
+ #endif	
+ 
+ 	for (;;) {
+-		c = getopt( argc, argv, "c:" DEBUG_OPTION "f:g:h:i:lp:q:" REPLAY_OPTION FIRST_SYNC_OPTION "st");
++		c = getopt( argc, argv, "c:" DEBUG_OPTION "f:g:h:i:lp:q:" REPLAY_OPTION SEND_MSG_OPTION FIRST_SYNC_OPTION DIAG_OPTION "st");
+ 		if (c == EOF) break;
+ 		switch (c) {
+ 			case 'c':
+@@ -841,6 +865,12 @@
+ 			case 'n':
+ 				ntp_first_sync = atoi(optarg);
+ 				break;
++			case 'm':
++				ntpc.msg_receiver_eid = atoi(optarg);
++				break;
++			case 'z':
++				ntpc.diag_test = 1; //Note: only support one ntp server for diag test
++				break;
+ #endif
+ 			default:
+ 				usage(argv[0]);
+@@ -923,6 +953,13 @@
+ 		
+ 		if(ntp_idx >= ntpc.ntp_server_count) ntp_idx = 0;	
+ 		if(!setup_transmit(usd, &ntpc, ntp_idx)){
++			if (ntpc.diag_test){
++				if(ntpc.msg_receiver_eid > 0 && ntpc.msg_receiver_eid < ZCFG_EID_MAX){
++					handle_ntp_complete_msgsend(ntpc.msg_receiver_eid, gBuff);
++				}
++				exit(1);
++			}
++			
+ 			if(onstarting)
+ 			{
+ 				sleep(ONSTARTING_SETUPTRANS_SUSPEND_TIME);
+@@ -940,6 +977,7 @@
+ 		
+ 		if(!ntp_handle(usd, &ntpc, &err))
+ 		{
++			if (ntpc.diag_test) break;
+ 			ntp_idx++;
+ 			if(onstarting)
+ 			{
+@@ -951,7 +989,7 @@
+ 			close(usd);
+ 			continue;
+ 		}
+-		else {
++		else {				
+ 			probes_sent++;
+ 			if(ntpc.set_clock){
+ 				system("date > "SNTP_RESULT_FILE);
+@@ -966,6 +1004,7 @@
+ 				ntpc.set_clock = 0;
+ 				if (!ntpc.live) break;
+ 			}
++			if (ntpc.diag_test) break;
+ 		}
+ 		close(usd);
+ #if ZyXEL_PATCH
+@@ -977,6 +1016,19 @@
+ #endif
+ 		sleep(ntpc.cycle_time); 
+ 	}
++
++#ifdef ZyXEL_PATCH
++	if(ntpc.msg_receiver_eid > 0 && ntpc.msg_receiver_eid < ZCFG_EID_MAX){
++		handle_ntp_complete_msgsend(ntpc.msg_receiver_eid, gBuff);
++	}
++#endif
++
++#ifdef ZYXEL_TTNET_NTP_MULTIWAN
++	if(strcmp(gRouteDelCmd, "")){
++		system(gRouteDelCmd);
++	}
++#endif
++
+ #else
+ 	/* Startup sequence */
+ 	if ((usd=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP))==-1)

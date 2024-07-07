@@ -1,0 +1,38 @@
+Index: busybox-1_20_1/networking/wget.c
+===================================================================
+--- busybox-1_20_1.orig/networking/wget.c
++++ busybox-1_20_1/networking/wget.c
+@@ -832,8 +832,6 @@ void execute_speedtest(char *s, char *ho
+ 		}
+ 	}
+ 
+-	getDateTime(EOMTime);
+-
+ 	fp = fopen("/var/speedtest_result_tr143_tmp", "r");
+ 	if(fp != NULL)
+ 	{
+@@ -883,11 +881,19 @@ void execute_speedtest(char *s, char *ho
+ 	*rev_bytes = (int)((((float)total_byte_recv/1024) * ((float)download_len/1024) / ((float)test_byte_recv/1024)) * 1024);
+ 	//printf("rev_bytes = %d, total=%f, download=%f, test=%f\n", *rev_bytes, ((float)total_byte_recv/1024), ((float)download_len/1024), ((float)test_byte_recv/1024));
+ 	TestBytesReceived = download_len;
+-// 	diff_s = download_len / (http_average_rate * 1024);
+-// 	diff_us = (((float)download_len / ((float)http_average_rate * 1024)) * 1000000) - (diff_s * 1000000);
+-// 	//printf("%s: diff_s=%u, diff_us=%06u\n",__FUNCTION__, diff_s, diff_us);
+-// 	calculate_EOMTime_speedtest(EOMTime,diff_s, diff_us);
+-	
++
++	if(with_duration)
++	{
++		getDateTime(EOMTime);
++	}
++	else
++	{
++		diff_s = download_len / (http_average_rate * 1024);
++		diff_us = (((float)download_len / ((float)http_average_rate * 1024)) * 1000000) - (diff_s * 1000000);
++		//printf("%s: diff_s=%u, diff_us=%06u\n",__FUNCTION__, diff_s, diff_us);
++		calculate_EOMTime_speedtest(EOMTime,diff_s, diff_us);
++	}
++
+ 		//printf("%s: sec_BOM:%u, usec_BOM:%u, sec_EOM:%u, usec_EOM:%u\n", __FUNCTION__, sec_BOM, usec_BOM, sec_EOM, usec_EOM);
+ exit:
+ 	system("rm /var/output");

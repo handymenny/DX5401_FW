@@ -1,0 +1,28 @@
+Index: linux-4.1.52/drivers/usb/serial/option.c
+===================================================================
+--- linux-4.1.52.orig/drivers/usb/serial/option.c	2021-12-21 11:29:35.829879117 +0800
++++ linux-4.1.52/drivers/usb/serial/option.c	2021-12-21 11:34:39.239799526 +0800
+@@ -303,6 +303,14 @@
+ 
+ /* ALCATEL PRODUCTS */
+ #define ALCATEL_VENDOR_ID			0x1bbb
++#define ALCATEL_USB_DEVICE_AND_INTERFACE_INFO(vend, cl, sc, pr) \
++ .match_flags = USB_DEVICE_ID_MATCH_INT_INFO \
++ | USB_DEVICE_ID_MATCH_VENDOR, \
++ .idVendor = (vend), \
++ .bInterfaceClass = (cl), \
++ .bInterfaceSubClass = (sc), \
++ .bInterfaceProtocol = (pr)
++
+ #define ALCATEL_PRODUCT_X060S_X200		0x0000
+ 
+ #define PIRELLI_VENDOR_ID			0x1266
+@@ -1364,6 +1372,8 @@
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(WETELECOM_VENDOR_ID, WETELECOM_PRODUCT_6802, 0xff, 0xff, 0xff) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(WETELECOM_VENDOR_ID, WETELECOM_PRODUCT_WMD300, 0xff, 0xff, 0xff) },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(0x03f0, 0x421d, 0xff, 0xff, 0xff) }, /* HP lt2523 (Novatel E371) */
++	{ ALCATEL_USB_DEVICE_AND_INTERFACE_INFO (ALCATEL_VENDOR_ID, 0xff, 0, 0)}, /*Alcatel IK-41-1bbb-01aa*/
++	{ ALCATEL_USB_DEVICE_AND_INTERFACE_INFO (ALCATEL_VENDOR_ID, 0xff, 0xff, 0xff)},
+ 	{ } /* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, option_ids);

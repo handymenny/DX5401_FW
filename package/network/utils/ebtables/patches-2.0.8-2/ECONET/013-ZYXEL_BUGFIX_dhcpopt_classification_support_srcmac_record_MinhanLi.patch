@@ -1,0 +1,26 @@
+Index: ebtables-v2.0.8-2/extensions/ebt_dhcpopt.c
+===================================================================
+--- ebtables-v2.0.8-2.orig/extensions/ebt_dhcpopt.c
++++ ebtables-v2.0.8-2/extensions/ebt_dhcpopt.c
+@@ -58,7 +58,8 @@ static int parse(int c, char **argv, int
+ 			dhcpoptinfo->invflags |= EBT_DHCP_OPTION;
+ 		if (optind > argc)
+ 			ebt_print_error2("Missing DHCP_OPTION argument");
+-			strcpy(dhcpoptinfo->optionString,argv[optind - 1]);
++		strcpy(dhcpoptinfo->optionString,argv[optind - 1]);
++		memset(dhcpoptinfo->SrcMacArray, 0, sizeof(dhcpoptinfo->SrcMacArray));
+ 		break;
+ 
+ 	default:
+Index: ebtables-v2.0.8-2/include/linux/netfilter_bridge/ebt_dhcpopt.h
+===================================================================
+--- ebtables-v2.0.8-2.orig/include/linux/netfilter_bridge/ebt_dhcpopt.h
++++ ebtables-v2.0.8-2/include/linux/netfilter_bridge/ebt_dhcpopt.h
+@@ -13,6 +13,7 @@ struct ebt_dhcpopt_info
+ 	uint8_t  bitmask;
+ 	uint8_t  invflags;
+ 	char optionString[256];
++	char SrcMacArray[OPTION_MAC_ENTRY][ETH_ALEN];
+ };
+ #endif
+ 

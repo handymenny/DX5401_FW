@@ -1,0 +1,77 @@
+Index: uboot-envtools-2012.04.01/Makefile
+===================================================================
+--- uboot-envtools-2012.04.01.orig/Makefile	2021-08-03 11:44:24.095445551 +0800
++++ uboot-envtools-2012.04.01/Makefile	2021-08-03 11:44:29.567930577 +0800
+@@ -26,12 +26,15 @@
+ 
+ CPPFLAGS := -Wall $(CFLAGS)
+ 
+-all: fw_printenv
++all: fw_printenv libubootenv
+ 
+ fw_printenv: $(SRCS) $(HEADERS)
+-	$(CC) $(CPPFLAGS) $(SRCS) -o fw_printenv
++	$(CC) $(CPPFLAGS) $(SRCS) $(TARGET_CFLAGS) -o fw_printenv
++
++libubootenv: $(SRCS) $(HEADERS)
++	$(CC) $(CPPFLAGS) $(SRCS) $(TARGET_CFLAGS) -shared -fPIC -o libubootenv.so
+ 
+ clean:
+-	rm -f fw_printenv
++	rm -f fw_printenv libubootenv.so
+ 
+ #########################################################################
+Index: uboot-envtools-2012.04.01/fw_env.c
+===================================================================
+--- uboot-envtools-2012.04.01.orig/fw_env.c	2021-08-03 11:44:24.115455551 +0800
++++ uboot-envtools-2012.04.01/fw_env.c	2021-08-03 11:44:24.123459552 +0800
+@@ -35,6 +35,7 @@
+ #include <sys/stat.h>
+ #include <unistd.h>
+ #include <zlib.h>
++#include <stdint.h>
+ 
+ #ifdef MTD_OLD
+ # include <stdint.h>
+@@ -392,7 +393,7 @@
+ 	 * Delete any existing definition
+ 	 */
+ 	if (oldval) {
+-#ifndef CONFIG_ENV_OVERWRITE
++#if 0
+ 		/*
+ 		 * Ethernet Address and serial# can be set only once
+ 		 */
+Index: uboot-envtools-2012.04.01/fw_env.h
+===================================================================
+--- uboot-envtools-2012.04.01.orig/fw_env.h	2012-04-25 21:22:50.000000000 +0800
++++ uboot-envtools-2012.04.01/fw_env.h	2021-08-03 11:44:24.123459552 +0800
+@@ -27,6 +27,20 @@
+  * See included "fw_env.config" sample file
+  * for notes on configuration.
+  */
++#if defined(PLATFORM_ECONET)
++#undef CONFIG_FILE
++//#define HAVE_REDUND /* For systems with 2 env sectors */
++#define DEVICE1_NAME      "/dev/mtd0"
++//#define DEVICE2_NAME      "/dev/mtd2"
++#define DEVICE1_OFFSET    0x7c000
++#define ENV1_SIZE         0x4000
++#define DEVICE1_ESIZE     0x20000
++#define DEVICE1_ENVSECTORS     1
++//#define DEVICE2_OFFSET    0x0000
++//#define ENV2_SIZE         0x4000
++//#define DEVICE2_ESIZE     0x4000
++//#define DEVICE2_ENVSECTORS     2
++#else
+ #define CONFIG_FILE     "/etc/fw_env.config"
+ 
+ #define HAVE_REDUND /* For systems with 2 env sectors */
+@@ -40,6 +54,7 @@
+ #define ENV2_SIZE         0x4000
+ #define DEVICE2_ESIZE     0x4000
+ #define DEVICE2_ENVSECTORS     2
++#endif
+ 
+ #define CONFIG_BAUDRATE		115200
+ #define CONFIG_BOOTDELAY	5	/* autoboot after 5 seconds	*/

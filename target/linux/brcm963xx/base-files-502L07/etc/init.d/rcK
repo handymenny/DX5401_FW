@@ -1,0 +1,8 @@
+#! /bin/sh
+
+PATH=/sbin:/bin:/usr/bin:/usr/sbin
+export PATH
+
+for i in /etc/rc6.d/K*; do
+	$i stop
+done

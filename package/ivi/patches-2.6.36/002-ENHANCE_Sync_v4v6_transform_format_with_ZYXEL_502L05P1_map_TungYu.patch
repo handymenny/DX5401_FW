@@ -1,0 +1,430 @@
+Index: ivi-1.0/ivi_xmit.c
+===================================================================
+--- ivi-1.0.orig/ivi_xmit.c	2020-05-21 06:51:30.831039491 +0000
++++ ivi-1.0/ivi_xmit.c	2020-07-31 10:36:08.901554530 +0000
+@@ -35,6 +35,10 @@
+  ************************************************************************/
+ 
+ #include "ivi_xmit.h"
++#if defined(CONFIG_BCM_KF_BLOG)
++#include <linux/blog.h>
++#endif
++#include <net/icmp.h>
+ 
+ 
+ static inline int link_local_addr(const struct in6_addr *addr) {
+@@ -168,13 +172,15 @@
+  				v6addr->s6_addr[i] += (unsigned char)((eabits >> o) & 0xff);
+  				o -= 8;
+   			}
++
+   			v6addr->s6_addr[8] = 0x00;
+-			v6addr->s6_addr[9] = (unsigned char)(addr >> 24);
+-			v6addr->s6_addr[10] = (unsigned char)((addr >> 16) & 0xff);
+-			v6addr->s6_addr[11] = (unsigned char)((addr >> 8) & 0xff);
+-			v6addr->s6_addr[12] = (unsigned char)(addr & 0xff);
+-			v6addr->s6_addr[13] = (suffix >> 8) & 0xff;
+-			v6addr->s6_addr[14] = suffix & 0xff;
++  			v6addr->s6_addr[9] = 0x00;
++			v6addr->s6_addr[10] = (unsigned char)(addr >> 24);
++			v6addr->s6_addr[11] = (unsigned char)((addr >> 16) & 0xff);
++			v6addr->s6_addr[12] = (unsigned char)((addr >> 8) & 0xff);
++			v6addr->s6_addr[13] = (unsigned char)(addr & 0xff);
++			v6addr->s6_addr[14] = (suffix >> 8) & 0xff;
++			v6addr->s6_addr[15] = suffix & 0xff;
+ 		} else {
+ #ifdef IVI_DEBUG_RULE
+ 			printk(KERN_DEBUG "ipaddr_4to6: cannot map v4 addr " NIP4_FMT \
+@@ -191,11 +197,45 @@
+ 		v6addr->s6_addr[13] = (suffix >> 8) & 0xff;
+ 		v6addr->s6_addr[14] = suffix & 0xff;
+ 	} else {
+-		// DMR translation: just copy the addr
+-		v6addr->s6_addr[9] = (unsigned char)(addr >> 24);
+-		v6addr->s6_addr[10] = (unsigned char)((addr >> 16) & 0xff);
+-		v6addr->s6_addr[11] = (unsigned char)((addr >> 8) & 0xff);
+-		v6addr->s6_addr[12] = (unsigned char)(addr & 0xff);
++		// DMR translation: RFC 6052 Section 2.2 Figure 1
++		switch(prefixlen) {
++		case 4:
++			v6addr->s6_addr[4] = (unsigned char)(addr >> 24);
++			v6addr->s6_addr[5] = (unsigned char)((addr >> 16) & 0xff);
++			v6addr->s6_addr[6] = (unsigned char)((addr >> 8) & 0xff);
++			v6addr->s6_addr[7] = (unsigned char)(addr & 0xff);
++			break;
++		case 5:
++			v6addr->s6_addr[5] = (unsigned char)(addr >> 24);
++			v6addr->s6_addr[6] = (unsigned char)((addr >> 16) & 0xff);
++			v6addr->s6_addr[7] = (unsigned char)((addr >> 8) & 0xff);
++			v6addr->s6_addr[9] = (unsigned char)(addr & 0xff);
++			break;
++		case 6:
++			v6addr->s6_addr[6] = (unsigned char)(addr >> 24);
++			v6addr->s6_addr[7] = (unsigned char)((addr >> 16) & 0xff);
++			v6addr->s6_addr[9] = (unsigned char)((addr >> 8) & 0xff);
++			v6addr->s6_addr[10] = (unsigned char)(addr & 0xff);
++			break;
++		case 7:
++			v6addr->s6_addr[7] = (unsigned char)(addr >> 24);
++			v6addr->s6_addr[9] = (unsigned char)((addr >> 16) & 0xff);
++			v6addr->s6_addr[10] = (unsigned char)((addr >> 8) & 0xff);
++			v6addr->s6_addr[11] = (unsigned char)(addr & 0xff);
++			break;
++		case 8:
++			v6addr->s6_addr[9] = (unsigned char)(addr >> 24);
++			v6addr->s6_addr[10] = (unsigned char)((addr >> 16) & 0xff);
++			v6addr->s6_addr[11] = (unsigned char)((addr >> 8) & 0xff);
++			v6addr->s6_addr[12] = (unsigned char)(addr & 0xff);
++			break;
++		case 12:
++			v6addr->s6_addr[12] = (unsigned char)(addr >> 24);
++			v6addr->s6_addr[13] = (unsigned char)((addr >> 16) & 0xff);
++			v6addr->s6_addr[14] = (unsigned char)((addr >> 8) & 0xff);
++			v6addr->s6_addr[15] = (unsigned char)(addr & 0xff);
++			break;
++		}
+ 	}
+ 
+ 	return 0;
+@@ -226,13 +266,13 @@
+ 		return -1;
+ 	}
+ 	
+-	addr |= ((unsigned int)v6addr->s6_addr[9]) << 24;
+-	addr |= ((unsigned int)v6addr->s6_addr[10]) << 16;
+-	addr |= ((unsigned int)v6addr->s6_addr[11]) << 8;
+-	addr |= ((unsigned int)v6addr->s6_addr[12]);
+-	*v4addr = htonl(addr);
+-
+ 	if (_dir == ADDR_DIR_DST) {		
++		addr |= ((unsigned int)v6addr->s6_addr[10]) << 24;
++		addr |= ((unsigned int)v6addr->s6_addr[11]) << 16;
++		addr |= ((unsigned int)v6addr->s6_addr[12]) << 8;
++		addr |= ((unsigned int)v6addr->s6_addr[13]);
++		*v4addr = htonl(addr);
++
+ 		// Do not translate native IPv6 address
+ 		if (ivi_mode == IVI_MODE_HGW && ((addr & v4mask) != (v4address & v4mask))) {
+ 			//printk(KERN_DEBUG "ipaddr6to4: destination address not translated\n");
+@@ -250,6 +290,7 @@
+ 	}
+ 
+ 	else if (_dir == ADDR_DIR_SRC) {
++
+ 		if (ivi_rule6_lookup(v6addr, &prefixlen, &prefix4, &plen4, ratio, adjacent, &fmt) != 0) {
+ 			// Solve the problem of "MAP-T packet's src address doesn't have a matching rule in MAP-E opposite end"
+ 			*ratio = 1;
+@@ -260,22 +301,136 @@
+ 
+ 		/* offset is obtained from Interface Identifier */	
+ 		if (fmt == ADDR_FMT_MAPT)
++		{
+ 			*offset = (v6addr->s6_addr[13] << 8) + v6addr->s6_addr[14];
++			addr |= ((unsigned int)v6addr->s6_addr[9]) << 24;
++			addr |= ((unsigned int)v6addr->s6_addr[10]) << 16;
++			addr |= ((unsigned int)v6addr->s6_addr[11]) << 8;
++			addr |= ((unsigned int)v6addr->s6_addr[12]);
++			*v4addr = htonl(addr);
++		}
+ 		else if (fmt == ADDR_FMT_NONE)
++		{
+ 			*offset = 0;
++
++			switch(prefixlen) {
++			case 32:
++				addr |= ((unsigned int)v6addr->s6_addr[4]) << 24;
++				addr |= ((unsigned int)v6addr->s6_addr[5]) << 16;
++				addr |= ((unsigned int)v6addr->s6_addr[6]) << 8;
++				addr |= ((unsigned int)v6addr->s6_addr[7]);
++				*v4addr = htonl(addr);
++				break;
++			case 40:
++				addr |= ((unsigned int)v6addr->s6_addr[5]) << 24;
++				addr |= ((unsigned int)v6addr->s6_addr[6]) << 16;
++				addr |= ((unsigned int)v6addr->s6_addr[7]) << 8;
++				addr |= ((unsigned int)v6addr->s6_addr[9]);
++				*v4addr = htonl(addr);
++				break;
++			case 48:
++				addr |= ((unsigned int)v6addr->s6_addr[6]) << 24;
++				addr |= ((unsigned int)v6addr->s6_addr[7]) << 16;
++				addr |= ((unsigned int)v6addr->s6_addr[9]) << 8;
++				addr |= ((unsigned int)v6addr->s6_addr[10]);
++				*v4addr = htonl(addr);
++				break;
++			case 56:
++				addr |= ((unsigned int)v6addr->s6_addr[7]) << 24;
++				addr |= ((unsigned int)v6addr->s6_addr[9]) << 16;
++				addr |= ((unsigned int)v6addr->s6_addr[10]) << 8;
++				addr |= ((unsigned int)v6addr->s6_addr[11]);
++				*v4addr = htonl(addr);
++				break;
++			case 64:
++				addr |= ((unsigned int)v6addr->s6_addr[9]) << 24;
++				addr |= ((unsigned int)v6addr->s6_addr[10]) << 16;
++				addr |= ((unsigned int)v6addr->s6_addr[11]) << 8;
++				addr |= ((unsigned int)v6addr->s6_addr[12]);
++				*v4addr = htonl(addr);
++				break;
++			case 96:
++				addr |= ((unsigned int)v6addr->s6_addr[12]) << 24;
++				addr |= ((unsigned int)v6addr->s6_addr[13]) << 16;
++				addr |= ((unsigned int)v6addr->s6_addr[14]) << 8;
++				addr |= ((unsigned int)v6addr->s6_addr[15]);
++				*v4addr = htonl(addr);
++				break;
++			}
++		}
+ 	}
+ 
+ 	return retval;
+ }
+ 
+-int ivi_v4v6_xmit(struct sk_buff *skb) {
++static inline
++int native_v6_daddr(const struct in6_addr *v6addr) {
++	u32 addr = 0;
++
++	// Caller is responsible for providing IPv6 destination address
++	addr |= ((unsigned int)v6addr->s6_addr[10]) << 24;
++	addr |= ((unsigned int)v6addr->s6_addr[11]) << 16;
++	addr |= ((unsigned int)v6addr->s6_addr[12]) << 8;
++	addr |= ((unsigned int)v6addr->s6_addr[13]);
++
++	return (ivi_mode == IVI_MODE_HGW ? (addr & v4mask) != (v4address & v4mask) : (addr & v4publicmask) != (v4publicaddr & v4publicmask));
++}
++
++static inline
++uint16_t _compute_icsum32(uint16_t csum16, uint32_t old32, uint32_t new32)
++{
++	register uint16_t *optr = (uint16_t *)&old32;
++	register uint16_t *nptr = (uint16_t *)&new32;
++	register uint32_t csum32;
++
++	/* build delta checksum */
++	csum32 = ( (__force uint32_t)(csum16  ^ 0xFFFF)
++				+ (__force uint32_t)(optr[0] ^ 0xFFFF)
++				+ (__force uint32_t)(optr[1] ^ 0xFFFF)
++				+ (__force uint32_t)nptr[0]
++				+ (__force uint32_t)nptr[1]
++	);
++	while (csum32 >> 16)/* factor in carry over to effect 1's complement sum */
++		csum32 = (csum32 & 0xFFFF) + (csum32 >> 16);
++
++	return ((__force uint16_t)csum32 ^ 0xFFFF); /* 1's complement */
++}
++
++static inline
++uint16_t _compute_icsum16(uint16_t csum16, uint16_t old16, uint16_t new16)
++{
++	register uint32_t csum32;
++
++	/* build delta checksum */
++	csum32 = ( (__force uint32_t)(csum16 ^ 0xFFFF)
++				+ (__force uint32_t)(old16  ^ 0xFFFF)
++				+ (__force uint32_t)new16
++	);
++	while (csum32 >> 16)/* factor in carry over to effect 1's complement sum */
++		csum32 = (csum32 & 0xFFFF) + (csum32 >> 16);
++
++	return ((__force uint16_t)csum32 ^ 0xFFFF); /* 1's complement */
++}
++
++static inline
++u16 _apply_icsum( u16 csum16, u32 delta32)
++{
++	u32 csum32 = (__force u32)csum16 + delta32;
++
++	while (csum32 >> 16)/* factor in carry over to effect 1's complement sum */
++		csum32 = (csum32 & 0xFFFF) + (csum32 >> 16);
++
++	return ((__force u16)csum32);
++}
++
++int ivi_v4v6_xmit(struct sk_buff *skb, unsigned int mtu) {
+ 	struct sk_buff *newskb;
+ 	struct ethhdr *eth4, *eth6;
+ 	struct iphdr *ip4h;
+ 	struct ipv6hdr *ip6h;
+ 	struct tcphdr *tcph;
+ 	struct udphdr *udph;
+-	struct icmphdr *icmph;
++	struct icmphdr *icmph=NULL;
+ 	struct icmp6hdr *icmp6h;
+ 	__u8 *payload;
+ 	unsigned int hlen, plen;
+@@ -302,6 +457,13 @@
+ 		return -EINVAL;  // Just accept.
+ 	}
+ 
++	if (ipv4_is_multicast(ip4h->saddr) || ipv4_is_zeronet(ip4h->saddr) || ipv4_is_loopback(ip4h->saddr)) {
++#ifdef IVI_DEBUG
++		printk(KERN_DEBUG "ivi_v4v6_xmit: by pass ipv4 multicast/zeronet/loopback src address.\n");
++#endif
++		return -EINVAL;  // Just accept.
++	}
++
+ 	// Do not translate ipv4 packets (hair pin) that are toward v4network.
+ 	if (addr_in_v4network(&(ip4h->daddr))) {
+ #ifdef IVI_DEBUG
+@@ -338,8 +500,13 @@
+ 				newp = ntohs(tcph->source);
+ 			}
+ 			
++#if 1
+ 			else if (get_outflow_tcp_map_port(ntohl(ip4h->saddr), ntohs(tcph->source), ntohl(ip4h->daddr), \
+ 				ntohs(tcph->dest), hgw_ratio, hgw_adjacent, hgw_offset, tcph, plen, &newp) == -1) {
++#else
++			else if (get_outflow_map_port(&tcp_list, ntohl(ip4h->saddr), ntohs(tcph->source), \
++				ntohl(ip4h->daddr), hgw_ratio, hgw_adjacent, hgw_offset, &newp, skb) == -1) {
++#endif
+ #ifdef IVI_DEBUG
+ 				printk(KERN_ERR "ivi_v4v6_xmit: fail to perform nat44 mapping for " NIP4_FMT \
+ 				                ":%d (TCP).\n", NIP4(ip4h->saddr), ntohs(tcph->source));
+@@ -592,6 +759,11 @@
+ 		return -EINVAL;
+ 	}
+ 
++	// By pass ipv6 link local address
++	if (link_local_addr(&(ip6h->saddr)) || link_local_addr(&(ip6h->daddr))) {
++		return -EINVAL;
++	}
++
+ 	// leave the generation of ICMP packet to the protocol stack
+ 	if (ip6h->hop_limit <= 1) {
+ 		return -EINVAL;
+@@ -629,7 +801,11 @@
+ 			ext_hdr += (*(ext_hdr + 1) << 3) + 8;
+ 		}
+ 	}
+-	
++
++	// Do not translate native ipv6 address.
++	if (next_hdr != IPPROTO_IPIP && native_v6_daddr(&(ip6h->daddr))) {
++		return -EINVAL;
++	}
+ 	if (!(newskb = dev_alloc_skb(2 + ETH_HLEN + max(hlen + plen, 184) + 20))) {
+ 		printk(KERN_ERR "ivi_v6v4_xmit: failed to allocate new socket buffer.\n");
+ 		return 0;  // Drop packet on low memory
+@@ -750,25 +926,71 @@
+ 						return 0; // silently drop
+ 					}
+ 				} 
+-				else if (icmph->type == ICMP_TIME_EXCEEDED) {
++				else if (icmph->type == ICMP_TIME_EXCEEDED || icmph->type == ICMP_DEST_UNREACH) {
++					icmph->checksum = 0;
+ 					icmp_ip4h = (struct iphdr *)((__u8 *)icmph + 8);
+-					if (icmp_ip4h->protocol == IPPROTO_ICMP) {
+-						icmp_icmp4h = (struct icmphdr *)((__u8 *)icmp_ip4h + (icmp_ip4h->ihl << 2));
+-						if (icmp_icmp4h->type == ICMP_ECHO) {
+-							if (get_inflow_map_port(&icmp_list, ntohs(icmp_icmp4h->un.echo.id), \
++					switch (icmp_ip4h->protocol) {
++						case IPPROTO_TCP:
++							icmp_tcph = (struct tcphdr *)((__u8 *)icmp_ip4h + (icmp_ip4h->ihl << 2));
++							oldaddr = oldp = 0;
++#if 1
++							get_inflow_tcp_map_port(ntohs(icmp_tcph->source), ntohl(icmp_ip4h->daddr), \
++							    ntohs(icmp_tcph->dest), icmp_tcph, ntohs(icmp_ip4h->tot_len) - 20,&oldaddr, &oldp);
++#else
++							get_inflow_map_port(&tcp_list, ntohs(icmp_tcph->source), ntohl(icmp_ip4h->daddr), \
++							                        &oldaddr, &oldp, skb);
++#endif
++							if (oldaddr == 0 && oldp == 0) // Many ICMP packets have an uncomplete inside TCP structure:
++							                               // return value is -1 alone cannot imply a fail lookup.
++								printk(KERN_ERR "ivi_v6v4_xmit: fail to perform nat44 mapping for %d (TCP) "\
++								                "in IP packet.\n", ntohs(icmp_tcph->source));
++							else {
++								csum_replace4(&icmp_tcph->check, icmp_ip4h->saddr, htonl(oldaddr));
++								csum_replace4(&icmp_ip4h->check, icmp_ip4h->saddr, htonl(oldaddr));
++								csum_replace4(&ip4h->check, ip4h->daddr, htonl(oldaddr));
++								icmp_ip4h->saddr = ip4h->daddr = htonl(oldaddr);
++								csum_replace2(&icmp_tcph->check, icmp_tcph->source, htons(oldp));
++								icmp_tcph->source = htons(oldp);
++							}
++							break;
++						case IPPROTO_UDP:
++							icmp_udph = (struct udphdr *)((__u8 *)icmp_ip4h + (icmp_ip4h->ihl << 2));
++							if (get_inflow_map_port(&udp_list, ntohs(icmp_udph->source), \
+ 							                   ntohl(icmp_ip4h->daddr), &oldaddr, &oldp) == -1) {
+-								printk(KERN_ERR "ivi_v6v4_xmit: fail to perform nat44 mapping for %d (ICMP) "\
+-								                "in IP packet.\n", ntohs(icmph->un.echo.id));
++								printk(KERN_ERR "ivi_v6v4_xmit: fail to perform nat44 mapping for %d (UDP) "\
++								                "in IP packet.\n", ntohs(icmp_udph->source));
+ 								kfree_skb(newskb);
+ 								return 0;
+ 							} else {
++								csum_replace4(&icmp_udph->check, icmp_ip4h->saddr, htonl(oldaddr));
+ 								csum_replace4(&icmp_ip4h->check, icmp_ip4h->saddr, htonl(oldaddr));
+-								icmp_ip4h->saddr = htonl(oldaddr);					
+-								csum_replace2(&icmp_icmp4h->checksum, icmp_icmp4h->un.echo.id, htons(oldp));
+-								icmp_icmp4h->un.echo.id = htons(oldp);
++								csum_replace4(&ip4h->check, ip4h->daddr, htonl(oldaddr));
++								icmp_ip4h->saddr = ip4h->daddr = htonl(oldaddr);
++								csum_replace2(&icmp_udph->check, icmp_udph->source, htons(oldp));
++								icmp_udph->source = htons(oldp);
+ 							}
+-						}
++							break;
++						case IPPROTO_ICMP:
++							icmp_icmp4h = (struct icmphdr *)((__u8 *)icmp_ip4h + (icmp_ip4h->ihl << 2));
++							if (icmp_icmp4h->type == ICMP_ECHO) {
++								if (get_inflow_map_port(&icmp_list, ntohs(icmp_icmp4h->un.echo.id), \
++								                   ntohl(icmp_ip4h->daddr), &oldaddr, &oldp) == -1) {
++									printk(KERN_ERR "ivi_v6v4_xmit: fail to perform nat44 mapping for %d (ICMP) "\
++									                "in IP packet.\n", ntohs(icmp_icmp4h->un.echo.id));
++									kfree_skb(newskb);
++									return 0;
++								} else {
++									csum_replace4(&icmp_ip4h->check, icmp_ip4h->saddr, htonl(oldaddr));
++									icmp_ip4h->saddr = htonl(oldaddr);
++									csum_replace2(&icmp_icmp4h->checksum, icmp_icmp4h->un.echo.id, htons(oldp));
++									icmp_icmp4h->un.echo.id = htons(oldp);
++								}
++							}
++							break;
++						default:
++							break;
+ 					}
++					icmph->checksum = ip_compute_csum(icmph, plen - (ip4h->ihl * 4));
+ 				}
+ 				break;
+ 
+Index: ivi-1.0/ivi_xmit.h
+===================================================================
+--- ivi-1.0.orig/ivi_xmit.h	2020-05-21 06:51:30.831039491 +0000
++++ ivi-1.0/ivi_xmit.h	2020-07-31 10:36:08.901554530 +0000
+@@ -77,7 +77,7 @@
+ 
+ extern u16 mss_limit;
+ 
+-extern int ivi_v4v6_xmit(struct sk_buff *skb);
++extern int ivi_v4v6_xmit(struct sk_buff *skb, unsigned int mtu);
+ extern int ivi_v6v4_xmit(struct sk_buff *skb);
+ extern int ivi_v4_dev(struct net_device *dev);
+ extern int ivi_v6_dev(struct net_device *dev);
+Index: ivi-1.0/ivi_nf.c
+===================================================================
+--- ivi-1.0.orig/ivi_nf.c	2020-05-21 06:51:30.831039491 +0000
++++ ivi-1.0/ivi_nf.c	2020-07-31 10:36:08.901554530 +0000
+@@ -47,7 +47,7 @@
+ 		return NF_ACCEPT;
+ 	}
+ 
+-	if (ivi_v4v6_xmit(skb) == 0) {
++	if (ivi_v4v6_xmit(skb, v6_dev->mtu) == 0) {
+ 		return NF_DROP;
+ 	}
+ 	else {
+Index: ivi-1.0/ivi_ioctl.h
+===================================================================
+--- ivi-1.0.orig/ivi_ioctl.h	2020-05-21 06:51:30.831039491 +0000
++++ ivi-1.0/ivi_ioctl.h	2020-07-31 10:37:30.313553753 +0000
+@@ -42,7 +42,7 @@
+ 
+ #define IVI_DEVNAME	"ivi"
+ 
+-#define IVI_IOCTL	24
++#define IVI_IOCTL	3015
+ 
+ #define IVI_IOC_V4DEV	_IOW(IVI_IOCTL, 0x10, int)
+ #define IVI_IOC_V6DEV	_IOW(IVI_IOCTL, 0x11, int)

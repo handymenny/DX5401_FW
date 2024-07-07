@@ -1,0 +1,34 @@
+Index: linux-4.1.52/drivers/mtd/nand/bcm63xx_spinand.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/nand/bcm63xx_spinand.c
++++ linux-4.1.52/drivers/mtd/nand/bcm63xx_spinand.c
+@@ -1375,6 +1375,7 @@ static int spi_nand_write_page(unsigned
+     unsigned char *spi_buf  = kmalloc(sizeof(unsigned char) * spi_max_op_len, GFP_ATOMIC);  /* HS_SPI_BUFFER_LEN SPI controller fifo size is currently 512 bytes */
+ 	size_t xfer_buf_size = sizeof(unsigned char) * (pchip->chip_page_size + pchip->chip_spare_size);
+     unsigned char *xfer_buf = kmalloc(xfer_buf_size, GFP_ATOMIC);	
++    int isFirst = 1;
+ 
+     if((NULL == spi_buf) || (NULL == xfer_buf))
+     {
+@@ -1447,7 +1448,20 @@ static int spi_nand_write_page(unsigned
+         /* Send Program Load Random Data Command (0x84) to load data to cache register.
+          * PROGRAM LOAD consists of an 8-bit Op code, followed by 4 bit dummy and a
+          * 12-bit column address, then the data bytes to be programmed. */
+-        spi_buf[0] = FLASH_PROG_RAN;
++        /* According to datasheet of W25M02GV, the "LOAD PROGRAM DATA" instruction
++           has to be issued to prior to "RANDOM LOAD PROGRAM DATA" instruction for
++           random page program.*/
++        if ( pchip->chip_device_id[0] == WINBONDPART   &&\
++             pchip->chip_device_id[1] == ID_W25M02GV_1 &&\
++             pchip->chip_device_id[2] == ID_W25M02GV_2)
++        {
++            spi_buf[0] = isFirst?FLASH_PROG:FLASH_PROG_RAN;
++        }else
++            spi_buf[0] = FLASH_PROG_RAN;
++
++        if( isFirst == 1 )
++            isFirst=0;
++
+         spi_nand_col_addr(page_addr, page_offset, spi_buf + 1);
+ 
+         maxwrite = (len > (spi_max_op_len - 5)) ? (spi_max_op_len - 5) : len;

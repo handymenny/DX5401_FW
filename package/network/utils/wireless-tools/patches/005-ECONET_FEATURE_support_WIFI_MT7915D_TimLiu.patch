@@ -1,0 +1,13 @@
+Index: wireless_tools.29/iwpriv.c
+===================================================================
+--- wireless_tools.29.orig/iwpriv.c	2007-02-17 09:17:43.000000000 +0800
++++ wireless_tools.29/iwpriv.c	2020-03-24 21:21:12.645368237 +0800
+@@ -259,7 +259,7 @@
+ 		int		priv_num)	/* Number of descriptions */
+ {
+   struct iwreq	wrq;
+-  u_char	buffer[4096];	/* Only that big in v25 and later */
++  u_char	buffer[32768];	/* Only that big in v25 and later */
+   int		i = 0;		/* Start with first command arg */
+   int		k;		/* Index in private description table */
+   int		temp;

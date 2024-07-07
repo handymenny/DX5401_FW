@@ -1,0 +1,53 @@
+diff -urN dropbear-2018.76.org/Makefile.in dropbear-2018.76/Makefile.in
+--- dropbear-2018.76.org/Makefile.in	2020-10-07 00:45:38.932047700 +0800
++++ dropbear-2018.76/Makefile.in	2020-10-07 14:11:20.180550998 +0800
+@@ -113,6 +113,10 @@
+ 	CFLAGS += -DZYXEL_REMOMGMT_ONLY_HTTPS_ALLOWS_FOR_WLAN_CONNECT
+ endif
+ 
++ifeq ($(CONFIG_ABUU_CUSTOMIZATION),y)
++	CFLAGS += -DABUU_CUSTOMIZATION
++endif
++
+ ifeq ($(CONFIG_ZYXEL_CLI_IDLE_TIMEOUT),y)
+ 	CFLAGS += -DZYXEL_CLI_IDLE_TIMEOUT
+ endif
+diff -urN dropbear-2018.76.org/svr-auth.c dropbear-2018.76/svr-auth.c
+--- dropbear-2018.76.org/svr-auth.c	2020-10-07 00:45:38.936047700 +0800
++++ dropbear-2018.76/svr-auth.c	2020-10-07 14:12:44.748547319 +0800
+@@ -659,6 +659,11 @@
+ 	char *tmpPtr = NULL;
+ 	char remoAddr[64]={0}, hostip[64]={0}; 
+ 	int authGpPrivilege = 1 ;
++#ifdef ABUU_CUSTOMIZATION
++	bool autoDisableHighUser = false;
++	objIndex_t logCfgIid;
++	rdm_ZyLogCfg_t *logCfgObj = NULL;
++#endif
+ 
+ #ifdef ZLD_APPS_ENABLE_CENTRALIZELOG /* Modified by ZyXEL */
+ 	char *pp;
+@@ -727,6 +732,13 @@
+ 	}
+ 	
+ 	if (authGpPrivilege){
++#ifdef ABUU_CUSTOMIZATION
++		IID_INIT(logCfgIid);
++		if(zcfgFeObjStructGet(RDM_OID_ZY_LOG_CFG, &logCfgIid, (void **) &logCfgObj) == ZCFG_SUCCESS){
++			autoDisableHighUser = logCfgObj->AutoDisableHighUser;
++			zcfgFeObjStructFree(logCfgObj);
++		}
++#endif	
+ 		while(zcfgFeObjStructGetNext(RDM_OID_ZY_LOG_CFG_GP_ACCOUNT, &logAccountObjIid, (void **) &accountObj) == ZCFG_SUCCESS) {
+ 			if (!strcmp(accountObj->Username, username)){
+ 				logGpObjIid.level = logAccountObjIid.level - 1;
+@@ -751,6 +763,9 @@
+ #ifdef ZYXEL_REMOTE_ACCOUNT_ACCESS_PRIVILEGE				
+ 				|| strstr(accountObj->Privilege, SSH)== NULL
+ #endif
++#ifdef ABUU_CUSTOMIZATION
++				|| (autoDisableHighUser == true && !strcmp("root", username))
++#endif	
+ 			    ){
+ 				syslog(LOG_INFO, "Account:'%s' SSH permission denied.", username);
+ 				TRACE(("leave check username:'%s' SSH permission denied.", username))

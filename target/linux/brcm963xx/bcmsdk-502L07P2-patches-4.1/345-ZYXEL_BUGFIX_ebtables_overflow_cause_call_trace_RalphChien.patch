@@ -1,0 +1,18 @@
+Index: linux-4.1.52/include/uapi/linux/netfilter_bridge/ebt_ip.h
+===================================================================
+--- linux-4.1.52.orig/include/uapi/linux/netfilter_bridge/ebt_ip.h
++++ linux-4.1.52/include/uapi/linux/netfilter_bridge/ebt_ip.h
+@@ -43,7 +43,12 @@
+  EBT_IP_SPORT | EBT_IP_DPORT | EBT_IP_LENGTH | EBT_IP_TCP_FLAGS |\
+  EBT_IP_DHCP_OPT60 | EBT_IP_DHCP_OPT61 | EBT_IP_DHCP_OPT77 | EBT_IP_DHCP_OPT125)
+ #endif
+-#define DHCP_OPTION_MAX_LEN 576 /* IP header(20) + UDP header(8)+ DHCP header(548) */
++
++/*
++ * IP header(20) + UDP header(8) + DHCP header(300~)
++ * give big length avoid overflow.
++*/
++#define DHCP_OPTION_MAX_LEN 1024
+ 
+ #define DHCP_PADDING                            0x00
+ #define DHCP_VENDOR                             0x3c    /*option 60 */

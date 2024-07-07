@@ -1,0 +1,13 @@
+Index: busybox-1_20_1/shell/ash.c
+===================================================================
+--- busybox-1_20_1.orig/shell/ash.c	2020-09-03 10:21:50.306531862 +0800
++++ busybox-1_20_1/shell/ash.c	2020-09-03 11:09:31.270368080 +0800
+@@ -2085,7 +2085,7 @@
+ 	/*
+ 	 * PS1 depends on uid
+ 	 */
+-#if ENABLE_FEATURE_EDITING && ENABLE_FEATURE_EDITING_FANCY_PROMPT
++#if ENABLE_FEATURE_EDITING && ENABLE_FEATURE_EDITING_FANCY_PROMPT && !MSTC_TTNET_MULTI_USER
+ 	vps1.var_text = "PS1=\\w \\$ ";
+ #else
+ 	if (!geteuid())

@@ -1,0 +1,44 @@
+Index: linux-4.1.52/include/uapi/linux/sockios.h
+===================================================================
+--- linux-4.1.52.orig/include/uapi/linux/sockios.h
++++ linux-4.1.52/include/uapi/linux/sockios.h
+@@ -138,6 +138,7 @@
+ #endif
+ #if !defined(CONFIG_BCM_IN_KERNEL) || defined(CONFIG_BCM_KF_WANDEV)
+ #define SIOCDEVISWANDEV    (SIOC_BRCM_GLOBAL_BASE+2)
++#define SIOCSDEVSETWAN    (SIOC_BRCM_GLOBAL_BASE+3)
+ #endif
+ 
+ /* Device private ioctl calls */
+Index: linux-4.1.52/net/core/dev_ioctl.c
+===================================================================
+--- linux-4.1.52.orig/net/core/dev_ioctl.c
++++ linux-4.1.52/net/core/dev_ioctl.c
+@@ -359,6 +359,17 @@ static int dev_ifsioc(struct net *net, s
+ 		if (err)
+ 			return err;
+ 		/* fall through */
++#if defined(CONFIG_BCM_KF_WANDEV)
++	case SIOCSDEVSETWAN:
++		printk("%s %d lfags %d\n", __func__, __LINE__, ifr->ifr_flags);
++		if(ifr->ifr_flags == 1)
++		{
++			dev->priv_flags |=IFF_WANDEV;
++		}
++		else
++			dev->priv_flags &=(!IFF_WANDEV);
++		return 0;
++#endif
+ 
+ 	/*
+ 	 *	Unknown or private ioctl
+@@ -581,6 +592,9 @@ int dev_ioctl(struct net *net, unsigned
+ 		/* fall through */
+ 	case SIOCBONDSLAVEINFOQUERY:
+ 	case SIOCBONDINFOQUERY:
++#if defined(CONFIG_BCM_KF_MISC_IOCTLS)
++	case SIOCSDEVSETWAN:
++#endif
+ 		dev_load(net, ifr.ifr_name);
+ 		rtnl_lock();
+ 		ret = dev_ifsioc(net, &ifr, cmd);

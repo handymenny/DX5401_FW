@@ -1,0 +1,58 @@
+Index: clinkc/src/cybergarage/ssl/cssl.c
+===================================================================
+--- clinkc.orig/src/cybergarage/ssl/cssl.c
++++ clinkc/src/cybergarage/ssl/cssl.c
+@@ -91,7 +91,7 @@ BOOL cg_ssl_set_cert(CgSocket *sock, Cgc
+ 
+ BOOL cg_ssl_set_ca(CgSocket *sock, Cgctx *ctxdata ){
+ 	char caname[256]={0};
+-#ifndef USA_PRODUCT
++#if !defined(USA_PRODUCT) || ( defined(USA_PRODUCT) && defined(STARRY_CUSTOMIZATION) )
+ 	int verify_apply = 0;
+ #endif
+ 
+@@ -112,22 +112,23 @@ BOOL cg_ssl_set_ca(CgSocket *sock, Cgctx
+ 		printf("%s, decrypt certificate to %s\n", __FUNCTION__, ROOT_CERT_FILE);
+ 		ctxdata->CAfile = ROOT_CERT_FILE;
+ #endif
++	printf("[SSL] getCA in CA file\n");
+ 	if (ctxdata->CAfile != NULL){
+ 		if (! SSL_CTX_load_verify_locations(sock->ctx, ctxdata->CAfile, ctxdata->CApath)){
+ 			cg_log_debug_l4( "Load Trust Certificate Authority File : [%s/%s] Fail\n", ctxdata->CApath, ctxdata->CAfile);
+ 		}
+ 		cg_ssl_set_verify(sock, ctxdata);
+-#ifndef USA_PRODUCT
++#if !defined(USA_PRODUCT) || ( defined(USA_PRODUCT) && defined(STARRY_CUSTOMIZATION) )
+ 		verify_apply = 1;
+ #endif
+ #ifdef ZYXEL_TR69_CERT_MTD
+ 		unlink(ROOT_CERT_FILE);
+ #endif
+ 	}
+-	else if(ctxdata->CApath != NULL){//dir
++	if(ctxdata->CApath != NULL){//dir
+ 		int num = 0;
+ 		struct dirent **fileList;
+-
++		printf("[SSL] getCA from CA path\n");
+ 		chdir(ctxdata->CApath);
+ 		num = scandir(ctxdata->CApath, &fileList, (void *)cg_ssl_filter_cafile, alphasort);
+ 
+@@ -149,7 +150,7 @@ BOOL cg_ssl_set_ca(CgSocket *sock, Cgctx
+ 				}
+ 				num = 1;
+ 				cg_ssl_set_verify(sock, ctxdata);
+-#ifndef USA_PRODUCT
++#if !defined(USA_PRODUCT) || ( defined(USA_PRODUCT) && defined(STARRY_CUSTOMIZATION) )
+ 				verify_apply = 1;
+ #endif
+ 			}
+@@ -160,7 +161,7 @@ BOOL cg_ssl_set_ca(CgSocket *sock, Cgctx
+ 		}
+ 	}
+ 
+-#ifndef USA_PRODUCT
++#if !defined(USA_PRODUCT) || ( defined(USA_PRODUCT) && defined(STARRY_CUSTOMIZATION) )
+ 	//should always call cg_ssl_set_verify even there is no trust CA
+ 	if (!verify_apply)
+ 		cg_ssl_set_verify(sock, ctxdata);

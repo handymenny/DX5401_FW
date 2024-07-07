@@ -1,0 +1,96 @@
+Index: ntpclient-2007/Makefile
+===================================================================
+--- ntpclient-2007.orig/Makefile	2021-04-12 12:31:16.550556922 +0800
++++ ntpclient-2007/Makefile	2021-04-12 15:14:32.096744803 +0800
+@@ -14,6 +14,9 @@
+ CFLAGS += -DENABLE_REPLAY
+ # CFLAGS += -DUSE_OBSOLETE_GETTIMEOFDAY
+ CFLAGS += -DZyXEL_PATCH
++ifeq ($(CONFIG_ZYXEL_TTNET_NTP_MULTIWAN),y)
++CFLAGS += -DZYXEL_TTNET_NTP_MULTIWAN
++endif
+ 
+ ZYXEL_LIBS = -lzcfg_msg -lzlog -lzos
+ LDFLAGS += -lrt $(ZYXEL_LIBS)
+Index: ntpclient-2007/ntpclient.c
+===================================================================
+--- ntpclient-2007.orig/ntpclient.c	2021-04-12 12:31:16.554556921 +0800
++++ ntpclient-2007/ntpclient.c	2021-04-12 15:16:25.266460074 +0800
+@@ -96,6 +96,13 @@
+ #define  DIAG_OPTION
+ #endif
+ 
++#ifdef ZYXEL_TTNET_NTP_MULTIWAN//wan interface of NTP
++#define  WAN_OPTION   "w:x:"
++#else
++#define  WAN_OPTION
++#endif
++
++
+ extern char *optarg;  /* according to man 2 getopt */
+ 
+ #include <stdint.h>
+@@ -175,6 +182,11 @@
+ 	int diag_test;
+ 	zcfgEid_t msg_receiver_eid;
+ #endif	
++#ifdef ZYXEL_TTNET_NTP_MULTIWAN//wan interface NTP
++	char wanInterface[12];
++	char gateWayAddr[17];
++#endif
++
+ };
+ 
+ /* prototypes for some local routines */
+@@ -586,6 +598,15 @@
+ 	stuff_net_addr(&(sa_dest.sin_addr),host);
+ #endif
+ 	memcpy(ntpc->serv_addr,&(sa_dest.sin_addr),4); /* XXX asumes IPv4 */
++#ifdef ZYXEL_TTNET_NTP_MULTIWAN//TTnet, wan interface of NTP
++	//printf("setup_transmit: ---%s---%s--%s--\r\n",inet_ntoa(sa_dest.sin_addr),ntpc->wanInterface,ntpc->gateWayAddr);
++	char routeCmd[128] = {0};
++	if(strcmp(ntpc->gateWayAddr, "") && strcmp(ntpc->gateWayAddr, "wanInterface"))
++	sprintf(routeCmd,"ip route add %s/32 via %s dev %s",inet_ntoa(sa_dest.sin_addr),ntpc->gateWayAddr,ntpc->wanInterface);
++	system(routeCmd);
++	printf("%s %d routeCmd=%s\n", __func__, __LINE__, routeCmd);
++	sprintf(gRouteDelCmd,"ip route del %s/32 via %s dev %s",inet_ntoa(sa_dest.sin_addr),ntpc->gateWayAddr,ntpc->wanInterface);
++#endif
+ 	sa_dest.sin_port=htons(port);
+ 	if (connect(usd,(struct sockaddr *)&sa_dest,sizeof sa_dest)==-1)
+ #ifdef ZyXEL_PATCH
+@@ -795,9 +816,18 @@
+ 	ntpc.msg_receiver_eid = 0;
+ 	ntpclient_eid_register();
+ #endif	
++#ifdef ZYXEL_TTNET_NTP_MULTIWAN//wan interface NTP
++	memset(ntpc.wanInterface, 0, sizeof(ntpc.ntp_server));
++	memset(ntpc.gateWayAddr, 0, sizeof(ntpc.gateWayAddr));
++#endif
++
+ 
+ 	for (;;) {
++#ifdef ZYXEL_TTNET_NTP_MULTIWAN//wan interface NTP
++		c = getopt( argc, argv, "c:" DEBUG_OPTION "f:g:h:i:lp:q:" REPLAY_OPTION SEND_MSG_OPTION FIRST_SYNC_OPTION DIAG_OPTION WAN_OPTION "st");
++#else
+ 		c = getopt( argc, argv, "c:" DEBUG_OPTION "f:g:h:i:lp:q:" REPLAY_OPTION SEND_MSG_OPTION FIRST_SYNC_OPTION DIAG_OPTION "st");
++#endif
+ 		if (c == EOF) break;
+ 		switch (c) {
+ 			case 'c':
+@@ -872,6 +902,16 @@
+ 				ntpc.diag_test = 1; //Note: only support one ntp server for diag test
+ 				break;
+ #endif
++#ifdef ZYXEL_TTNET_NTP_MULTIWAN//wan interface NTP
++			case 'w':
++				memset(ntpc.wanInterface, '\0', sizeof(ntpc.wanInterface));
++				strcpy(ntpc.wanInterface,optarg);
++				break;
++			case 'x':
++				memset(ntpc.gateWayAddr, '\0', sizeof(ntpc.gateWayAddr));
++				strcpy(ntpc.gateWayAddr,optarg);
++				break;
++#endif
+ 			default:
+ 				usage(argv[0]);
+ 				exit(1);

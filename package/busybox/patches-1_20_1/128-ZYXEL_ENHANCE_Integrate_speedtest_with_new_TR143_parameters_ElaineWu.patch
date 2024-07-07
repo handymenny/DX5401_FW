@@ -1,0 +1,387 @@
+Index: busybox-1_20_1/networking/wget.c
+===================================================================
+--- busybox-1_20_1.orig/networking/wget.c
++++ busybox-1_20_1/networking/wget.c
+@@ -26,6 +26,13 @@
+ //usage:     "\n	-c	Continue retrieval of aborted transfer"
+ //usage:     "\n	-q	Quiet"
+ //usage:     "\n	-P DIR	Save to DIR (default .)"
++#if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
++//usage:     "\n	-E	Enable|Disable SpeedTest. Valid: 0(disable), 1(enable). Default: 0"
++//usage:     "\n	-D	SpeedTest depend on duration. If no -D option, speedtest is depend on file size."
++//usage:     "\n	-F FILE	Temp file with json format. Default: /var/speedtest_dl_json_result_tmp"
++//usage:     "\n	-L	Loop Index. Range: 0~255. Default 1"
++//usage:     "\n	-S	Send result to ESMD and remove temp file with json which from -F. Valid: 0(disable), 1(enable). Default: 1"
++#endif
+ //usage:	IF_FEATURE_WGET_TIMEOUT(
+ //usage:     "\n	-T SEC	Network read timeout is SEC seconds"
+ //usage:	)
+@@ -95,6 +102,9 @@ struct globals {
+ 	char *ethernetPriority;
+ #if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
+ 	char *speedTestEnable;
++	int32_t loopIndex;        /* where to direct output (-L) */
++	char *fileOutput;         /* where to direct output (-F) */
++	uint32_t sendComplete;    /* where to direct output (-S) */
+ #endif //PLATFORM_ECONET
+ #endif
+ 	int output_fd;
+@@ -139,6 +149,11 @@ static unsigned long long ifBytesSentEnd
+ 
+ static char ipDscp = 0;
+ static char speedTestEnable = 0;
++static int32_t loopIndex = 0;
++static uint32_t sendComplete = 1;              //0: disabled, 1: enabled
++static uint32_t with_duration = 0;             //0: without duration, 1: with duration
++static char fileOutput[64];
++#define SPEEDTEST_DL_JSON_RESULT_DEFAULT	"/var/speedtest_output_dl_json_result_default"
+ 
+ static uint32_t tr143options = 0;
+ 
+@@ -153,32 +168,36 @@ void set_priorityMark(int act);
+ 
+ /* Must match option string! */
+ enum {
+-	WGET_OPT_CONTINUE   = (1 << 0),
+-	WGET_OPT_SPIDER     = (1 << 1),
+-	WGET_OPT_QUIET      = (1 << 2),
+-	WGET_OPT_OUTNAME    = (1 << 3),
+-	WGET_OPT_PREFIX     = (1 << 4),
+-	WGET_OPT_PROXY      = (1 << 5),
+-	WGET_OPT_USER_AGENT = (1 << 6),
+-	WGET_OPT_NETWORK_READ_TIMEOUT = (1 << 7),
+-#if defined(ZCFG_SUPPORT) //TR143:DownloadDiagnstic
+-	WGET_OPT_INTERFACE  = (1 << 8),
+-	WGET_OPT_DSCP       = (1 << 9),
+-	WGET_OPT_ETNERPRIORITY = (1 << 10),
++	WGET_OPT_CONTINUE   = (1 << 0),                                             //c
++	WGET_OPT_SPIDER     = (1 << 1),                                             //s
++	WGET_OPT_QUIET      = (1 << 2),                                             //q
++	WGET_OPT_OUTNAME    = (1 << 3),                                             //O
++	WGET_OPT_PREFIX     = (1 << 4),                                             //P
++	WGET_OPT_PROXY      = (1 << 5),                                             //Y
++	WGET_OPT_USER_AGENT = (1 << 6),                                             //U
++	WGET_OPT_NETWORK_READ_TIMEOUT = (1 << 7),                                   //T
++#if defined(ZCFG_SUPPORT) //TR143:DownloadDiagnstic
++	WGET_OPT_INTERFACE  = (1 << 8),                                             //i
++	WGET_OPT_DSCP       = (1 << 10),                                            //d
++	WGET_OPT_ETNERPRIORITY = (1 << 11),                                         //M
+ #if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
+-	WGET_OPT_SPEEDTEST  = (1 << 11),
+-	WGET_OPT_RETRIES    = (1 << 12),
++	WGET_OPT_SPEEDTEST     = (1 << 12),                                         //E
++	WGET_OPT_LOOPINDEX     = (1 << 13),                                         //L
++	WGET_OPT_FILEOUTPUT    = (1 << 14),                                         //F
++	WGET_OPT_SENDCOMPLETE  = (1 << 15),                                         //S
++	WGET_OPT_DURATION      = (1 << 16),                                         //D
++	WGET_OPT_RETRIES       = (1 << 17),                                         //R
++	WGET_OPT_PASSIVE       = (1 << 18),
++	WGET_OPT_HEADER        = (1 << 19) * ENABLE_FEATURE_WGET_LONG_OPTIONS,
++	WGET_OPT_POST_DATA     = (1 << 20) * ENABLE_FEATURE_WGET_LONG_OPTIONS,
++#else
++	WGET_OPT_RETRIES    = (1 << 12),                                            //R
+ 	WGET_OPT_PASSIVE    = (1 << 13),
+ 	WGET_OPT_HEADER     = (1 << 14) * ENABLE_FEATURE_WGET_LONG_OPTIONS,
+ 	WGET_OPT_POST_DATA  = (1 << 15) * ENABLE_FEATURE_WGET_LONG_OPTIONS,
+-#else
+-	WGET_OPT_RETRIES    = (1 << 11),
+-	WGET_OPT_PASSIVE    = (1 << 12),
+-	WGET_OPT_HEADER     = (1 << 13) * ENABLE_FEATURE_WGET_LONG_OPTIONS,
+-	WGET_OPT_POST_DATA  = (1 << 14) * ENABLE_FEATURE_WGET_LONG_OPTIONS,
+ #endif //PLATFORM_ECONET
+ #else
+-	WGET_OPT_RETRIES    = (1 << 8),
++	WGET_OPT_RETRIES    = (1 << 8),                                             //R
+ 	WGET_OPT_PASSIVE    = (1 << 9),
+ 	WGET_OPT_HEADER     = (1 << 10) * ENABLE_FEATURE_WGET_LONG_OPTIONS,
+ 	WGET_OPT_POST_DATA  = (1 << 11) * ENABLE_FEATURE_WGET_LONG_OPTIONS,
+@@ -220,36 +239,44 @@ char* getLatency(char* ip){
+ 
+ static void outputDiagDlData(void)
+ {
+-	struct json_object *diag_result = NULL;
++	struct json_object *diag_result = NULL, *Jarray = NULL, *Jobj = NULL;
+ 	const char *payload = NULL;
+ 	int payloadLen = 0;
+ 	char testByteRecv[21] = {0};
+ 	char totalByteRecv[21] = {0};
+ 	char totalByteSent[21] = {0};
++	char loopIndexStr[8] = {0};
+ #ifdef ZYXEL_DL_DIAG_CALCULATION
+ 	char tmpBuf[21] = {0};
+-#endif	
++#endif
++	char cmdbuf[64];
+ 
+-	if(!strcmp(DiagnosticsState, "Requested")) {
++	if(!strcmp(DiagnosticsState, "Requested") && sendComplete) {
+ 		strcpy(DiagnosticsState, "Completed");
+ 	}else if(strstr(DiagnosticsState, "None")) {
+ 		DiagnosticsState[strlen("None")] = '\0';
+ 	}
+ 
+-	diag_result = json_object_new_object();
++	if (loopIndex > 1) {
++		diag_result = json_object_from_file(fileOutput);
++	}
++	if (!diag_result) {
++		diag_result = json_object_new_object();
++	}
++
+ 	json_object_object_add(diag_result, "DiagnosticsState", json_object_new_string(DiagnosticsState));
+ 	json_object_object_add(diag_result, "ROMTime", json_object_new_string(ROMTime));
+ 	json_object_object_add(diag_result, "BOMTime", json_object_new_string(BOMTime));
+ 	json_object_object_add(diag_result, "EOMTime", json_object_new_string(EOMTime));
+-	
++
+ 	// 20160705 Max fix
+ 	sprintf(totalByteRecv, "%u", TotalBytesReceived);
+ 	json_object_object_add(diag_result, "TotalBytesReceived", json_object_new_string(totalByteRecv));
+ 	sprintf(testByteRecv, "%u", TestBytesReceived);
+ 	json_object_object_add(diag_result, "TestBytesReceived", json_object_new_string(testByteRecv));
+ 
+-        sprintf(totalByteSent, "%u", TotalBytesSent);
+-        json_object_object_add(diag_result, "TotalBytesSent", json_object_new_string(totalByteSent));
++	sprintf(totalByteSent, "%u", TotalBytesSent);
++	json_object_object_add(diag_result, "TotalBytesSent", json_object_new_string(totalByteSent));
+ 
+ #ifdef ZYXEL_DL_DIAG_CALCULATION
+ 	json_object_object_add(diag_result, "X_ZYXEL_Latency", json_object_new_string(Latency));
+@@ -263,16 +290,73 @@ static void outputDiagDlData(void)
+ 	json_object_object_add(diag_result, "TCPOpenResponseTime", json_object_new_string(TCPOpenResponseTime));
+ 	//json_object_object_add(diag_result, "DownloadURL", json_object_new_string(DownloadURL));
+ 
+-	payload = json_object_to_json_string(diag_result);
+-	payloadLen = strlen(payload) + 1;
+-	ResultMsgSend(ZCFG_MSG_DOWNLOAD_DIAG_COMPLETE_EVENT, payloadLen, payload);
++	if (!with_duration) {
++		memset(loopIndexStr, 0, sizeof(loopIndexStr));
++		snprintf(loopIndexStr, sizeof(loopIndexStr)-1, "%d", loopIndex);
++		json_object_object_add(diag_result, "PerConnectionResultNumberOfEntries", json_object_new_string(loopIndexStr));
++
++		Jarray = json_object_object_get(diag_result, "PerConnectionResult");
++		if (!Jarray) {
++			Jarray = json_object_new_array();
++			json_object_object_add(diag_result, "PerConnectionResult", Jarray);
++		}
++		Jarray = json_object_object_get(diag_result, "PerConnectionResult");
++		Jobj = json_object_new_object();
++		if (Jobj) {
++			json_object_object_add(Jobj, "ROMTime", json_object_new_string(ROMTime));
++			json_object_object_add(Jobj, "BOMTime", json_object_new_string(BOMTime));
++			json_object_object_add(Jobj, "EOMTime", json_object_new_string(EOMTime));
++			json_object_object_add(Jobj, "TestBytesReceived", json_object_new_string(testByteRecv));
++			json_object_object_add(Jobj, "TotalBytesReceived", json_object_new_string(totalByteRecv));
++			json_object_object_add(Jobj, "TotalBytesSent", json_object_new_string(totalByteSent));
++			json_object_object_add(Jobj, "TCPOpenRequestTime", json_object_new_string(TCPOpenRequestTime));
++			json_object_object_add(Jobj, "TCPOpenResponseTime", json_object_new_string(TCPOpenResponseTime));
++			json_object_array_add(Jarray, Jobj);
++		}
++	} else {
++		memset(loopIndexStr, 0, sizeof(loopIndexStr));
++		snprintf(loopIndexStr, sizeof(loopIndexStr)-1, "%d", loopIndex);
++		json_object_object_add(diag_result, "IncrementalResultNumberOfEntries", json_object_new_string(loopIndexStr));
++
++		Jarray = json_object_object_get(diag_result, "IncrementalResult");
++		if (!Jarray) {
++			Jarray = json_object_new_array();
++			json_object_object_add(diag_result, "IncrementalResult", Jarray);
++		}
++		Jarray = json_object_object_get(diag_result, "IncrementalResult");
++		Jobj = json_object_new_object();
++		if (Jobj) {
++			json_object_object_add(Jobj, "StartTime", json_object_new_string(BOMTime));
++			json_object_object_add(Jobj, "EndTime", json_object_new_string(EOMTime));
++			json_object_object_add(Jobj, "TestBytesReceived", json_object_new_string(testByteRecv));
++			json_object_object_add(Jobj, "TotalBytesReceived", json_object_new_string(totalByteRecv));
++			json_object_object_add(Jobj, "TotalBytesSent", json_object_new_string(totalByteSent));
++			json_object_array_add(Jarray, Jobj);
++		}
++	}
+ 
++	if (sendComplete) {
++		payload = json_object_to_json_string(diag_result);
++		payloadLen = strlen(payload) + 1;
++		ResultMsgSend(ZCFG_MSG_DOWNLOAD_DIAG_COMPLETE_EVENT, payloadLen, payload);
++		printf("[%s:%d] loopIndex = %d --> ", __FUNCTION__, __LINE__, loopIndex);
++		printf("diag_result:: %s \n\n\n\n", json_object_to_json_string(diag_result));
++	} else {
++		json_object_to_file(fileOutput, diag_result);
++	}
+ 	json_object_put(diag_result);
++
+ 	set_priorityMark(0);
+ #if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
+ 	set_qdmaRateLimit(1);
+ #endif
+ 
++	if (sendComplete) {
++		memset(cmdbuf, 0, sizeof(cmdbuf));
++		snprintf(cmdbuf, sizeof(cmdbuf)-1, "rm %s", fileOutput);
++		system(cmdbuf);
++	}
++
+ 	exit(0);
+ }
+ 
+@@ -629,15 +713,17 @@ void execute_speedtest(char *s, char *ho
+ 	}
+ 	
+ 	//Ralph 20190402: Econet suggest run 4 sessions for downloading to effective use of bandwidth.
+-	for(i = 0; i < 4; i++)
++	for(i = 0; i < 1; i++)
+ 	{
+ 		//if(f_url == NULL)
+ 		//{
+ 			// /* Set host */
+-			sprintf(str, "echo \"host=%s:%s\" > /proc/tc3162/speed_test", f_ip,f_port);
++			memset(str, 0, sizeof(str));
++			snprintf(str, sizeof(str)-1, "echo \"host=%s:%s\" > /proc/tc3162/speed_test", f_ip,f_port);
+ 			printf("sysCmd= %s\n",str);
+ 			system(str);
+-			sprintf(str, "echo \"action=GET /%s %s %s\" > /proc/tc3162/speed_test", target_path, f_ip, f_port);
++			memset(str, 0, sizeof(str));
++			snprintf(str, sizeof(str)-1, "echo \"action=GET /%s %s %s\" > /proc/tc3162/speed_test", target_path, f_ip, f_port);
+ 			printf("sysCmd= %s\n", str);
+ 			system(str);
+ 			
+@@ -745,6 +831,8 @@ void execute_speedtest(char *s, char *ho
+ 		}
+ 	}
+ 
++	getDateTime(EOMTime);
++
+ 	fp = fopen("/var/speedtest_result_tr143_tmp", "r");
+ 	if(fp != NULL)
+ 	{
+@@ -794,10 +882,10 @@ void execute_speedtest(char *s, char *ho
+ 	*rev_bytes = (int)((((float)total_byte_recv/1024) * ((float)download_len/1024) / ((float)test_byte_recv/1024)) * 1024);
+ 	//printf("rev_bytes = %d, total=%f, download=%f, test=%f\n", *rev_bytes, ((float)total_byte_recv/1024), ((float)download_len/1024), ((float)test_byte_recv/1024));
+ 	TestBytesReceived = download_len;
+-	diff_s = download_len / (http_average_rate * 1024);
+-	diff_us = (((float)download_len / ((float)http_average_rate * 1024)) * 1000000) - (diff_s * 1000000);
+-	//printf("%s: diff_s=%u, diff_us=%06u\n",__FUNCTION__, diff_s, diff_us);
+-	calculate_EOMTime_speedtest(EOMTime,diff_s, diff_us);
++// 	diff_s = download_len / (http_average_rate * 1024);
++// 	diff_us = (((float)download_len / ((float)http_average_rate * 1024)) * 1000000) - (diff_s * 1000000);
++// 	//printf("%s: diff_s=%u, diff_us=%06u\n",__FUNCTION__, diff_s, diff_us);
++// 	calculate_EOMTime_speedtest(EOMTime,diff_s, diff_us);
+ 	
+ 		//printf("%s: sec_BOM:%u, usec_BOM:%u, sec_EOM:%u, usec_EOM:%u\n", __FUNCTION__, sec_BOM, usec_BOM, sec_EOM, usec_EOM);
+ exit:
+@@ -1559,15 +1647,12 @@ static void download_one_url(const char
+         }
+ 		getDateTime(TCPOpenResponseTime);
+ #if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
+-		if(!strcmp(G.speedTestEnable, "1") && !is_ipv6)
++		if(speedTestEnable && !is_ipv6)
+ 		{
+-			if(!strcmp(G.speedTestEnable, "1") && !is_ipv6)
+-			{
+-				char *s = xmalloc_sockaddr2dotted(&lsa->u.sa);
+-				printf("%s: server and port: %s\n",__FUNCTION__,s);
+-				execute_speedtest(s, server.host,target.path, &rev_bytes, &send_bytes);
+-				free(s);
+-			}
++			char *s = xmalloc_sockaddr2dotted(&lsa->u.sa);
++			printf("%s: server and port: %s\n",__FUNCTION__,s);
++			execute_speedtest(s, server.host,target.path, &rev_bytes, &send_bytes);
++			free(s);
+ 
+ 			goto speed_test;
+ 		}
+@@ -1818,7 +1903,7 @@ However, in real world it was observed t
+ 
+ #if defined(ZCFG_SUPPORT)
+ #if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
+-	if(target.is_ftp && !strcmp(G.speedTestEnable, "1") && !is_ipv6){
++	if(target.is_ftp && speedTestEnable && !is_ipv6){
+ #if 0
+ 		char *s = xmalloc_sockaddr2dotted(&lsa->u.sa);
+ 		printf("%s: server and port: %s\n",__FUNCTION__,s);
+@@ -1873,7 +1958,7 @@ However, in real world it was observed t
+ #if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
+ speed_test:
+ #if 0
+-	if(!strcmp(G.speedTestEnable, "1") && !is_ipv6)
++	if(speedTestEnable && !is_ipv6)
+ 	{
+ 		char *s = xmalloc_sockaddr2dotted(&lsa->u.sa);
+ 		printf("%s: server and port: %s\n",__FUNCTION__,s);
+@@ -1884,7 +1969,7 @@ speed_test:
+ #endif
+ 
+ 	//printf("%s: rev_bytes=%d, send_bytes=%d\n",__FUNCTION__, rev_bytes, send_bytes);
+-	if(!strcmp(G.speedTestEnable, "1") && !is_ipv6)
++	if(speedTestEnable && !is_ipv6)
+ 	{
+ 		//TotalBytesReceived = TestBytesReceived = rev_bytes;
+ 		TotalBytesReceived = rev_bytes;
+@@ -1921,7 +2006,7 @@ speed_test:
+    	EOMTimeMs = getDateTime(EOMTime);
+ #else
+ #if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
+-	if(!strcmp(G.speedTestEnable, "0") && !is_ipv6)
++	if(!speedTestEnable && !is_ipv6)
+ 	{
+ 		//Get user-space time
+ 		getDateTime(EOMTime);
+@@ -1971,6 +2056,10 @@ int wget_main(int argc UNUSED_PARAM, cha
+         "ethernetPriority"   Required_argument "M"
+ #if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
+         "speedTestEnable"    Required_argument "E"
++        "loopIndex"          Required_argument "L"
++        "fileOutput"         Required_argument "F"
++        "sendComplete"       Required_argument "S"
++        "duration"           No_argument       "D"
+ #endif //PLATFORM_ECONET
+ #endif
+ 		;
+@@ -1996,7 +2085,7 @@ int wget_main(int argc UNUSED_PARAM, cha
+ 	opt_complementary = "-1" IF_FEATURE_WGET_TIMEOUT(":T+") IF_FEATURE_WGET_LONG_OPTIONS(":\xfe::");
+ #if defined(ZCFG_SUPPORT) //TR143
+ #if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
+-	getopt32(argv, "csqO:P:Y:U:T:i:wd:M:E:R:" /*ignored:*/ "t:",
++	getopt32(argv, "csqO:P:Y:U:T:i:wd:M:E:L:F:S:DR:" /*ignored:*/ "t:",
+ #else
+ 	getopt32(argv, "csqO:P:Y:U:T:i:wd:M:R:" /*ignored:*/ "t:",
+ #endif
+@@ -2006,6 +2095,9 @@ int wget_main(int argc UNUSED_PARAM, cha
+ 		&G.ifName, &G.dscp, &G.ethernetPriority,
+ #if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
+ 		&G.speedTestEnable,
++		&G.loopIndex,
++		&G.fileOutput,
++		&G.sendComplete,
+ #endif //PLATFORM_ECONET
+ 		NULL /* -t RETRIES */
+ 		IF_FEATURE_WGET_LONG_OPTIONS(, &headers_llist)
+@@ -2017,6 +2109,28 @@ int wget_main(int argc UNUSED_PARAM, cha
+ #if defined(ZYXEL_DIAGNOSTIC_SPEEDTEST) && defined(PLATFORM_ECONET)
+ 	speedTestEnable = (G.speedTestEnable) ? xatou_range(G.speedTestEnable, 0, 255) : 0;
+ 	printf("speedTestEnable: %u\n", speedTestEnable);
++	loopIndex = (G.loopIndex) ? xatoi_range(G.loopIndex, 1, 255) : 1;
++	printf("loopIndex: %d \n", loopIndex);
++	memset(fileOutput, 0, sizeof(fileOutput));
++	if (option_mask32 & WGET_OPT_FILEOUTPUT) {
++		strncpy(fileOutput, G.fileOutput, sizeof(fileOutput)-1);
++	} else {
++		strncpy(fileOutput, SPEEDTEST_DL_JSON_RESULT_DEFAULT, sizeof(fileOutput)-1);
++	}
++	printf("fileOutput: %s (%d) \n", fileOutput, sizeof(fileOutput));
++	sendComplete = (G.sendComplete) ? xatou_range(G.sendComplete, 0, 1) : 1;
++	printf("sendComplete: %s \n", sendComplete ? "Y" : "N");
++
++	with_duration = (option_mask32 & WGET_OPT_DURATION) ? 1: 0;
++	printf("with_duration: %s \n", with_duration ? "Y" : "N");
++
++ 	printf("[%s:%d] option_mask32 = 0x%x \n", __FUNCTION__, __LINE__, option_mask32);
++ 	if (option_mask32 & WGET_OPT_SPEEDTEST) printf("[%s:%d] WGET_OPT_SPEEDTEST \n", __FUNCTION__, __LINE__);
++ 	if (option_mask32 & WGET_OPT_LOOPINDEX) printf("[%s:%d] WGET_OPT_LOOPINDEX \n", __FUNCTION__, __LINE__);
++ 	if (option_mask32 & WGET_OPT_FILEOUTPUT) printf("[%s:%d] WGET_OPT_FILEOUTPUT \n", __FUNCTION__, __LINE__);
++ 	if (option_mask32 & WGET_OPT_SENDCOMPLETE) printf("[%s:%d] WGET_OPT_SENDCOMPLETE \n", __FUNCTION__, __LINE__);
++ 	if (option_mask32 & WGET_OPT_DURATION) printf("[%s:%d] WGET_OPT_DURATION \n", __FUNCTION__, __LINE__);
++
+ #endif //PLATFORM_ECONET
+ 
+ #else

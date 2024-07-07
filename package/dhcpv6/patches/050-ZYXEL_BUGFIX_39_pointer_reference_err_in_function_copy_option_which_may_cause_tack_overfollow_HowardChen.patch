@@ -1,0 +1,13 @@
+Index: wide-dhcpv6-20080615/common.c
+===================================================================
+--- wide-dhcpv6-20080615.orig/common.c
++++ wide-dhcpv6-20080615/common.c
+@@ -3492,7 +3492,7 @@ copy_option(type, len, val, optp, ep, to
+ {
+ 	struct dhcp6opt *opt = *optp, opth;
+ 
+-	if ((void *)ep - (void *)optp < len + sizeof(struct dhcp6opt)) {
++	if ((void *)ep - (void *)*optp < len + sizeof(struct dhcp6opt)) {
+ 		dprintf(LOG_INFO, FNAME,
+ 		    "option buffer short for %s", dhcp6optstr(type));
+ 		return (-1);

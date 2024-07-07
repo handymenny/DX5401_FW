@@ -1,0 +1,89 @@
+Index: clinkc/src/cybergarage/ssl/cssl.c
+===================================================================
+--- clinkc.orig/src/cybergarage/ssl/cssl.c
++++ clinkc/src/cybergarage/ssl/cssl.c
+@@ -21,7 +21,7 @@
+ #include <unistd.h>
+ #include <dirent.h>
+ #include <errno.h>
+-
++#include <zos_api.h>
+ #include <cybergarage/util/clog.h>
+ #include <cybergarage/ssl/cssl.h>
+ #include <dirent.h>
+@@ -30,6 +30,11 @@
+ #include <openssl/ssl.h>
+ #define CA_FILETYPE ".pem"
+ 
++#ifdef ZYXEL_TR69_CERT_MTD
++#define ROOT_CERT_ENC "/etc/cert/roots.enc"
++#define ROOT_CERT_FILE "/tmp/roots.crt"
++#endif
++
+ #if defined(CG_USE_OPENSSL)
+ BOOL cg_ssl_set_verify(CgSocket *sock, Cgctx *ctxdata );
+ 
+@@ -99,7 +104,14 @@ BOOL cg_ssl_set_ca(CgSocket *sock, Cgctx
+ 		sock->ctx = SSL_CTX_new( cg_socket_isserver(sock)?SSLv23_server_method():SSLv23_client_method());
+ #endif
+ 	if( ctxdata == NULL) return TRUE;
+-		
++#ifdef ZYXEL_TR69_CERT_MTD
++		char cmd[256] = {0};
++
++		ZOS_SNPRINTF(cmd, sizeof(cmd), "openssl enc -d -aes-256-cbc -md md5 -k %s%s -in %s -out %s", ZYXEL_MODEL_ID, ZYXEL_PRODUCT_NAME, ROOT_CERT_ENC, ROOT_CERT_FILE);
++		ZOS_SYSTEM(cmd);
++		printf("%s, decrypt certificate to %s\n", __FUNCTION__, ROOT_CERT_FILE);
++		ctxdata->CAfile = ROOT_CERT_FILE;
++#endif
+ 	if (ctxdata->CAfile != NULL){
+ 		if (! SSL_CTX_load_verify_locations(sock->ctx, ctxdata->CAfile, ctxdata->CApath)){
+ 			cg_log_debug_l4( "Load Trust Certificate Authority File : [%s/%s] Fail\n", ctxdata->CApath, ctxdata->CAfile);
+@@ -108,6 +120,9 @@ BOOL cg_ssl_set_ca(CgSocket *sock, Cgctx
+ #ifndef USA_PRODUCT
+ 		verify_apply = 1;
+ #endif
++#ifdef ZYXEL_TR69_CERT_MTD
++		unlink(ROOT_CERT_FILE);
++#endif
+ 	}
+ 	else if(ctxdata->CApath != NULL){//dir
+ 		int num = 0;
+@@ -125,12 +140,12 @@ BOOL cg_ssl_set_ca(CgSocket *sock, Cgctx
+ 			} else {
+ 				/* Load Trust CA File List */
+ 				while (num--) {
+-					snprintf(caname, sizeof(caname), "%s%s", ctxdata->CApath, fileList[num]->d_name);
++					ZOS_SNPRINTF(caname, sizeof(caname), "%s%s", ctxdata->CApath, fileList[num]->d_name);
+ 					if (! SSL_CTX_load_verify_locations(sock->ctx, caname, NULL)){
+ 						cg_log_debug_l4( "Load Trust Certificate Authority File : [%s] Fail\n", caname);
+ 					}
+ 
+-					free(fileList[num]);
++					ZOS_FREE(fileList[num]);
+ 				}
+ 				num = 1;
+ 				cg_ssl_set_verify(sock, ctxdata);
+@@ -140,7 +155,7 @@ BOOL cg_ssl_set_ca(CgSocket *sock, Cgctx
+ 			}
+ 
+ 			if (NULL != fileList) {
+-				free(fileList);
++				ZOS_FREE(fileList);
+ 			}
+ 		}
+ 	}
+@@ -207,11 +222,11 @@ void cg_ssl_show_cert(CgSocket *sock){
+ 
+     	str = X509_NAME_oneline (X509_get_subject_name (cert), 0, 0);
+     	cg_log_debug_l4 ("\t subject: %s\n", str);
+-    	free (str);
++    	ZOS_FREE(str);
+ 
+    		str = X509_NAME_oneline (X509_get_issuer_name  (cert), 0, 0);
+     	cg_log_debug_l4 ("\t issuer: %s\n", str);
+-    	free (str);
++    	ZOS_FREE(str);
+ 
+     	/* We could do all sorts of certificate verification stuff here before
+        	deallocating the certificate. */

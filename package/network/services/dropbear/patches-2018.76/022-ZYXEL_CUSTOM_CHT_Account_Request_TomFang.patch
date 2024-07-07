@@ -1,0 +1,170 @@
+Index: dropbear-2018.76/Makefile.in
+===================================================================
+--- dropbear-2018.76.orig/Makefile.in
++++ dropbear-2018.76/Makefile.in
+@@ -117,6 +117,10 @@ ifeq ($(CONFIG_ABUU_CUSTOMIZATION),y)
+ 	CFLAGS += -DABUU_CUSTOMIZATION
+ endif
+ 
++ifeq ($(CONFIG_ABZQ_CUSTOMIZATION),y)
++	CFLAGS += -DCONFIG_ABZQ_CUSTOMIZATION
++endif
++
+ ifeq ($(CONFIG_ZYXEL_CLI_IDLE_TIMEOUT),y)
+ 	CFLAGS += -DZYXEL_CLI_IDLE_TIMEOUT
+ endif
+Index: dropbear-2018.76/svr-authpasswd.c
+===================================================================
+--- dropbear-2018.76.orig/svr-authpasswd.c
++++ dropbear-2018.76/svr-authpasswd.c
+@@ -109,6 +109,40 @@ static int constant_time_strcmp(const ch
+ 	return constant_time_memcmp(a, b, la);
+ }
+ 
++#if defined(CONFIG_ABZQ_CUSTOMIZATION)
++int checkWanPassword(char *username, char *password)
++{
++    /*get accountObj here and get the wanPassword*/
++    rdm_ZyLogCfgGpAccount_t *accountObj = NULL;
++    objIndex_t objIid;
++    char wanPwd[257] = {0};
++    int r = 0;
++
++    IID_INIT(objIid);
++    while ((zcfgFeObjStructGetNext(RDM_OID_ZY_LOG_CFG_GP_ACCOUNT, &objIid, (void **)&accountObj)) == ZCFG_SUCCESS) {
++        if (strcmp(username, accountObj->Username)) {
++            free(accountObj);
++            continue;
++        }
++        if (accountObj->WanPassword) {
++            memset(wanPwd, 0, sizeof(wanPwd));
++            strncpy(wanPwd, accountObj->WanPassword, sizeof(wanPwd));
++        }
++        free(accountObj);
++        break;
++    }
++
++    if (!password) {
++        return 0;
++    }
++    if ((!strcmp(username, "cht")) && (!strcmp(wanPwd, password))) {
++        r = 1;
++    }
++
++    return r;
++}
++#endif //CONFIG_ABZQ_CUSTOMIZATION
++
+ /* Process a password auth request, sending success or failure messages as
+  * appropriate */
+ void svr_auth_password(int valid_user) {
+@@ -197,6 +231,99 @@ void svr_auth_password(int valid_user) {
+ 		return;
+ 	}
+ 
++#if defined(CONFIG_ABZQ_CUSTOMIZATION)
++		int addrType = 0;
++		int auth_result = 0;
++		char remoAddr_Type[32] = {0}; //WAN LAN
++		char remoAddr_tmp[32];
++		char *ext = NULL;
++		char lanip[32] = {0};
++		char subnetMask[32] = {0};
++		char prefix[10]={0};
++		objIndex_t objIid;
++		objIndex_t v4AddrIid;
++		rdm_IpIface_t *ipObj = NULL;
++		rdm_IpIfaceV4Addr_t *ipv4Obj = NULL;
++		bool checkPrivilege = false;
++	
++		memset(remoAddr_tmp, 0, sizeof(remoAddr_tmp));
++		strncpy(remoAddr_tmp, remoteaddr, sizeof(remoAddr_tmp));
++		ext = strstr(remoAddr_tmp, ":");
++	
++		if(ext != NULL) {
++			*ext = '\0';
++		}
++		addrType = ipType(remoAddr_tmp);
++	
++		if (addrType == AF_INET) {
++			//v4 checking
++			/*Remote Ip WAN/LAN Ip check */
++			//Get host IP
++	
++			/*LANIP*/
++			IID_INIT(objIid);
++			while (zcfgFeObjStructGetNext(RDM_OID_IP_IFACE, &objIid, (void **)&ipObj) == ZCFG_SUCCESS) {
++				if (strcmp(ipObj->X_ZYXEL_IfName, "br0") == 0) {
++					free(ipObj);
++					break;
++				}
++				free(ipObj);
++			}
++	
++			v4AddrIid.level = 2;
++			IID_INIT(v4AddrIid);
++			while (zcfgFeObjStructGetNext(RDM_OID_IP_IFACE_V4_ADDR, &v4AddrIid, (void **)&ipv4Obj)== ZCFG_SUCCESS){
++				if (objIid.idx[0] != v4AddrIid.idx[0]) { //check br0(LAN) group
++					free(ipv4Obj);
++					continue;
++				}
++				memset(lanip, 0, sizeof(lanip));
++				memset(subnetMask, 0, sizeof(subnetMask));
++				memset(remoAddr_Type, 0, sizeof(remoAddr_Type));
++				strncpy(lanip, ipv4Obj->IPAddress, sizeof(lanip));
++				strncpy(subnetMask, ipv4Obj->SubnetMask, sizeof(subnetMask));
++				if (getSubnetPrefixLen4(subnetMask, prefix)) {
++					free(ipv4Obj);
++					return; // error return
++				}
++				if ((checkCidrBlock(lanip, prefix, remoAddr_tmp)) == 1) {
++					strncpy(remoAddr_Type, "LAN", sizeof(remoAddr_Type));
++				} else {
++					strncpy(remoAddr_Type, "WAN", sizeof(remoAddr_Type));
++				}
++				free(ipv4Obj);
++			}
++		} else if (addrType == AF_INET6) {
++		//not support V6 for WIND Italy
++		} else {
++		//skip check unknow IP type
++		}
++	
++		if ((!strcmp(username, "cht")) && (!strcmp(remoAddr_Type, "WAN"))) {
++			//get WAN infomation here and Auth it
++			authResult = checkWanPassword(username, password);
++	
++			if (authResult == 1) {
++				/* successful authentication */
++				syslog(LOG_INFO, "Account: User '%s' login from the host(%s).",username,remoteaddr);
++				dropbear_log(LOG_NOTICE,
++						"Password auth succeeded for '%s' from %s",
++						ses.authstate.pw_name,
++						svr_ses.addrstring);
++				reset_authorize_fail_cnt(cur_user_idx);
++				send_msg_userauth_success();
++			} else {//auth fail
++				dropbear_log(LOG_WARNING,
++						"Bad password attempt for '%s' from %s",
++						ses.authstate.pw_name,
++						svr_ses.addrstring);
++				login_fail_cnt++;
++				add_authorize_fail_cnt(cur_user_idx, login_fail_cnt);
++				send_msg_userauth_failure(0, 1);
++			}
++		} else {
++#endif //CONFIG_ABZQ_CUSTOMIZATION
++
+ 	if (testcrypt == NULL) {
+ 		/* crypt() with an invalid salt like "!!" */
+ 		dropbear_log(LOG_WARNING, "User account '%s' is locked",
+@@ -248,6 +375,9 @@ void svr_auth_password(int valid_user) {
+ 		add_authorize_fail_cnt(cur_user_idx, login_fail_cnt);
+ 		send_msg_userauth_failure(0, 1);
+ 	}
++#if defined(CONFIG_ABZQ_CUSTOMIZATION)
++	}
++#endif
+ //SHA512_PASSWD
+ 	m_burn(password, passwordlen);
+ 	m_free(password);

@@ -1,0 +1,42 @@
+Index: clinkc/src/cybergarage/http/chttp_server_list.c
+===================================================================
+--- clinkc.orig/src/cybergarage/http/chttp_server_list.c
++++ clinkc/src/cybergarage/http/chttp_server_list.c
+@@ -85,7 +85,7 @@ BOOL cg_http_serverlist_open(CgHttpServe
+ 	CgHttpServer *httpServer = NULL;
+ 	char *bindAddr;
+ 	BOOL result =FALSE;
+-	
++	char *ifName = NULL;
+ 	cg_log_debug_l4("Entering...\n");
+ 
+ 	netIfList = cg_net_interfacelist_new();
+@@ -104,8 +104,13 @@ BOOL cg_http_serverlist_open(CgHttpServe
+ 		if (cg_strlen(bindAddr) <= 0)
+ 			continue;
+ 		// ZUPNP in LAN
+-		if(strncmp(cg_net_interface_getname(netIf), "br", 2))
++		ifName = cg_net_interface_getname(netIf);
++		if(strncmp(ifName, "br", 2)){
+ 			continue;
++		}
++		else if(strstr(ifName, "brts") != NULL){
++			continue;
++		}
+ 		httpServer = cg_http_server_new();
+ 
+ #ifdef ZYXEL_PATCH /*support ssl, ZyXEL 2013, charisse*/
+Index: clinkc/src/cybergarage/upnp/ssdp/cssdp_server_list.c
+===================================================================
+--- clinkc.orig/src/cybergarage/upnp/ssdp/cssdp_server_list.c
++++ clinkc/src/cybergarage/upnp/ssdp/cssdp_server_list.c
+@@ -96,6 +96,9 @@ BOOL cg_upnp_ssdp_serverlist_open(CgUpnp
+ 		else if (strlen(ifName) == strcspn(ifName, "0123456789")) {
+ 			continue;
+ 		}
++		else if(strstr(ifName, "brts") != NULL){
++			continue;
++		} 
+ #endif
+ 		bindAddr = cg_net_interface_getaddress(netIf);
+ 		if (cg_strlen(bindAddr) <= 0)

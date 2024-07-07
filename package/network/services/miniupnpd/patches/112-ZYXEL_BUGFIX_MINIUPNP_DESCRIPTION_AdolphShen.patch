@@ -1,0 +1,54 @@
+Index: miniupnpd-1.6.20110730/netfilter/iptcrdr.c
+===================================================================
+--- miniupnpd-1.6.20110730.orig/netfilter/iptcrdr.c	2020-12-22 17:04:37.100964000 +0800
++++ miniupnpd-1.6.20110730/netfilter/iptcrdr.c	2020-12-22 17:06:23.888428481 +0800
+@@ -147,6 +147,29 @@
+ 	}
+ }
+ 
++/*update Description for Dal*/
++static void update_Description(){
++	struct rdr_desc * q;
++	FILE *dalfp = NULL;
++	char buf[128]={'\0'};
++	char tmpRule[4096]={'\0'};
++
++	dalfp = fopen("/tmp/miniupnpDescr", "r");
++	if(dalfp != NULL)
++	{
++			unlink("/tmp/miniupnpDescr");
++			fclose(dalfp);
++	}
++	
++	dalfp = fopen("/tmp/miniupnpDescr", "w+");
++	for(q = rdr_desc_list; q; q = q->next)
++	{
++		//printf("166 %s %d %d\n",q->str,q->proto,q->eport);
++		fprintf(dalfp,"%s %d %d\n",q->str,q->proto,q->eport);
++	}
++	fclose(dalfp);	
++}
++
+ /* go through the list to find the description */
+ static void
+ get_redirect_desc(unsigned short eport, int proto,
+@@ -205,8 +228,10 @@
+ 				   const char * desc, unsigned int timestamp)
+ {
+ 	int r = addnatrule(proto, eport, iaddr, iport, rhost);
+-	if(r >= 0)
++	if(r >= 0){
+ 		add_redirect_desc(eport, proto, desc, timestamp);
++		update_Description();
++	}
+ 	return r;
+ }
+ 
+@@ -573,6 +598,7 @@
+ 		}
+ 	}
+ 	del_redirect_desc(eport, proto);
++	update_Description();
+ 	return r;
+ }
+ 

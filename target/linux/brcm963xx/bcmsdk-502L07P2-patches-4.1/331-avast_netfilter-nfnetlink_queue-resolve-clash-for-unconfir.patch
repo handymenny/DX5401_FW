@@ -1,0 +1,258 @@
+Index: linux-4.1.52/include/linux/netfilter.h
+===================================================================
+--- linux-4.1.52.orig/include/linux/netfilter.h	2018-05-28 10:26:45.000000000 +0800
++++ linux-4.1.52/include/linux/netfilter.h	2021-02-26 16:35:34.009902512 +0800
+@@ -353,6 +353,17 @@
+ }
+ #endif /*CONFIG_NETFILTER*/
+ 
++struct nf_conn;
++enum ip_conntrack_dir;
++enum nf_nat_manip_type;
++
++extern int (*nf_ct_update)(struct net *net, struct sk_buff *skb);
++extern unsigned int (*nf_nat_manip_pkt)(struct sk_buff *skb,
++					struct nf_conn *ct,
++					enum nf_nat_manip_type mtype,
++					enum ip_conntrack_dir dir);
++
++
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ extern void (*ip_ct_attach)(struct sk_buff *, const struct sk_buff *) __rcu;
+ void nf_ct_attach(struct sk_buff *, const struct sk_buff *);
+Index: linux-4.1.52/net/netfilter/core.c
+===================================================================
+--- linux-4.1.52.orig/net/netfilter/core.c	2021-02-25 17:33:06.674357785 +0800
++++ linux-4.1.52/net/netfilter/core.c	2021-02-26 16:36:45.238891276 +0800
+@@ -265,6 +265,17 @@
+ }
+ EXPORT_SYMBOL(nf_conntrack_destroy);
+ 
++int (*nf_ct_update)(struct net *net, struct sk_buff *skb);
++EXPORT_SYMBOL(nf_ct_update);
++
++#include <linux/netfilter/nf_conntrack_tuple_common.h>
++#include <net/netfilter/nf_nat.h>
++
++unsigned int (*nf_nat_manip_pkt)(struct sk_buff *skb, struct nf_conn *ct,
++				 enum nf_nat_manip_type mtype,
++				 enum ip_conntrack_dir dir);
++EXPORT_SYMBOL(nf_nat_manip_pkt);
++
+ struct nfq_ct_hook __rcu *nfq_ct_hook __read_mostly;
+ EXPORT_SYMBOL_GPL(nfq_ct_hook);
+ 
+Index: linux-4.1.52/net/netfilter/nf_conntrack_core.c
+===================================================================
+--- linux-4.1.52.orig/net/netfilter/nf_conntrack_core.c	2021-02-25 17:33:07.314357780 +0800
++++ linux-4.1.52/net/netfilter/nf_conntrack_core.c	2021-02-26 16:42:06.715153766 +0800
+@@ -2168,6 +2168,84 @@
+ 	nf_conntrack_get(nskb->nfct);
+ }
+ 
++static int nf_conntrack_update(struct net *net, struct sk_buff *skb)
++{
++	unsigned int (*manip_pkt)(struct sk_buff *skb, struct nf_conn *ct,
++				  enum nf_nat_manip_type mtype,
++				  enum ip_conntrack_dir dir);
++	const struct nf_conntrack_l3proto *l3proto;
++	const struct nf_conntrack_l4proto *l4proto;
++	struct nf_conntrack_tuple_hash *h;
++	struct nf_conntrack_tuple tuple;
++	enum ip_conntrack_info ctinfo;
++	unsigned int dataoff, status;
++	struct nf_conn *ct;
++	u16 l3num;
++	u8 l4num;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	if (!ct || nf_ct_is_confirmed(ct))
++		return 0;
++
++	l3num = nf_ct_l3num(ct);
++	l3proto = nf_ct_l3proto_find_get(l3num);
++
++	if (l3proto->get_l4proto(skb, skb_network_offset(skb), &dataoff,
++				 &l4num) <= 0)
++		return -1;
++
++	l4proto = nf_ct_l4proto_find_get(l3num, l4num);
++
++	if (!nf_ct_get_tuple(skb, skb_network_offset(skb), dataoff, l3num,
++			     l4num, &tuple, l3proto, l4proto))
++		return -1;
++
++	if (ct->status & IPS_SRC_NAT) {
++		memcpy(tuple.src.u3.all,
++		       ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.all,
++		       sizeof(tuple.src.u3.all));
++		tuple.src.u.all =
++			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.all;
++	}
++
++	if (ct->status & IPS_DST_NAT) {
++		memcpy(tuple.dst.u3.all,
++		       ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3.all,
++		       sizeof(tuple.dst.u3.all));
++		tuple.dst.u.all =
++			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u.all;
++	}
++
++	h = nf_conntrack_find_get(net, nf_ct_zone(ct), &tuple);
++	if (!h)
++		return 0;
++
++	/* Store status bits of the conntrack that is clashing to re-do NAT
++	 * mangling according to what it has been done already to this packet.
++	 */
++	status = ct->status;
++
++	nf_ct_put(ct);
++	ct = nf_ct_tuplehash_to_ctrack(h);
++
++	skb->nfct = &ct->ct_general;
++	skb->nfctinfo = ctinfo;
++
++	manip_pkt = rcu_dereference(nf_nat_manip_pkt);
++	if (!manip_pkt)
++		return 0;
++
++	if (status & IPS_SRC_NAT &&
++	    manip_pkt(skb, ct, NF_NAT_MANIP_SRC, IP_CT_DIR_ORIGINAL) == NF_DROP)
++		return -1;
++
++	if (status & IPS_DST_NAT &&
++	    manip_pkt(skb, ct, NF_NAT_MANIP_DST, IP_CT_DIR_ORIGINAL) == NF_DROP)
++		return -1;
++
++	return 0;
++}
++
+ /* Bring out ya dead! */
+ static struct nf_conn *
+ get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
+@@ -2279,6 +2357,7 @@
+ #endif
+ 
+ 	RCU_INIT_POINTER(nf_ct_destroy, NULL);
++	RCU_INIT_POINTER(nf_ct_update, NULL);
+ 	while (untrack_refs() > 0)
+ 		schedule();
+ 
+@@ -2587,6 +2666,7 @@
+ 	/* For use by REJECT target */
+ 	RCU_INIT_POINTER(ip_ct_attach, nf_conntrack_attach);
+ 	RCU_INIT_POINTER(nf_ct_destroy, destroy_conntrack);
++	RCU_INIT_POINTER(nf_ct_update, nf_conntrack_update);
+ }
+ 
+ /*
+Index: linux-4.1.52/net/netfilter/nf_nat_core.c
+===================================================================
+--- linux-4.1.52.orig/net/netfilter/nf_nat_core.c	2021-02-25 17:33:07.050357782 +0800
++++ linux-4.1.52/net/netfilter/nf_nat_core.c	2021-02-26 16:41:57.277248428 +0800
+@@ -450,6 +450,26 @@
+ }
+ EXPORT_SYMBOL(nf_nat_setup_info);
+ 
++static unsigned int nat_manip_pkt(struct sk_buff *skb, struct nf_conn *ct,
++				  enum nf_nat_manip_type mtype,
++				  enum ip_conntrack_dir dir)
++{
++	const struct nf_nat_l3proto *l3proto;
++	const struct nf_nat_l4proto *l4proto;
++	struct nf_conntrack_tuple target;
++
++	/* We are aiming to look like inverse of other direction. */
++	nf_ct_invert_tuplepr(&target, &ct->tuplehash[!dir].tuple);
++
++	l3proto = __nf_nat_l3proto_find(target.src.l3num);
++	l4proto = __nf_nat_l4proto_find(target.src.l3num,
++					target.dst.protonum);
++	if (!l3proto->manip_pkt(skb, 0, l4proto, &target, mtype))
++		return NF_DROP;
++
++	return NF_ACCEPT;
++}
++
+ static unsigned int
+ __nf_nat_alloc_null_binding(struct nf_conn *ct, enum nf_nat_manip_type manip)
+ {
+@@ -888,9 +908,11 @@
+ 	BUG_ON(nf_nat_decode_session_hook != NULL);
+ 	RCU_INIT_POINTER(nf_nat_decode_session_hook, __nf_nat_decode_session);
+ #endif
++	RCU_INIT_POINTER(nf_nat_manip_pkt, nat_manip_pkt);
+ 	return 0;
+ 
+  cleanup_extend:
++ 	RCU_INIT_POINTER(nf_nat_manip_pkt, NULL);
+ 	nf_ct_extend_unregister(&nat_extend);
+ 	return ret;
+ }
+Index: linux-4.1.52/net/netfilter/nfnetlink_queue_core.c
+===================================================================
+--- linux-4.1.52.orig/net/netfilter/nfnetlink_queue_core.c	2021-02-25 17:33:07.274357780 +0800
++++ linux-4.1.52/net/netfilter/nfnetlink_queue_core.c	2021-02-26 16:46:18.574570075 +0800
+@@ -222,6 +222,25 @@
+ 	return entry;
+ }
+ 
++static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
++{
++	int (*ct_update)(struct net *net, struct sk_buff *skb);
++	int err;
++
++	if (verdict == NF_ACCEPT ||
++	    verdict == NF_STOP) {
++		rcu_read_lock();
++		ct_update = rcu_dereference(nf_ct_update);
++		if (ct_update) {
++			err = ct_update(&init_net, entry->skb);
++			if (err < 0)
++				verdict = NF_DROP;
++		}
++		rcu_read_unlock();
++	}
++	nf_reinject(entry, verdict);
++}
++
+ static void
+ nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn, unsigned long data)
+ {
+@@ -232,7 +251,7 @@
+ 		if (!cmpfn || cmpfn(entry, data)) {
+ 			list_del(&entry->list);
+ 			queue->queue_total--;
+-			nf_reinject(entry, NF_DROP);
++			nfqnl_reinject(entry, NF_DROP);
+ 		}
+ 	}
+ 	spin_unlock_bh(&queue->lock);
+@@ -569,7 +588,7 @@
+ err_out_unlock:
+ 	spin_unlock_bh(&queue->lock);
+ 	if (failopen)
+-		nf_reinject(entry, NF_ACCEPT);
++		nfqnl_reinject(entry, NF_ACCEPT);
+ err_out:
+ 	return err;
+ }
+@@ -990,7 +1009,7 @@
+ 		if (nfqa[NFQA_ZEXTMARK])
+ 			ZLD_CB_DATA(entry->skb)->zextmark = ntohl(nla_get_be32(nfqa[NFQA_ZEXTMARK]));
+ #endif
+-		nf_reinject(entry, verdict);
++		nfqnl_reinject(entry, verdict);
+ 	}
+ 	return 0;
+ }
+@@ -1055,7 +1074,7 @@
+ 	if (nfqa[NFQA_ZEXTMARK])
+ 			ZLD_CB_DATA(entry->skb)->zextmark = ntohl(nla_get_be32(nfqa[NFQA_ZEXTMARK]));
+ #endif
+-	nf_reinject(entry, verdict);
++	nfqnl_reinject(entry, verdict);
+ 	return 0;
+ }
+ 

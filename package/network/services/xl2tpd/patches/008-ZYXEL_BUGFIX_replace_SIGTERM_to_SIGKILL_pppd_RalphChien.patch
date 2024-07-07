@@ -1,0 +1,14 @@
+Index: xl2tpd-1.3.14/Makefile
+===================================================================
+--- xl2tpd-1.3.14.orig/Makefile
++++ xl2tpd-1.3.14/Makefile
+@@ -50,7 +50,8 @@ include Makefile.ver
+ # trust pppd. This work around will be removed in the near future.
+ 
+ # DFLAGS= -g -DDEBUG_HELLO -DDEBUG_CLOSE -DDEBUG_FLOW -DDEBUG_PAYLOAD -DDEBUG_CONTROL -DDEBUG_CONTROL_XMIT -DDEBUG_FLOW_MORE -DDEBUG_MAGIC -DDEBUG_ENTROPY -DDEBUG_HIDDEN -DDEBUG_PPPD -DDEBUG_AAA -DDEBUG_FILE -DDEBUG_FLOW -DDEBUG_HELLO -DDEBUG_CLOSE -DDEBUG_ZLB -DDEBUG_AUTH
+-DFLAGS?= -DDEBUG_PPPD -DTRUST_PPPD_TO_DIE
++# DFLAGS?= -DDEBUG_PPPD -DTRUST_PPPD_TO_DIE
++DFLAGS?= -DDEBUG_PPPD
+ 
+ # Uncomment the next line for Linux. KERNELSRC is needed for if_pppol2tp.h,
+ # but we use a local copy if we don't find it.

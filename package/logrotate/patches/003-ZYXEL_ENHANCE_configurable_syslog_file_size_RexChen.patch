@@ -1,0 +1,20 @@
+Index: logrotate-3.7.1/Makefile.ZyXEL
+===================================================================
+--- logrotate-3.7.1.orig/Makefile.ZyXEL	2021-04-13 17:25:59.964134801 +0800
++++ logrotate-3.7.1/Makefile.ZyXEL	2021-04-13 17:26:34.307919768 +0800
+@@ -53,11 +53,11 @@
+ install:
+ 	$(STRIP) $(APP_OBJ_DIR)/logrotate
+ 	install -m 755 $(APP_OBJ_DIR)/logrotate $(INSTALL_PATH)/usr/sbin
+-	if [ ! -d $(ZLD_ROOTFS_INSTALL_DIR)/etc/logrotate.d ]; then \
+-		mkdir -m 755 -p $(ZLD_ROOTFS_INSTALL_DIR)/etc/logrotate.d ; \
++	if [ ! -d $(ZLD_ROOTFS_INSTALL_DIR)/var/logrotate.d ]; then \
++		mkdir -m 755 -p $(ZLD_ROOTFS_INSTALL_DIR)/var/logrotate.d ; \
+ 	fi
+-	install -m 755 $(APP_OBJ_DIR)/zyxel.etc/sys_logrotate.conf $(ZLD_ROOTFS_INSTALL_DIR)/etc/logrotate.d
+-	install -m 755 $(APP_OBJ_DIR)/zyxel.etc/voip_logrotate.conf $(ZLD_ROOTFS_INSTALL_DIR)/etc/logrotate.d
++	install -m 755 $(APP_OBJ_DIR)/zyxel.etc/sys_logrotate.conf $(ZLD_ROOTFS_INSTALL_DIR)/var/logrotate.d
++	install -m 755 $(APP_OBJ_DIR)/zyxel.etc/voip_logrotate.conf $(ZLD_ROOTFS_INSTALL_DIR)/var/logrotate.d
+ 	if [ ! -f $(ZLD_ROOTFS_INSTALL_DIR)/etc/crontab ]; then \
+ 		touch $(ZLD_ROOTFS_INSTALL_DIR)/etc/crontab ; \
+ 	fi

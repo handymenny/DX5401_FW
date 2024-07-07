@@ -1,0 +1,39 @@
+Index: radvd-1.8/defaults.h
+===================================================================
+--- radvd-1.8.orig/defaults.h
++++ radvd-1.8/defaults.h
+@@ -57,7 +57,11 @@
+ #define DFLT_AdvPreferredLifetime	14400 /* seconds */
+ #define DFLT_AdvAutonomousFlag		1
+ #define DFLT_DeprecatePrefixFlag	0
++#ifdef ZYXEL_IPV6_READYLOGO_CONFORMANCE
++#define DFLT_DecrementLifetimesFlag	1
++#else
+ #define DFLT_DecrementLifetimesFlag	0
++#endif
+ 
+ /* Each route has an associated: */
+ #define DFLT_AdvRouteLifetime(iface)	(3 * (iface)->MaxRtrAdvInterval)
+Index: radvd-1.8/send.c
+===================================================================
+--- radvd-1.8.orig/send.c
++++ radvd-1.8/send.c
+@@ -557,7 +557,7 @@ send_ra(struct Interface *iface, struct
+ 				pinfo->nd_opt_pi_valid_time	= htonl(MIN_AdvValidLifetime);
+ 				pinfo->nd_opt_pi_preferred_time = 0;
+ 			} else {
+-				if (prefix->DecrementLifetimesFlag || prefix->curr_preferredlft > 0 ) {
++				if (prefix->DecrementLifetimesFlag) {
+ 					decrement_lifetime(secs_since_last_ra,
+ 								&prefix->curr_validlft);
+ 					
+@@ -570,6 +570,9 @@ send_ra(struct Interface *iface, struct
+ 						IsAnyPrefixEnable = 1;
+ 					}
+ 				}
++                else
++                    IsAnyPrefixEnable = 1;
++
+ 				pinfo->nd_opt_pi_valid_time	= htonl(prefix->curr_validlft);
+ 				pinfo->nd_opt_pi_preferred_time = htonl(prefix->curr_preferredlft);
+ 

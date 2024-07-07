@@ -1,0 +1,35 @@
+Index: linux-4.1.52/Kconfig.zyxel
+===================================================================
+--- linux-4.1.52.orig/Kconfig.zyxel
++++ linux-4.1.52/Kconfig.zyxel
+@@ -44,4 +44,7 @@ config ZYXEL_BAD_BLOCK_UNMARK
+        bool "Support unmakr flash bad block"
+ 
+ config ZYXEL_BAD_BLOCK_WORKAROUND
+-       bool "support kernel bad block workaround"
+\ No newline at end of file
++       bool "support kernel bad block workaround"
++
++config ZYXEL_ADD_RT_AFTER_DAD
++       bool "if not OPTIMISTIC address, don't join the routing table before doing DAD"
+\ No newline at end of file
+Index: linux-4.1.52/net/ipv6/addrconf.c
+===================================================================
+--- linux-4.1.52.orig/net/ipv6/addrconf.c
++++ linux-4.1.52/net/ipv6/addrconf.c
+@@ -3574,11 +3574,11 @@ static void addrconf_dad_begin(struct in
+ 	 * Optimistic nodes can start receiving
+ 	 * Frames right away
+ 	 */
+-#if 1 // WenHsien.20160907: Force speed up DAD: insert global IP into routing table while starting DAD.
+-    {
+-#else
+-	if (ifp->flags & IFA_F_OPTIMISTIC) {
++#ifdef CONFIG_ZYXEL_ADD_RT_AFTER_DAD
++    if (ifp->flags & IFA_F_OPTIMISTIC)
+ #endif
++	{
++
+ 		ip6_ins_rt(ifp->rt);
+ 		if (ipv6_use_optimistic_addr(idev)) {
+ 			/* Because optimistic nodes can use this address,

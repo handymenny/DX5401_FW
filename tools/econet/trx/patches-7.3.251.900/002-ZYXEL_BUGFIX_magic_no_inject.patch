@@ -1,0 +1,13 @@
+Index: econet-trx-7.3.251.900/tools/trx/trx.c
+===================================================================
+--- econet-trx-7.3.251.900.orig/tools/trx/trx.c	2021-05-06 09:49:52.557402786 +0000
++++ econet-trx-7.3.251.900/tools/trx/trx.c	2021-05-06 09:50:41.822848742 +0000
+@@ -425,7 +425,7 @@
+ 				{
+ 					p->magic = STORE32_LE(TRX_MAGIC1);
+ 				}
+-				else if(!strcmp(optarg,"tclinux")){
++				else if(strstr(optarg,"tclinux")){
+ 					p->magic = STORE32_LE(TRX_MAGIC2);
+ 				}
+ 				else if(strstr(optarg,"romfile.cfg") || strstr(optarg,"romfile_f.cfg") || strstr(optarg,"romfile_epon.cfg") || strstr(optarg,"romfile_")){

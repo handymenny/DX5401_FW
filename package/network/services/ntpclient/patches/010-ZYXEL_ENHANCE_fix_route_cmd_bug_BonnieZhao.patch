@@ -1,0 +1,20 @@
+Index: ntpclient-2007/ntpclient.c
+===================================================================
+--- ntpclient-2007.orig/ntpclient.c
++++ ntpclient-2007/ntpclient.c
+@@ -601,10 +601,11 @@ static void setup_transmit(int usd, char
+ #ifdef ZYXEL_TTNET_NTP_MULTIWAN//TTnet, wan interface of NTP
+ 	//printf("setup_transmit: ---%s---%s--%s--\r\n",inet_ntoa(sa_dest.sin_addr),ntpc->wanInterface,ntpc->gateWayAddr);
+ 	char routeCmd[128] = {0};
+-	if(strcmp(ntpc->gateWayAddr, "") && strcmp(ntpc->gateWayAddr, "wanInterface"))
+-	sprintf(routeCmd,"ip route add %s/32 via %s dev %s",inet_ntoa(sa_dest.sin_addr),ntpc->gateWayAddr,ntpc->wanInterface);
+-	system(routeCmd);
+-	printf("%s %d routeCmd=%s\n", __func__, __LINE__, routeCmd);
++	if(strcmp(ntpc->gateWayAddr, "") && strcmp(ntpc->gateWayAddr, "wanInterface")){
++		sprintf(routeCmd,"ip route add %s/32 via %s dev %s",inet_ntoa(sa_dest.sin_addr),ntpc->gateWayAddr,ntpc->wanInterface);
++		system(routeCmd);
++		printf("%s %d routeCmd=%s\n", __func__, __LINE__, routeCmd);
++	}
+ 	sprintf(gRouteDelCmd,"ip route del %s/32 via %s dev %s",inet_ntoa(sa_dest.sin_addr),ntpc->gateWayAddr,ntpc->wanInterface);
+ #endif
+ 	sa_dest.sin_port=htons(port);

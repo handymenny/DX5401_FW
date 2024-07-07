@@ -1,0 +1,70 @@
+Index: ebtables-v2.0.8-2/extensions/ebt_ip6.c
+===================================================================
+--- ebtables-v2.0.8-2.orig/extensions/ebt_ip6.c	2021-01-21 17:20:21.281753000 +0800
++++ ebtables-v2.0.8-2/extensions/ebt_ip6.c	2021-01-21 17:20:21.337753000 +0800
+@@ -246,7 +246,9 @@
+ 		if (ebt_check_inverse2(optarg)) {
+ 		    ipinfo->invflags |= EBT_IP6_SOURCE;
+ 		}
++#ifdef IPV6
+ 		ebt_parse_ip6_address(optarg, &ipinfo->saddr, &ipinfo->smsk);
++#endif
+ 		break;
+ 
+ 	case IP_DEST:
+@@ -255,7 +257,9 @@
+ 		if (ebt_check_inverse2(optarg)) {
+ 			ipinfo->invflags |= EBT_IP6_DEST;
+ 		}
++#ifdef IPV6
+ 		ebt_parse_ip6_address(optarg, &ipinfo->daddr, &ipinfo->dmsk);
++#endif
+ 		break;
+ 
+ 	case IP_SPORT:
+@@ -354,15 +358,19 @@
+ 		printf("--ip6-src ");
+ 		if (ipinfo->invflags & EBT_IP6_SOURCE)
+ 			printf("! ");
++#ifdef IPV6
+ 		printf("%s", ebt_ip6_to_numeric(&ipinfo->saddr));
+ 		printf("/%s ", ebt_ip6_to_numeric(&ipinfo->smsk));
++#endif
+ 	}
+ 	if (ipinfo->bitmask & EBT_IP6_DEST) {
+ 		printf("--ip6-dst ");
+ 		if (ipinfo->invflags & EBT_IP6_DEST)
+ 			printf("! ");
++#ifdef IPV6
+ 		printf("%s", ebt_ip6_to_numeric(&ipinfo->daddr));
+ 		printf("/%s ", ebt_ip6_to_numeric(&ipinfo->dmsk));
++#endif
+ 	}
+ 	if (ipinfo->bitmask & EBT_IP6_TCLASS) {
+ 		printf("--ip6-tclass ");
+Index: ebtables-v2.0.8-2/Makefile
+===================================================================
+--- ebtables-v2.0.8-2.orig/Makefile	2021-01-21 17:20:21.317753000 +0800
++++ ebtables-v2.0.8-2/Makefile	2021-01-21 17:21:09.313753000 +0800
+@@ -17,8 +17,12 @@
+ #RPATH:=/opt/CodeSourcery/mips-4.2/mips-linux-gnu/libc/uclibc/soft-float/usr/lib
+ #SYSROOT:=/opt/CodeSourcery/mips-4.2/mips-linux-gnu/libc/uclibc/soft-float
+ ifneq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
++ifeq ($(CONFIG_TC_SDK_VERSION),"7.3.267.0")
++SYSROOT:=/opt/trendchip/mipsel-linux-glibc2.22-4.6.3/usr/mipsel-buildroot-linux-gnu/sysroot
++else
+ SYSROOT:=/opt/trendchip/mipsel-linux-uclibc-4.6.3-kernel3.18/usr/mipsel-buildroot-linux-uclibc/sysroot
+ endif
++endif
+ RPATH:=$(SYSROOT)/usr/lib
+ 
+ #ECONET_SDK_PATH:=$(BUILD_DIR)/linux-mt75xx_pmg5317_t20a/econet-sdk-7.3.119.8
+@@ -48,6 +52,8 @@
+ CFLAGS += -DCONFIG_TC_SDK_7_3_245_300
+ else ifeq ($(CONFIG_TC_SDK_VERSION),"7.3.257.150")
+ CFLAGS += -DCONFIG_TC_SDK_7_3_257_150
++else ifeq ($(CONFIG_TC_SDK_VERSION),"7.3.267.0")
++CFLAGS += -DCONFIG_TC_SDK_7_3_267_0
+ endif
+ 
+ include extensions/Makefile

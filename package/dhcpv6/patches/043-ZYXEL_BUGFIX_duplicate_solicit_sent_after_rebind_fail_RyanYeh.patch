@@ -1,0 +1,184 @@
+Index: wide-dhcpv6-20080615/config.h
+===================================================================
+--- wide-dhcpv6-20080615.orig/config.h
++++ wide-dhcpv6-20080615/config.h
+@@ -33,6 +33,10 @@
+ TAILQ_HEAD(ia_conflist, ia_conf);
+ TAILQ_HEAD(pifc_list, prefix_ifconf);
+ 
++#if 1 /* ZYXEL, divide NA and PD into different re-solicit */
++typedef enum { IATYPE_PD, IATYPE_NA, IATYPE_NONE } iatype_t;
++#endif
++
+ struct dhcp6_poolspec {
+ 	char* name;
+ 	u_int32_t pltime;
+@@ -129,6 +133,9 @@ struct dhcp6_event {
+ 
+ 	u_int32_t xid;		/* current transaction ID */
+ 	int state;
++#if 1 /* ZYXEL, divide NA and PD into different re-solicit */
++    iatype_t iatype;
++#endif
+ 
+ 	/* list of known servers */
+ 	struct dhcp6_serverinfo *current_server;
+@@ -188,7 +195,9 @@ struct prefix_ifconf {
+ #define IFID_LEN_DEFAULT 64
+ #define SLA_LEN_DEFAULT 16
+ 
++#if 0 /* move to upper */
+ typedef enum { IATYPE_PD, IATYPE_NA } iatype_t;
++#endif
+ struct ia_conf {
+ 	TAILQ_ENTRY(ia_conf) link;
+ 	/*struct ia_conf *next;*/
+Index: wide-dhcpv6-20080615/dhcp6c.c
+===================================================================
+--- wide-dhcpv6-20080615.orig/dhcp6c.c
++++ wide-dhcpv6-20080615/dhcp6c.c
+@@ -173,7 +173,11 @@ static int process_auth __P((struct auth
+ static int set_auth __P((struct dhcp6_event *, struct dhcp6_optinfo *));
+ 
+ struct dhcp6_timer *client6_timo __P((void *));
++#if 1 /* ZYXEL, divide NA and PD into different re-solicit */
++int client6_start __P((struct dhcp6_if *, iatype_t));
++#else
+ int client6_start __P((struct dhcp6_if *));
++#endif
+ static void info_printf __P((const char *, ...));
+ 
+ extern int client6_script __P((char *, int, struct dhcp6_optinfo *));
+@@ -474,8 +478,14 @@ client6_init(char *ifname)
+ }
+ 
+ int
++#if 1 /* ZYXEL, divide NA and PD into different re-solicit */
++client6_start(ifp, iatype)
++    struct dhcp6_if *ifp;
++    iatype_t iatype;
++#else
+ client6_start(ifp)
+ 	struct dhcp6_if *ifp;
++#endif
+ {
+ dprintf(LOG_ERR, FNAME, "client6_start");
+ 	struct dhcp6_event *ev;
+@@ -492,6 +502,9 @@ dprintf(LOG_ERR, FNAME, "client6_start")
+ 		dprintf(LOG_NOTICE, FNAME, "failed to create an event");
+ 		return (-1);
+ 	}
++
++    ev->iatype = iatype;
++
+ 	TAILQ_INSERT_TAIL(&ifp->event_list, ev, link);
+ 
+ 	if ((ev->authparam = new_authparam(ifp->authproto,
+@@ -526,7 +539,11 @@ dprintf(LOG_ERR, FNAME, "client6_startal
+ 			    ifp->ifname);
+ 			continue; /* XXX: try to recover? */
+ 		}
++#if 1 /* ZYXEL, divide NA and PD into different re-solicit */
++        if (client6_start(ifp, IATYPE_NONE))
++#else
+ 		if (client6_start(ifp))
++#endif
+ 			exit(1); /* initialization failure.  we give up. */
+ 	}
+ }
+@@ -872,7 +889,12 @@ dprintf(LOG_ERR, FNAME, "client6_ifctl")
+ 			return (-1);
+ 		}
+ 		free_resources(ifp);
+-		if (client6_start(ifp)) {
++#if 1 /* ZYXEL, divide NA and PD into different re-solicit */
++        if (client6_start(ifp, IATYPE_NONE))
++#else
++        if (client6_start(ifp))
++#endif
++        {
+ 			dprintf(LOG_NOTICE, FNAME, "failed to restart %s",
+ 			    ifname);
+ 			return (-1);
+@@ -904,7 +926,11 @@ client6_expire_refreshtime(arg)
+ 	    "information refresh time on %s expired", ifp->ifname);
+ 
+ 	dhcp6_remove_timer(&ifp->timer);
+-	client6_start(ifp);
++#if 1 /* ZYXEL, divide NA and PD into different re-solicit */
++    client6_start(ifp, IATYPE_NONE);
++#else
++    client6_start(ifp);
++#endif
+ 
+ 	return (NULL);
+ }
+@@ -1240,6 +1266,12 @@ construct_confdata(ifp, ev)
+ 		if (!TAILQ_EMPTY(&iac->iadata))
+ 			continue;
+ 
++#if 1 /* ZYXEL, divide NA and PD into different re-solicit */
++        if ((iac->type == IATYPE_PD && ev->iatype == IATYPE_NA)
++            || (iac->type == IATYPE_NA && ev->iatype == IATYPE_PD))
++            continue;
++#endif
++
+ 		evd = NULL;
+ 		if ((evd = malloc(sizeof(*evd))) == NULL) {
+ 			dprintf(LOG_NOTICE, FNAME,
+@@ -2546,8 +2578,12 @@ client6_recvreply(ifp, dh6, len, optinfo
+ 
+ 				if (state == DHCP6S_RELEASE)
+ 					check_exit();
+-				if (client6_start(ifp))
+-				exit(1); /* initialization failure. */
++#if 1 /* ZYXEL, divide NA and PD into different re-solicit */
++                if (client6_start(ifp, IATYPE_NONE))
++#else
++                if (client6_start(ifp))
++#endif
++                    exit(1); /* initialization failure. */
+ 				return (0);
+ 			}
+ 			/*
+Index: wide-dhcpv6-20080615/dhcp6c.h
+===================================================================
+--- wide-dhcpv6-20080615.orig/dhcp6c.h
++++ wide-dhcpv6-20080615/dhcp6c.h
+@@ -33,7 +33,11 @@
+ #define DUID_FILE LOCALDBDIR "/dhcp6c_duid"
+ 
+ extern struct dhcp6_timer *client6_timo __P((void *));
++#if 1 /* ZYXEL, divide NA and PD into different re-solicit */
++extern int client6_start __P((struct dhcp6_if *, iatype_t));
++#else
+ extern int client6_start __P((struct dhcp6_if *));
++#endif
+ extern void client6_send __P((struct dhcp6_event *));
+ 
+ #ifdef CLIENT_DECLINE_SUPPORT
+Index: wide-dhcpv6-20080615/dhcp6c_ia.c
+===================================================================
+--- wide-dhcpv6-20080615.orig/dhcp6c_ia.c
++++ wide-dhcpv6-20080615/dhcp6c_ia.c
+@@ -520,6 +520,7 @@ remove_ia(ia)
+ {
+ 	struct ia_conf *iac = ia->conf;
+ 	struct dhcp6_if *ifp = ia->ifp;
++    iatype_t iatype = ia->conf->type;
+ 
+ 	dprintf(LOG_DEBUG, FNAME, "remove an IA: %s-%lu",
+ 	    iastr(ia->conf->type), ia->conf->iaid);
+@@ -547,7 +548,11 @@ remove_ia(ia)
+ 
+ 	free(ia);
+ 
+-	(void)client6_start(ifp);
++#if 1 /* ZYXEL, divide NA and PD into different re-solicit */
++    (void)client6_start(ifp, iatype);
++#else
++    (void)client6_start(ifp);
++#endif
+ }
+ 
+ static struct dhcp6_timer *

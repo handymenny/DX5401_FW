@@ -1,0 +1,13 @@
+Index: miniupnpd-1.6.20110730/upnpdescstrings.h
+===================================================================
+--- miniupnpd-1.6.20110730.orig/upnpdescstrings.h	2021-01-15 10:26:52.706529000 +0800
++++ miniupnpd-1.6.20110730/upnpdescstrings.h	2021-01-15 10:28:32.670620493 +0800
+@@ -10,7 +10,7 @@
+ #include "config.h"
+ 
+ /* strings used in the root device xml description */
+-#define ROOTDEV_FRIENDLYNAME		"ZyXEL Router"
++#define ROOTDEV_FRIENDLYNAME		"A1 WLAN Box"
+ #define ROOTDEV_MANUFACTURER		"ZyXEL Communications Corp."
+ #define ROOTDEV_MANUFACTURERURL		"http://www.zyxel.com"
+ #define ROOTDEV_MODELNAME		"ZyXEL Router"

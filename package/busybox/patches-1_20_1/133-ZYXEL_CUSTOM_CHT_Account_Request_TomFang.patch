@@ -1,0 +1,107 @@
+Index: busybox-1_20_1/loginutils/login.c
+===================================================================
+--- busybox-1_20_1.orig/loginutils/login.c
++++ busybox-1_20_1/loginutils/login.c
+@@ -700,6 +700,43 @@ void getLockRelatedInfo(int *retry_times
+ }
+ #endif
+ 
++#if defined(ABZQ_CUSTOMIZATION)
++int correct_wanPassword()
++{
++    /*get accountObj here and get the wanPassword*/
++    rdm_ZyLogCfgGpAccount_t *accountObj = NULL;
++    objIndex_t objIid;
++    char *input_password = NULL;
++    char wanPwd[257] = {0};
++    int r = 0;
++
++    IID_INIT(objIid);
++    while ((zcfgFeObjStructGetNext(RDM_OID_ZY_LOG_CFG_GP_ACCOUNT, &objIid, (void **)&accountObj)) == ZCFG_SUCCESS) {
++        if (strcmp(login_account, accountObj->Username)) {
++            free(accountObj);
++            continue;
++        }
++        if (accountObj->WanPassword) {
++            memset(wanPwd, 0, sizeof(wanPwd));
++            strncpy(wanPwd, accountObj->WanPassword, sizeof(wanPwd));
++        }
++        free(accountObj);
++        break;
++    }
++    input_password = bb_ask_stdin("Password: ");
++    if (!input_password) {
++        return 0;
++    }
++
++    if ((!strcmp(login_account, "cht")) && (!strcmp(wanPwd, input_password))) {
++        r = 1;
++    }
++    memset(input_password, 0, strlen(input_password));
++
++    return r;
++}
++#endif //ABZQ_CUSTOMIZATION
++
+ int login_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+ int login_main(int argc UNUSED_PARAM, char **argv)
+ {
+@@ -754,6 +791,10 @@ int login_main(int argc UNUSED_PARAM, ch
+ 	pid_t child_pid;
+ #endif
+ 
++#if defined(ABZQ_CUSTOMIZATION)
++	int auth_result = 0;
++	char remoAddr_Type[32] = {0};
++#endif
+ 	INIT_G();
+ 
+ 	/* More of suid paranoia if called by non-root: */
+@@ -1055,6 +1096,12 @@ int login_main(int argc UNUSED_PARAM, ch
+ 		}
+ #endif
+ 		pw = getpwnam(username);
++#if defined(ABZQ_CUSTOMIZATION)
++		memset(login_account, 0, sizeof(login_account));
++		strncpy(login_account, username, sizeof(login_account));
++		memset(remoAddr_Type, 0, sizeof(remoAddr_Type));
++		checkClientFromLANWAN(addr, remoAddr_Type);
++#endif //ABZQ_CUSTOMIZATION
+ #ifdef CBT_CUSTOMIZATION
+ 		strcpy(login_account,username);
+ 		//printf("%s(%d) : username:%s \n",__FUNCTION__,__LINE__,username);
+@@ -1095,7 +1142,16 @@ int login_main(int argc UNUSED_PARAM, ch
+ 		 * Note that reads (in no-echo mode) trash tty attributes.
+ 		 * If we get interrupted by SIGALRM, we need to restore attrs.
+ 		 */
++#if defined(ABZQ_CUSTOMIZATION)
++		if ((!strcmp(login_account, "cht")) && (!strcmp(remoAddr_Type, "WAN"))) {
++			auth_result = correct_wanPassword();
++		} else {
++			auth_result = correct_password(pw);
++		}
++		if (auth_result){
++#else //defined(ABZQ_CUSTOMIZATION)
+ 		if (correct_password(pw)){
++#endif //ABZQ_CUSTOMIZATION
+ #ifdef ZCFG_SUPPORT
+ 			reset_authorize_fail_cnt(cur_user_idx);
+ 
+@@ -1180,10 +1236,16 @@ int login_main(int argc UNUSED_PARAM, ch
+ 
+ #ifdef ZYXEL_REMOTE_ACCESS_PRIVILEGE
+ 				bool checkPrivilege = false;
++#ifndef ABZQ_CUSTOMIZATION
+ 				char remoAddr_Type[32] = {0};
++#endif
+ 				if(strcmp(addr,"--") && strcmp(userPriviege, "LAN,WAN")) {
++#ifdef ABZQ_CUSTOMIZATION
++					memset(remoAddr_Type, 0, sizeof(remoAddr_Type));
++#endif
+ 					checkClientFromLANWAN(addr, remoAddr_Type);
+-					if (strstr(userPriviege, remoAddr_Type) != NULL) {
++					if ((strstr(userPriviege, remoAddr_Type) != NULL) ||
++						!strcmp("root", username)) {
+ 						checkPrivilege = true;
+ 					}
+ 

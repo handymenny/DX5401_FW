@@ -1,0 +1,84 @@
+Index: rp-pppoe-3.12/src/if.c
+===================================================================
+--- rp-pppoe-3.12.orig/src/if.c	2015-11-11 23:10:03.000000000 +0800
++++ rp-pppoe-3.12/src/if.c	2020-12-02 11:14:24.842563577 +0800
+@@ -529,12 +529,18 @@
+ int
+ sendPacket(PPPoEConnection *conn, int sock, PPPoEPacket *pkt, int size)
+ {
++    int foelen = sizeof(struct SkbFoeInfo_Ppp);
+ #if defined(USE_BPF)
+     if (write(sock, pkt, size) < 0) {
+ 	sysErr("write (sendPacket)");
+ 	return -1;
+     }
+ #elif defined(HAVE_STRUCT_SOCKADDR_LL)
++    if (setsockopt(sock, SOL_PACKET, PACKET_SKB_FOE_INFO, &skbfoeinfo, &foelen)) {
++        /* dbg_info */
++        //tcdbg_printf("%s,getsockopt error\n", __FUNCTION__);
++    }
++
+     if (send(sock, pkt, size, 0) < 0 && (errno != ENOBUFS)) {
+ 	sysErr("send (sendPacket)");
+ 	return -1;
+@@ -584,6 +590,12 @@
+ 	rp_fatal("relay and server not supported on Linux 2.0 kernels");
+     }
+     strcpy(sa.sa_data, conn->ifName);
++
++    if (setsockopt(sock, SOL_PACKET, PACKET_SKB_FOE_INFO, &skbfoeinfo, &foelen)) {
++        /* dbg_info */
++        //tcdbg_printf("%s,getsockopt error\n", __FUNCTION__);
++    }
++
+     if (sendto(sock, pkt, size, 0, &sa, sizeof(sa)) < 0) {
+ 	sysErr("sendto (sendPacket)");
+ 	return -1;
+Index: rp-pppoe-3.12/src/pppoe.h
+===================================================================
+--- rp-pppoe-3.12.orig/src/pppoe.h	2015-11-11 23:10:04.000000000 +0800
++++ rp-pppoe-3.12/src/pppoe.h	2020-12-02 11:10:37.002561915 +0800
+@@ -19,6 +19,19 @@
+ 
+ extern int IsSetID;
+ 
++#ifndef TCSUPPORT_3_18_21_KERNEL
++#define PACKET_SKB_FOE_INFO 18
++#else
++#define PACKET_SKB_FOE_INFO 21
++#endif
++
++struct SkbFoeInfo_Ppp{
++    unsigned short ppe_magic;
++    unsigned short ppe_foe_entry;
++    unsigned char ppe_ai;
++};
++struct SkbFoeInfo_Ppp skbfoeinfo;
++
+ #if defined(HAVE_NETPACKET_PACKET_H) || defined(HAVE_LINUX_IF_PACKET_H)
+ #define _POSIX_SOURCE 1 /* For sigaction defines */
+ #endif
+Index: rp-pppoe-3.12/src/relay.c
+===================================================================
+--- rp-pppoe-3.12.orig/src/relay.c	2015-11-11 23:10:04.000000000 +0800
++++ rp-pppoe-3.12/src/relay.c	2020-12-02 11:11:59.070562514 +0800
+@@ -877,11 +877,19 @@
+     int size;
+     SessionHash *sh;
+     PPPoESession *ses;
++    int foelen;
+ 
+     if (receivePacket(iface->sessionSock, &packet, &size) < 0) {
+ 	return;
+     }
+ 
++    foelen = sizeof(struct SkbFoeInfo_Ppp);
++    memset(&skbfoeinfo,0,sizeof(struct SkbFoeInfo_Ppp));
++    if (getsockopt(iface->sessionSock, SOL_PACKET, PACKET_SKB_FOE_INFO, &skbfoeinfo, &foelen)) {
++        /* dbg_info */
++        //fprintf(stderr, "%s,getsockopt error\n", __FUNCTION__);
++    }
++
+     /* Ignore unknown code/version */
+     if (packet.ver != 1 || packet.type != 1) {
+ 	return;

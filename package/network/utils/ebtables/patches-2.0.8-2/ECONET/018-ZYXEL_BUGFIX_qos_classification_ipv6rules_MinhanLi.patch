@@ -1,0 +1,48 @@
+Index: ebtables-v2.0.8-2/extensions/ebt_ip6.c
+===================================================================
+--- ebtables-v2.0.8-2.orig/extensions/ebt_ip6.c
++++ ebtables-v2.0.8-2/extensions/ebt_ip6.c
+@@ -225,7 +225,7 @@ static void init(struct ebt_entry_match
+ #define OPT_SPORT  0x10
+ #define OPT_DPORT  0x20
+ #if 1 /* ZyXEL QoS, John (porting from MSTC)*/
+-#if defined(CONFIG_TC_SDK_7_3_245_300) || defined(CONFIG_TC_SDK_7_3_257_150)
++#if defined(CONFIG_TC_SDK_7_3_245_300) || defined(CONFIG_TC_SDK_7_3_257_150) || defined(CONFIG_TC_SDK_7_3_251_900)
+ #define OPT_LENGTH 0x80
+ #else
+ #define OPT_LENGTH 0x40
+Index: ebtables-v2.0.8-2/include/linux/netfilter_bridge/ebt_ip6.h
+===================================================================
+--- ebtables-v2.0.8-2.orig/include/linux/netfilter_bridge/ebt_ip6.h
++++ ebtables-v2.0.8-2/include/linux/netfilter_bridge/ebt_ip6.h
+@@ -19,7 +19,7 @@
+ #define EBT_IP6_SPORT 0x10
+ #define EBT_IP6_DPORT 0x20
+ #if 1 /* ZyXEL QoS, John (porting from MSTC) */
+-#if defined(CONFIG_TC_SDK_7_3_245_300) || defined(CONFIG_TC_SDK_7_3_257_150)
++#if defined(CONFIG_TC_SDK_7_3_245_300) || defined(CONFIG_TC_SDK_7_3_257_150) || defined(CONFIG_TC_SDK_7_3_251_900)
+ #define EBT_IP6_LENGTH 0x80
+ #else
+ #define EBT_IP6_LENGTH 0x40
+@@ -45,7 +45,7 @@ struct ebt_ip6_info {
+ 	uint8_t  protocol;
+ 	uint8_t  bitmask;
+ 	uint8_t  invflags;
+-#if defined(CONFIG_TC_SDK_7_3_245_300) || defined(CONFIG_TC_SDK_7_3_257_150)
++#if defined(CONFIG_TC_SDK_7_3_245_300) || defined(CONFIG_TC_SDK_7_3_257_150) || defined(CONFIG_TC_SDK_7_3_251_900) 
+ 	union {
+ 		uint16_t sport[2];
+ 		uint8_t icmpv6_type[2];
+Index: ebtables-v2.0.8-2/Makefile
+===================================================================
+--- ebtables-v2.0.8-2.orig/Makefile
++++ ebtables-v2.0.8-2/Makefile
+@@ -64,6 +64,8 @@ else ifeq ($(CONFIG_TC_SDK_VERSION),"7.3
+ CFLAGS += -DCONFIG_TC_SDK_7_3_267_1
+ else ifeq ($(CONFIG_TC_SDK_VERSION),"7.3.267.750")
+ CFLAGS += -DCONFIG_TC_SDK_7_3_267_750
++else ifeq ($(CONFIG_TC_SDK_VERSION),"7.3.251.900")
++CFLAGS += -DCONFIG_TC_SDK_7_3_251_900
+ endif
+ 
+ ifeq ($(CONFIG_ABZQ_CUSTOMIZATION),y)

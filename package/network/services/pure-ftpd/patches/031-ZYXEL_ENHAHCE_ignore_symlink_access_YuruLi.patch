@@ -1,0 +1,42 @@
+Index: pure-ftpd-1.0.30/src/ftpd.c
+===================================================================
+--- pure-ftpd-1.0.30.orig/src/ftpd.c
++++ pure-ftpd-1.0.30/src/ftpd.c
+@@ -2733,9 +2733,11 @@ void docwd(const char *dir)
+             return;
+         }
+         else{
+-            /*ignore symlink access except zcfg_config.json*/
++            /*ignore symlink access except /data/zcfg_config.json*/
+             if (S_ISLNK(st.st_mode)) { 
+-                if (strstr("zcfg_config.json", dir) == NULL ){
++                char targetPath[PATH_MAX] = {0};
++                readlink(dir, targetPath, PATH_MAX);
++                if(strcmp(targetPath, "/data/zcfg_config.json")){
+                     dir = "~";
+                 }
+             }
+@@ -4101,6 +4103,23 @@ void doretr(char *name)
+         addreply(553, MSG_SANITY_FILE_FAILURE, name);
+         goto end;
+     }
++
++    if (lstat(name, &st) != 0) {
++        addreply(553, MSG_SANITY_FILE_FAILURE, name);
++        goto end;
++    }
++    else{
++        /*ignore symlink access except /data/zcfg_config.json*/
++        if (S_ISLNK(st.st_mode)) {
++            char targetPath[PATH_MAX] = {0};
++            readlink(name, targetPath, PATH_MAX);
++            if(strcmp(targetPath, "/data/zcfg_config.json")){
++                addreply_noformat(550, MSG_NOT_REGULAR_FILE);
++                goto end;
++            }
++        }
++    }
++	
+     if ((f = open(name, O_RDONLY)) == -1) {
+         displayopenfailure(name);
+         goto end;

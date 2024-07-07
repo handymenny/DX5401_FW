@@ -1,0 +1,2302 @@
+Index: mbedtls-2.5.1/Makefile
+===================================================================
+--- mbedtls-2.5.1.orig/Makefile	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/Makefile	2021-01-25 02:18:52.404491088 +0000
+@@ -1,7 +1,10 @@
+ 
+ DESTDIR=/usr/local
+ PREFIX=mbedtls_
+-
++ifeq ($(TCSUPPORT_OPENWRT), 1)
++CFLAGS =
++HOST_CC=gcc
++endif
+ .SILENT:
+ 
+ .PHONY: all no_test programs lib tests install uninstall clean test check covtest lcov apidoc apidoc_clean
+@@ -74,7 +77,7 @@
+ 	$(MAKE) -C programs clean
+ 	$(MAKE) -C tests clean
+ ifndef WINDOWS
+-	find . \( -name \*.gcno -o -name \*.gcda -o -name \*.info \) -exec rm {} +
++	find . \( -name \*.gcno -o -name \*.gcda -o -name \*.info \) -exec rm {} \;
+ endif
+ 
+ check: lib tests
+Index: mbedtls-2.5.1/programs/Makefile
+===================================================================
+--- mbedtls-2.5.1.orig/programs/Makefile	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/Makefile	2021-01-25 02:21:20.794121289 +0000
+@@ -2,9 +2,15 @@
+ # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
+ # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
+ 
++ifeq ($(TCSUPPORT_OPENWRT), 1)
++CFLAGS	= -O2
++WARNING_CFLAGS = -Wall -W -Wdeclaration-after-statement
++LDFLAGS =
++else
+ CFLAGS	?= -O2
+ WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement
+ LDFLAGS ?=
++endif
+ 
+ LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
+ LOCAL_LDFLAGS = -L../library 			\
+@@ -70,7 +76,8 @@
+ 	util/pem2der$(EXEXT)		util/strerror$(EXEXT)		\
+ 	x509/cert_app$(EXEXT)		x509/crl_app$(EXEXT)		\
+ 	x509/cert_req$(EXEXT)		x509/cert_write$(EXEXT)		\
+-	x509/req_app$(EXEXT)
++	x509/req_app$(EXEXT)		aes/aescrypt_secure_boot$(EXEXT) \
++	hash/sha256$(EXEXT)
+ 
+ ifdef PTHREAD
+ APPS +=	ssl/ssl_pthread_server$(EXEXT)
+@@ -89,6 +96,14 @@
+ 	echo "  CC    aes/aescrypt2.c"
+ 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/aescrypt2.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+ 
++aes/aescrypt_secure_boot$(EXEXT): aes/aescrypt_secure_boot.c $(DEP)
++	echo "  CC    aes/aescrypt_secure_boot.c"
++	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/aescrypt_secure_boot.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
++
++hash/sha256$(EXEXT): hash/sha256.c $(DEP)
++	echo "  CC    aes/aescrypt_secure_boot.c"
++	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/sha256.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
++
+ aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
+ 	echo "  CC    aes/crypt_and_hash.c"
+ 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/crypt_and_hash.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+Index: mbedtls-2.5.1/programs/pkey/rsa_genkey.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/pkey/rsa_genkey.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/pkey/rsa_genkey.c	2021-01-25 02:26:23.393131872 +0000
+@@ -45,7 +45,7 @@
+ #include <string.h>
+ #endif
+ 
+-#define KEY_SIZE 2048
++//#define KEY_SIZE 2048
+ #define EXPONENT 65537
+ 
+ #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_ENTROPY_C) ||   \
+@@ -59,7 +59,7 @@
+     return( 0 );
+ }
+ #else
+-int main( void )
++int main( int argc, char *argv[] )
+ {
+     int ret;
+     mbedtls_rsa_context rsa;
+@@ -69,6 +69,16 @@
+     FILE *fpriv = NULL;
+     const char *pers = "rsa_genkey";
+ 
++    int key_size = 2048;
++
++    if(argc >= 2) {
++        key_size = atoi( argv[1] );
++        if((key_size != 2048) && (key_size != 3072) && (key_size != 4096)) {
++            mbedtls_printf( "Error! the input RSA key size:%d must be 2048 or 3072 or 4096.\n", key_size );
++            return -1;
++        }
++    }
++
+     mbedtls_ctr_drbg_init( &ctr_drbg );
+ 
+     mbedtls_printf( "\n  . Seeding the random number generator..." );
+@@ -83,12 +93,12 @@
+         goto exit;
+     }
+ 
+-    mbedtls_printf( " ok\n  . Generating the RSA key [ %d-bit ]...", KEY_SIZE );
++    mbedtls_printf( " ok\n  . Generating the RSA key [ %d-bit ]...", key_size );
+     fflush( stdout );
+ 
+     mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+ 
+-    if( ( ret = mbedtls_rsa_gen_key( &rsa, mbedtls_ctr_drbg_random, &ctr_drbg, KEY_SIZE,
++    if( ( ret = mbedtls_rsa_gen_key( &rsa, mbedtls_ctr_drbg_random, &ctr_drbg, key_size,
+                              EXPONENT ) ) != 0 )
+     {
+         mbedtls_printf( " failed\n  ! mbedtls_rsa_gen_key returned %d\n\n", ret );
+Index: mbedtls-2.5.1/programs/pkey/rsa_sign.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/pkey/rsa_sign.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/pkey/rsa_sign.c	2021-01-25 02:30:05.567594773 +0000
+@@ -61,13 +61,14 @@
+     unsigned char hash[32];
+     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
+     char filename[512];
++    int sepLen = 0;
+ 
+     mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+     ret = 1;
+ 
+-    if( argc != 2 )
++    if( (argc != 2) && (argc != 3))
+     {
+-        mbedtls_printf( "usage: rsa_sign <filename>\n" );
++        mbedtls_printf( "usage: rsa_sign <filename> [sepration length]\n" );
+ 
+ #if defined(_WIN32)
+         mbedtls_printf( "\n" );
+@@ -76,6 +77,10 @@
+         goto exit;
+     }
+ 
++    if(argc == 3) {
++        sepLen = atoi(argv[2]);
++    }
++
+     mbedtls_printf( "\n  . Reading private key from rsa_priv.txt" );
+     fflush( stdout );
+ 
+@@ -122,7 +127,7 @@
+ 
+     if( ( ret = mbedtls_md_file(
+                     mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
+-                    argv[1], hash ) ) != 0 )
++                    argv[1], hash, sepLen) ) != 0 )
+     {
+         mbedtls_printf( " failed\n  ! Could not open or read %s\n\n", argv[1] );
+         goto exit;
+Index: mbedtls-2.5.1/programs/pkey/rsa_verify.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/pkey/rsa_verify.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/pkey/rsa_verify.c	2021-01-25 02:31:58.826732991 +0000
+@@ -60,13 +60,14 @@
+     unsigned char hash[32];
+     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
+     char filename[512];
++    int sepLen = 0;
+ 
+     mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+     ret = 1;
+ 
+-    if( argc != 2 )
++    if( (argc != 2) && (argc != 3))
+     {
+-        mbedtls_printf( "usage: rsa_verify <filename>\n" );
++        mbedtls_printf( "usage: rsa_verify <filename> [sepration length]\n" );
+ 
+ #if defined(_WIN32)
+         mbedtls_printf( "\n" );
+@@ -75,6 +76,10 @@
+         goto exit;
+     }
+ 
++    if(argc == 3) {
++        sepLen = atoi(argv[2]);
++    }
++
+     mbedtls_printf( "\n  . Reading public key from rsa_pub.txt" );
+     fflush( stdout );
+ 
+@@ -131,7 +136,7 @@
+ 
+     if( ( ret = mbedtls_md_file(
+                     mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
+-                    argv[1], hash ) ) != 0 )
++                    argv[1], hash, sepLen) ) != 0 )
+     {
+         mbedtls_printf( " failed\n  ! Could not open or read %s\n\n", argv[1] );
+         goto exit;
+Index: mbedtls-2.5.1/include/mbedtls/md.h
+===================================================================
+--- mbedtls-2.5.1.orig/include/mbedtls/md.h	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/include/mbedtls/md.h	2021-01-25 02:42:17.584172103 +0000
+@@ -268,7 +268,7 @@
+  *                 MBEDTLS_ERR_MD_BAD_INPUT_DATA if md_info was NULL.
+  */
+ int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path,
+-                     unsigned char *output );
++                     unsigned char *output, int sepLen);
+ #endif /* MBEDTLS_FS_IO */
+ 
+ /**
+Index: mbedtls-2.5.1/library/bignum.c
+===================================================================
+--- mbedtls-2.5.1.orig/library/bignum.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/library/bignum.c	2021-01-25 02:45:08.488835821 +0000
+@@ -1632,9 +1632,11 @@
+ 
+     wsize = ( i > 671 ) ? 6 : ( i > 239 ) ? 5 :
+             ( i >  79 ) ? 4 : ( i >  23 ) ? 3 : 1;
+-
++/* for coverity(CID:66720), avoid dead_error_condition */
++#if MBEDTLS_MPI_WINDOW_SIZE < 6
+     if( wsize > MBEDTLS_MPI_WINDOW_SIZE )
+         wsize = MBEDTLS_MPI_WINDOW_SIZE;
++#endif
+ 
+     j = N->n + 1;
+     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, j ) );
+Index: mbedtls-2.5.1/library/cipher.c
+===================================================================
+--- mbedtls-2.5.1.orig/library/cipher.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/library/cipher.c	2021-01-25 02:46:37.801001991 +0000
+@@ -367,10 +367,11 @@
+          */
+         if( 0 != ilen )
+         {
+-            if( 0 == block_size )
++            /* for coverity(CID:140573), avoid dead_error_condition */
++            /*if( 0 == block_size )
+             {
+                 return MBEDTLS_ERR_CIPHER_INVALID_CONTEXT;
+-            }
++            }*/
+ 
+             copy_len = ilen % block_size;
+             if( copy_len == 0 && ctx->operation == MBEDTLS_DECRYPT )
+Index: mbedtls-2.5.1/library/ctr_drbg.c
+===================================================================
+--- mbedtls-2.5.1.orig/library/ctr_drbg.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/library/ctr_drbg.c	2021-01-25 02:48:13.320901687 +0000
+@@ -310,7 +310,8 @@
+     /*
+      * Add additional data
+      */
+-    if( additional && len )
++    /* for coverity(CID:140575), avoid out-of-bounds read */
++    if( additional && len && (seedlen < MBEDTLS_CTR_DRBG_MAX_SEED_INPUT))
+     {
+         memcpy( seed + seedlen, additional, len );
+         seedlen += len;
+Index: mbedtls-2.5.1/library/des.c
+===================================================================
+--- mbedtls-2.5.1.orig/library/des.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/library/des.c	2021-01-25 02:50:53.094043238 +0000
+@@ -921,8 +921,9 @@
+             mbedtls_des3_set3key_enc( &ctx3, des3_test_keys );
+             break;
+ 
+-        default:
+-            return( 1 );
++        /* for coverity(CID:66761), avoid dead_error_condition */
++        /*default:
++            return( 1 );*/
+         }
+ 
+         for( j = 0; j < 10000; j++ )
+Index: mbedtls-2.5.1/library/ecp.c
+===================================================================
+--- mbedtls-2.5.1.orig/library/ecp.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/library/ecp.c	2021-01-25 02:51:48.187678279 +0000
+@@ -1392,8 +1392,11 @@
+      * Make sure w is within bounds.
+      * (The last test is useful only for very small curves in the test suite.)
+      */
++/* for coverity(CID:140574), avoid dead_error_condition */
++#if MBEDTLS_ECP_WINDOW_SIZE < 6
+     if( w > MBEDTLS_ECP_WINDOW_SIZE )
+         w = MBEDTLS_ECP_WINDOW_SIZE;
++#endif
+     if( w >= grp->nbits )
+         w = 2;
+ 
+Index: mbedtls-2.5.1/library/hmac_drbg.c
+===================================================================
+--- mbedtls-2.5.1.orig/library/hmac_drbg.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/library/hmac_drbg.c	2021-01-25 02:53:22.643623647 +0000
+@@ -279,6 +279,10 @@
+     if( additional != NULL && add_len != 0 )
+         mbedtls_hmac_drbg_update( ctx, additional, add_len );
+ 
++    /* for coverity(CID:207113), avoid overrun-buffer-arg */
++    if(md_len > MBEDTLS_MD_MAX_SIZE)
++        md_len = MBEDTLS_MD_MAX_SIZE;
++
+     /* 3, 4, 5. Generate bytes */
+     while( left != 0 )
+     {
+Index: mbedtls-2.5.1/library/md.c
+===================================================================
+--- mbedtls-2.5.1.orig/library/md.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/library/md.c	2021-01-25 03:40:59.388994504 +0000
+@@ -48,6 +48,8 @@
+ #include <stdio.h>
+ #endif
+ 
++#include <sys/stat.h>
++
+ /* Implementation that should never be optimized out by the compiler */
+ static void mbedtls_zeroize( void *v, size_t n ) {
+     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+@@ -287,13 +289,16 @@
+ }
+ 
+ #if defined(MBEDTLS_FS_IO)
+-int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path, unsigned char *output )
++int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path, unsigned char *output, int sepLen)
+ {
+-    int ret;
++    int ret = 0;
+     FILE *f;
+-    size_t n;
++    size_t n, loop, i, readLen;
+     mbedtls_md_context_t ctx;
+     unsigned char buf[1024];
++    struct stat st;
++    unsigned char *output_store = NULL;
++    int sepLenIdx, fileLenIdx;
+ 
+     if( md_info == NULL )
+         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+@@ -303,26 +308,79 @@
+ 
+     mbedtls_md_init( &ctx );
+ 
+-    if( ( ret = mbedtls_md_setup( &ctx, md_info, 0 ) ) != 0 )
++    /* get input file size */
++    if(stat(path, &st) != 0) {
++        ret = MBEDTLS_ERR_MD_FILE_IO_ERROR;
+         goto cleanup;
++    }
++    fileLenIdx = st.st_size;
+ 
+-    md_info->starts_func( ctx.md_ctx );
+-
+-    while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
+-        md_info->update_func( ctx.md_ctx, buf, n );
++    if(sepLen > 0) {
++        loop = (st.st_size / sepLen);
++        if((st.st_size % sepLen) != 0) {
++            loop += 1;
++        }
++    } else {
++        loop = 1;
++        sepLen = st.st_size;
++    }
+ 
+-    if( ferror( f ) != 0 )
+-    {
+-        ret = MBEDTLS_ERR_MD_FILE_IO_ERROR;
++    if( ( output_store = (unsigned char*)mbedtls_calloc( loop * md_info->size, sizeof(unsigned char) ) ) == NULL )
+         goto cleanup;
++
++    for(i = 0; i < loop; i++) {
++        mbedtls_md_init( &ctx );
++
++        if( ( ret = mbedtls_md_setup( &ctx, md_info, 0 ) ) != 0 ) {
++            goto cleanup;
++        }
++
++        md_info->starts_func( ctx.md_ctx );
++
++        sepLenIdx = sepLen;
++        while((sepLenIdx > 0) && (fileLenIdx > 0)) {
++            readLen = ((size_t)sepLenIdx >= sizeof( buf )) ? sizeof( buf ) : (size_t)sepLenIdx;
++            n = fread( buf, 1, readLen, f );
++            md_info->update_func( ctx.md_ctx, buf, n );
++            sepLenIdx -= n;
++            fileLenIdx -= n;
++        }
++
++        if( ferror( f ) != 0 )
++        {
++            ret = MBEDTLS_ERR_MD_FILE_IO_ERROR;
++            goto cleanup;
++        }
++
++        md_info->finish_func( ctx.md_ctx, &output_store[i * md_info->size] );
++
++        mbedtls_md_free( &ctx );
+     }
+ 
+-    md_info->finish_func( ctx.md_ctx, output );
++    /* Second hash layer */
++    if(loop > 1) {
++        mbedtls_md_init( &ctx );
++
++        if( ( ret = mbedtls_md_setup( &ctx, md_info, 0 ) ) != 0 ) {
++            goto cleanup;
++        }
++
++        md_info->starts_func( ctx.md_ctx );
++        md_info->update_func( ctx.md_ctx, output_store, loop * md_info->size );
++        md_info->finish_func( ctx.md_ctx, output );
++    } else {
++        memcpy(output, output_store, md_info->size);
++    }
+ 
+ cleanup:
+-    fclose( f );
++    if(f != NULL) {
++        fclose( f );
++    }
+     mbedtls_md_free( &ctx );
+-
++    if(output_store != NULL) {
++    mbedtls_free(output_store);
++    output_store = NULL;
++    }
+     return( ret );
+ }
+ #endif /* MBEDTLS_FS_IO */
+Index: mbedtls-2.5.1/library/pem.c
+===================================================================
+--- mbedtls-2.5.1.orig/library/pem.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/library/pem.c	2021-01-25 03:33:57.575101360 +0000
+@@ -403,7 +403,12 @@
+     unsigned char *encode_buf, *c, *p = buf;
+     size_t len = 0, use_len, add_len = 0;
+ 
+-    mbedtls_base64_encode( NULL, 0, &use_len, der_data, der_len );
++    /* for coverity(CID:207100), unchecked return value */
++    if((ret = mbedtls_base64_encode( NULL, 0, &use_len, der_data, der_len )) == 0)
++    {
++        return MBEDTLS_ERR_BASE64_INVALID_CHARACTER;
++    }
++
+     add_len = strlen( header ) + strlen( footer ) + ( use_len / 64 ) + 1;
+ 
+     if( use_len + add_len > buf_len )
+Index: mbedtls-2.5.1/library/pkcs12.c
+===================================================================
+--- mbedtls-2.5.1.orig/library/pkcs12.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/library/pkcs12.c	2021-01-25 03:35:15.751745536 +0000
+@@ -277,6 +277,8 @@
+     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
+         return( ret );
+     hlen = mbedtls_md_get_size( md_info );
++    /* for coverity(CID:207116), avoid overrun-buffer-arg */
++    hlen = ( hlen > MBEDTLS_MD_MAX_SIZE ) ? MBEDTLS_MD_MAX_SIZE : hlen;
+ 
+     if( hlen <= 32 )
+         v = 64;
+Index: mbedtls-2.5.1/library/rsa.c
+===================================================================
+--- mbedtls-2.5.1.orig/library/rsa.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/library/rsa.c	2021-01-25 02:35:16.058266596 +0000
+@@ -1729,13 +1729,30 @@
+ static int myrand( void *rng_state, unsigned char *output, size_t len )
+ {
+ #if !defined(__OpenBSD__)
+-    size_t i;
++    /*size_t i;*/
++    size_t result = 0;
++    FILE *random_data = NULL;
+ 
+     if( rng_state != NULL )
+         rng_state  = NULL;
+ 
+-    for( i = 0; i < len; ++i )
+-        output[i] = rand();
++    /*for coverity(CID:66708), Use a compliant random number generator*/
++    /*for( i = 0; i < len; ++i )
++        output[i] = rand();*/
++    random_data = fopen("/dev/urandom", "rb");
++    if(NULL == random_data)
++    {
++        return -1;
++    }
++    else
++    {
++        result = fread(output, 1, len, random_data);
++        fclose(random_data);
++        if(result != len)
++        {
++            return -1;
++        }
++    }
+ #else
+     if( rng_state != NULL )
+         rng_state = NULL;
+Index: mbedtls-2.5.1/library/ssl_tls.c
+===================================================================
+--- mbedtls-2.5.1.orig/library/ssl_tls.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/library/ssl_tls.c	2021-01-25 03:40:19.086724525 +0000
+@@ -1058,7 +1058,7 @@
+ #endif /* MBEDTLS_SHA256_C */
+ 
+ #if defined(MBEDTLS_SHA512_C)
+-void ssl_calc_verify_tls_sha384( mbedtls_ssl_context *ssl, unsigned char hash[48] )
++void ssl_calc_verify_tls_sha384( mbedtls_ssl_context *ssl, unsigned char hash[64] )/* for coverity(CID:68061), avoid out-of-bounds access */
+ {
+     mbedtls_sha512_context sha512;
+ 
+@@ -5096,7 +5096,7 @@
+     int len = 12;
+     const char *sender;
+     mbedtls_sha512_context sha512;
+-    unsigned char padbuf[48];
++    unsigned char padbuf[64];/* for coverity(CID:69357), avoid out-of-bounds access */
+ 
+     mbedtls_ssl_session *session = ssl->session_negotiate;
+     if( !session )
+@@ -5251,7 +5251,9 @@
+      * ciphersuite does this (and this is unlikely to change as activity has
+      * moved to TLS 1.3 now) so we can keep the hardcoded 12 here.
+      */
++/* for coverity(CID:207099, 207112), avoid overrun-buffer-arg */
+     hash_len = ( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) ? 36 : 12;
++    hash_len = hash_len > MBEDTLS_SSL_VERIFY_DATA_MAX_LEN ? MBEDTLS_SSL_VERIFY_DATA_MAX_LEN : hash_len;
+ 
+ #if defined(MBEDTLS_SSL_RENEGOTIATION)
+     ssl->verify_data_len = hash_len;
+Index: mbedtls-2.5.1/programs/aes/aescrypt_secure_boot.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ mbedtls-2.5.1/programs/aes/aescrypt_secure_boot.c	2021-01-25 06:17:47.453142324 +0000
+@@ -0,0 +1,771 @@
++/*
++ *  AES-256 file encryption program
++ *
++ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
++ *  SPDX-License-Identifier: Apache-2.0
++ *
++ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
++ *  not use this file except in compliance with the License.
++ *  You may obtain a copy of the License at
++ *
++ *  http://www.apache.org/licenses/LICENSE-2.0
++ *
++ *  Unless required by applicable law or agreed to in writing, software
++ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ *  See the License for the specific language governing permissions and
++ *  limitations under the License.
++ *
++ *  This file is part of mbed TLS (https://tls.mbed.org)
++ */
++
++#define DBG_PRINT 0
++
++#if !defined(MBEDTLS_CONFIG_FILE)
++#include "mbedtls/config.h"
++#else
++#include MBEDTLS_CONFIG_FILE
++#endif
++
++#if defined(MBEDTLS_PLATFORM_C)
++#include "mbedtls/platform.h"
++#else
++#include <stdio.h>
++#define mbedtls_fprintf    fprintf
++#define mbedtls_printf     printf
++#endif
++
++#include "mbedtls/aes.h"
++#include "mbedtls/md.h"
++#include "mbedtls/rsa.h"
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#if defined(_WIN32)
++#include <windows.h>
++#if !defined(_WIN32_WCE)
++#include <io.h>
++#endif
++#else
++#include <sys/types.h>
++#include <unistd.h>
++#endif
++
++enum {
++	MODE_ENCRYPT_RSA_48BITS = 0,
++	MODE_ENCRYPT_IMGKEY_RSA,
++	MODE_ENCRYPT_NORMAL,
++	MODE_ENCRYPT_RSA,
++	MODE_DECRYPT_RSA_48BITS,
++	MODE_DECRYPT_IMGKEY_RSA,
++	MODE_DECRYPT_NORMAL,
++	MODE_DECRYPT_RSA,
++	MODE_PAD_RSA_PUBLIC_KEY,
++	MODE_SHA256_RSA_PUBLIC_KEY,
++	MODE_CRYPTO_MAX
++};
++
++#define IV_HASH_TIMES (32)
++
++#define USAGE   \
++    "\n  aescrypt2 <mode> <input filename> <output filename> <keyfile>\n" \
++    "\n   <mode>: 0 = encrypt RSA public key with 48th to last bits with RSA public key first 48 bits\n" \
++    "\n   <mode>: 1 = encrypt image AES key with RSA public key\n" \
++    "\n   <mode>: 2 = encrypt\n" \
++    "\n   <mode>: 3 = encrypt RSA public key with keyfile\n" \
++    "\n   <mode>: 4 = decrypt RSA public key with 48th to last bits with RSA public key first 48 bits\n" \
++    "\n   <mode>: 5 = decrypt image AES key with RSA public key\n" \
++    "\n   <mode>: 6 = decrypt\n" \
++    "\n   <mode>: 7 = decrypt RSA public key with keyfile\n" \
++    "\n   <mode>: 8 = to pad RSA public key to input file\n" \
++    "\n   <mode>: 9 = to HASH(SHA256) RSA public key to input file\n" \
++    "\n  example: aescrypt2 0 rsa_pub.txt rsa_pub.txt.cihper rsa_pub.txt\n" \
++    "\n  example: aescrypt2 1 aes.key aes.key.cipher rsa_pub.txt\n" \
++    "\n  example: aescrypt2 2 file file.cipher aes.key\n" \
++    "\n  example: aescrypt2 3 file.aes file rsa_pub.txt\n" \
++    "\n  example: aescrypt2 5 file.aes file keyfile\n" \
++    "\n  example: aescrypt2 8 file.in file.out rsa_pub.txt\n" \
++    "\n  example: aescrypt2 9 rsa_pub.txt file.out\n" \
++    "\n           need file efuse_data created.\n" \
++    "\n"
++
++#if !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_SHA256_C) || \
++    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_MD_C)
++int main( void )
++{
++    mbedtls_printf("MBEDTLS_AES_C and/or MBEDTLS_SHA256_C "
++                    "and/or MBEDTLS_FS_IO and/or MBEDTLS_MD_C "
++                    "not defined.\n");
++    return( 0 );
++}
++#else
++int main( int argc, char *argv[] )
++{
++    int ret = 1;
++
++    unsigned int i, n;
++    int mode, lastn;
++    size_t keylen = 512;
++    FILE *fefuse = NULL, *fin = NULL, *fout = NULL, *fkey = NULL;
++	mbedtls_rsa_context rsa, rsaKey;
++
++    unsigned char IV[16];
++	unsigned char *key = NULL;
++	unsigned char rsa_pub_data[512];
++    unsigned char digest[32];
++    unsigned char buffer[1024];
++    unsigned char diff;
++	const char magic[] = "ECNT";
++	const char efuse_file[] = "efuse_data.bin";
++	const unsigned int efuse_len = 6; //bytes
++	unsigned char tmp[16];
++
++    mbedtls_aes_context aes_ctx;
++    mbedtls_md_context_t sha_ctx;
++
++#if	DBG_PRINT
++	unsigned int dbg_p_idx;
++#endif
++
++#if defined(_WIN32_WCE)
++    long filesize, offset;
++#elif defined(_WIN32)
++       LARGE_INTEGER li_size;
++    __int64 filesize, offset;
++#else
++      off_t filesize, offset;
++#endif
++
++    mbedtls_aes_init( &aes_ctx );
++    mbedtls_md_init( &sha_ctx );
++	mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
++	mbedtls_rsa_init( &rsaKey, MBEDTLS_RSA_PKCS_V15, 0 );
++
++    ret = mbedtls_md_setup( &sha_ctx, mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ), 1 );
++    if( ret != 0 )
++    {
++        mbedtls_printf( "  ! mbedtls_md_setup() returned -0x%04x\n", -ret );
++        goto exit;
++    }
++
++    /*
++     * Parse the command-line arguments.
++     */
++    if( argc != 5 && argc != 4)
++    {
++        mbedtls_printf( USAGE );
++
++#if defined(_WIN32)
++        mbedtls_printf( "\n  Press Enter to exit this program.\n" );
++        fflush( stdout ); getchar();
++#endif
++        goto err_exit;
++    }
++
++    mode = atoi( argv[1] );
++    memset(IV, 0, sizeof(IV));
++	memset(rsa_pub_data, 0, sizeof(rsa_pub_data));
++    memset(digest, 0, sizeof(digest));
++    memset(buffer, 0, sizeof(buffer));
++
++    if( mode > MODE_CRYPTO_MAX || mode < 0 )
++    {
++        mbedtls_fprintf( stderr, "invalide operation mode\n" );
++        goto err_exit;
++    }
++
++    if( strcmp( argv[2], argv[3] ) == 0 )
++    {
++        mbedtls_fprintf( stderr, "input and output filenames must differ\n" );
++        goto err_exit;
++    }
++
++    if( ( fin = fopen( argv[2], "rb" ) ) == NULL )
++    {
++        mbedtls_fprintf( stderr, "fopen(%s,rb) failed\n", argv[2] );
++        goto err_exit;
++    }
++
++    if( ( fout = fopen( argv[3], "wb+" ) ) == NULL )
++    {
++        mbedtls_fprintf( stderr, "fopen(%s,wb+) failed\n", argv[3] );
++        goto err_exit;
++    }
++
++	if(mode != MODE_SHA256_RSA_PUBLIC_KEY) {
++		if( ( fkey = fopen( argv[4], "rb" ) ) == NULL )
++	    {
++	        mbedtls_fprintf( stderr, "fopen(%s,rb) failed\n", argv[4] );
++	        goto err_exit;
++	    }
++	}
++
++	if(mode == MODE_PAD_RSA_PUBLIC_KEY) {
++		if( ( filesize = lseek( fileno( fin ), 0, SEEK_END ) ) < 0 )
++	    {
++	        perror( "lseek" );
++	        goto err_exit;
++	    }
++
++		/* SHA256 hash value must be 32 bytes */
++		if(filesize != 32) {
++			mbedtls_fprintf( stderr, "SHA256 hash value size:%ld is not 32 bytes\n", filesize);
++	        goto err_exit;
++		}
++
++		if( fseek( fin, 0, SEEK_SET ) < 0 )
++	    {
++	        mbedtls_fprintf( stderr, "fseek(0,SEEK_SET) fkey failed\n" );
++	        goto err_exit;
++	    }
++
++		if( fread( buffer, 1, filesize, fin ) != filesize )
++        {
++            mbedtls_fprintf( stderr, "fread(%ld bytes) failed\n", filesize );
++            goto err_exit;
++        }
++
++		if( fwrite( buffer, 1, filesize, fout ) != filesize )
++        {
++            mbedtls_fprintf( stderr, "fwrite(%ld bytes) failed\n", filesize );
++            goto err_exit;
++        }
++
++		if( ( ret = mbedtls_mpi_read_file( &rsaKey.N, 16, fkey ) ) != 0 ||
++			( ret = mbedtls_mpi_read_file( &rsaKey.E, 16, fkey ) ) != 0 )
++		{
++			mbedtls_fprintf( stderr, "mbedtls_mpi_read_file(%s,rb) failed\n", argv[4] );
++			goto exit;
++		}
++
++		for(i = 0; i < (64 - (filesize / 4)); i++) {
++			if( fwrite( &(rsaKey.N.p[i]), 1, 4, fout ) != 4 )
++	        {
++	            mbedtls_fprintf( stderr, "fwrite(%d bytes) failed\n", 4 );
++	            goto err_exit;
++	        }
++	    }
++
++		ret = 0;
++		goto exit;
++	}
++
++	if(mode == MODE_SHA256_RSA_PUBLIC_KEY) {
++		if( fseek( fin, 0, SEEK_SET ) < 0 )
++	    {
++	        mbedtls_fprintf( stderr, "fseek(0,SEEK_SET) fkey failed\n" );
++	        goto err_exit;
++	    }
++
++		if( ( ret = mbedtls_mpi_read_file( &rsaKey.N, 16, fin ) ) != 0 ||
++			( ret = mbedtls_mpi_read_file( &rsaKey.E, 16, fin ) ) != 0 )
++		{
++			mbedtls_fprintf( stderr, "mbedtls_mpi_read_file(%s,rb) failed\n", argv[2] );
++			goto exit;
++		}
++
++		rsaKey.len = ( mbedtls_mpi_bitlen( &rsaKey.N ) + 7 ) >> 3;
++
++		mbedtls_md_starts( &sha_ctx );
++        mbedtls_md_update( &sha_ctx, rsaKey.N.p, rsaKey.len );
++        mbedtls_md_finish( &sha_ctx, digest );
++
++		if( fwrite( digest, 1, 32, fout ) != 32 )
++        {
++            mbedtls_fprintf( stderr, "fwrite(%u bytes) failed\n", 32 );
++            goto err_exit;
++        }
++
++		ret = 0;
++		goto exit;
++	}
++
++	/* read rsa public key file as AES key */
++	if((mode == MODE_ENCRYPT_RSA_48BITS) || (mode == MODE_ENCRYPT_IMGKEY_RSA) ||
++	   (mode == MODE_DECRYPT_RSA_48BITS) || (mode == MODE_DECRYPT_IMGKEY_RSA)) {
++		if( ( ret = mbedtls_mpi_read_file( &rsaKey.N, 16, fkey ) ) != 0 ||
++			( ret = mbedtls_mpi_read_file( &rsaKey.E, 16, fkey ) ) != 0 )
++		{
++			mbedtls_fprintf( stderr, "mbedtls_mpi_read_file(%s,rb) failed\n", argv[4] );
++			goto exit;
++		}
++
++		rsaKey.len = ( mbedtls_mpi_bitlen( &rsaKey.N ) + 7 ) >> 3;
++
++		if((mode == MODE_ENCRYPT_RSA_48BITS) || (mode == MODE_DECRYPT_RSA_48BITS)) {
++			keylen = efuse_len;
++		} else {
++			keylen = 512;
++		}
++
++		key = (unsigned char *)mbedtls_calloc(keylen, sizeof(unsigned char));
++		if(key == NULL) {
++			mbedtls_fprintf( stderr, "mbedtls_calloc key failed\n");
++			goto err_exit;
++		}
++
++		if((mode == MODE_ENCRYPT_RSA_48BITS) || (mode == MODE_DECRYPT_RSA_48BITS)) {
++			memcpy(key, rsaKey.N.p, keylen);
++		} else {
++			if(rsaKey.len > keylen) {
++				mbedtls_fprintf( stderr, "RSA public key size:%lu more than %lu.\n", rsaKey.len, keylen);
++				goto err_exit;
++			}
++			memcpy(key, rsaKey.N.p, rsaKey.len);
++		}
++
++#if DBG_PRINT
++		mbedtls_printf("rsaKey.len:%d\n", rsaKey.len);
++		mbedtls_printf("rsaKey.N.s:%d\n", rsaKey.N.s);
++		mbedtls_printf("rsaKey.N.n:%d\n", rsaKey.N.n);
++		mbedtls_printf("rsaKey public key:\n");
++		for(dbg_p_idx = 0; dbg_p_idx < keylen; dbg_p_idx++) {
++			mbedtls_printf("0x%x ", key[dbg_p_idx]);
++			if(((dbg_p_idx + 1) % 8) == 0) {
++				mbedtls_printf("\n");
++			}
++		}
++#endif
++	} else {
++		if( ( filesize = lseek( fileno( fkey ), 0, SEEK_END ) ) < 0 )
++	    {
++	        perror( "lseek" );
++	        goto err_exit;
++	    }
++
++		if( fseek( fkey, 0, SEEK_SET ) < 0 )
++	    {
++	        mbedtls_fprintf( stderr, "fseek(0,SEEK_SET) fkey failed\n" );
++	        goto err_exit;
++	    }
++
++		key = (unsigned char *)mbedtls_calloc(filesize, sizeof(unsigned char));
++		if(key == NULL) {
++			mbedtls_fprintf( stderr, "mbedtls_calloc key failed\n");
++			goto err_exit;
++		}
++
++		keylen = fread( key, 1, filesize, fkey );
++		if( keylen != filesize) {
++			perror( "fread key error.\n" );
++	        goto err_exit;
++		}
++#if DBG_PRINT
++		mbedtls_printf("key:\n");
++		for(dbg_p_idx = 0; dbg_p_idx < keylen; dbg_p_idx++) {
++			mbedtls_printf("0x%x ", key[dbg_p_idx]);
++			if(((dbg_p_idx + 1) % 8) == 0) {
++				mbedtls_printf("\n");
++			}
++		}
++		for(dbg_p_idx = 0; dbg_p_idx < (keylen / 4); dbg_p_idx++) {
++			mbedtls_printf("0x%x ", *(((unsigned int *)key) + dbg_p_idx));
++			if(((dbg_p_idx + 1) % 4) == 0) {
++				mbedtls_printf("\n");
++			}
++		}
++#endif
++	}
++
++    if( (mode == MODE_ENCRYPT_RSA_48BITS) || (mode == MODE_ENCRYPT_IMGKEY_RSA) ||
++		(mode == MODE_ENCRYPT_NORMAL) || (mode == MODE_ENCRYPT_RSA))
++    {
++    	if((mode == MODE_ENCRYPT_RSA_48BITS) || (mode == MODE_ENCRYPT_RSA)) {
++			if( ( ret = mbedtls_mpi_read_file( &rsa.N, 16, fin ) ) != 0 ||
++				( ret = mbedtls_mpi_read_file( &rsa.E, 16, fin ) ) != 0 )
++			{
++				mbedtls_fprintf( stderr, "mbedtls_mpi_read_file(%s,rb) failed\n", argv[2] );
++				goto exit;
++			}
++
++			rsa.len = ( mbedtls_mpi_bitlen( &rsa.N ) + 7 ) >> 3;
++			filesize = sizeof(rsa_pub_data);
++			if(rsa.len > filesize) {
++				mbedtls_fprintf( stderr, "RSA public key size:%lu more than %ld.\n", rsa.len, filesize);
++				goto err_exit;
++			}
++			memcpy(rsa_pub_data, rsa.N.p, rsa.len);
++
++			/* clear 48bits */
++			if(mode == MODE_ENCRYPT_RSA_48BITS) {
++				memset(rsa_pub_data, 0, efuse_len);
++
++				/*
++			     * write efuse_data.txt from RSA public key 48bits.
++			     */
++			    if( ( fefuse = fopen( efuse_file, "wb+" ) ) == NULL ) {
++					mbedtls_fprintf( stderr, "fopen(%s,rb) failed\n", efuse_file );
++					goto err_exit;
++			    }
++
++				if( fwrite( key, 1, keylen, fefuse ) != keylen )
++		        {
++		            mbedtls_fprintf( stderr, "fwrite(%lu bytes) to %s failed\n", keylen, efuse_file );
++		            goto err_exit;
++		        }
++			}
++    	} else {
++			if( ( filesize = lseek( fileno( fin ), 0, SEEK_END ) ) < 0 )
++		    {
++		        perror( "lseek" );
++		        goto err_exit;
++		    }
++
++			if( fseek( fin, 0, SEEK_SET ) < 0 )
++		    {
++		        mbedtls_fprintf( stderr, "fseek(0,SEEK_SET) failed\n" );
++		        goto err_exit;
++		    }
++    	}
++
++        /*
++         * Generate the initialization vector as:
++         * IV = SHA-256( filesize || filename )[0..15]
++         */
++        for( i = 0; i < 8; i++ )
++            buffer[i] = (unsigned char)( filesize >> ( i << 3 ) );
++
++        mbedtls_md_starts( &sha_ctx );
++        mbedtls_md_update( &sha_ctx, buffer, 8 );
++        mbedtls_md_update( &sha_ctx, magic, strlen( magic ) );
++        mbedtls_md_finish( &sha_ctx, digest );
++
++        memcpy( IV, digest, 16 );
++
++        /*
++         * The last four bits in the IV are actually used
++         * to store the file size modulo the AES block size.
++         */
++        lastn = (int)( filesize & 0x0F );
++
++        IV[15] = (unsigned char)
++            ( ( IV[15] & 0xF0 ) | lastn );
++
++        /*
++         * Append the IV at the beginning of the output.
++         */
++        if( fwrite( IV, 1, 16, fout ) != 16 )
++        {
++            mbedtls_fprintf( stderr, "fwrite(%d bytes) failed\n", 16 );
++            goto err_exit;
++        }
++
++        /*
++         * Hash the IV and the secret key together IV_HASH_TIMES times
++         * using the result to setup the AES context and HMAC.
++         */
++        memset( digest, 0,  32 );
++        memcpy( digest, IV, 16 );
++
++        for( i = 0; i < IV_HASH_TIMES; i++ )
++        {
++            mbedtls_md_starts( &sha_ctx );
++            mbedtls_md_update( &sha_ctx, digest, 32 );
++            mbedtls_md_update( &sha_ctx, key, keylen );
++            mbedtls_md_finish( &sha_ctx, digest );
++        }
++
++        mbedtls_aes_setkey_enc( &aes_ctx, digest, 256 );
++        mbedtls_md_hmac_starts( &sha_ctx, digest, 32 );
++
++        /*
++         * Encrypt and write the ciphertext.
++         */
++        for( offset = 0; offset < filesize; offset += 16 )
++        {
++            n = ( filesize - offset > 16 ) ? 16 : (int)
++                ( filesize - offset );
++
++			if((mode == MODE_ENCRYPT_RSA_48BITS) || (mode == MODE_ENCRYPT_RSA)) {
++				if( (n % 4) != 0 )
++	            {
++	                mbedtls_fprintf( stderr, "File size not a multiple of 4\n");
++	                goto err_exit;
++	            }
++
++				memcpy(buffer, (rsa_pub_data + offset), n);
++			} else {
++				if( fread( buffer, 1, n, fin ) != (size_t) n )
++	            {
++	                mbedtls_fprintf( stderr, "fread(%d bytes) failed\n", n );
++	                goto err_exit;
++	            }
++			}
++
++#if DBG_PRINT
++			mbedtls_printf("input data:\n");
++			for(dbg_p_idx = 0; dbg_p_idx < n; dbg_p_idx++) {
++				mbedtls_printf("0x%x ", buffer[dbg_p_idx]);
++			}
++			mbedtls_printf("\n");
++#endif
++            for( i = 0; i < 16; i++ )
++                buffer[i] = (unsigned char)( buffer[i] ^ IV[i] );
++
++            mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_ENCRYPT, buffer, buffer );
++            mbedtls_md_hmac_update( &sha_ctx, buffer, 16 );
++
++            if( fwrite( buffer, 1, 16, fout ) != 16 )
++            {
++                mbedtls_fprintf( stderr, "fwrite(%d bytes) failed\n", 16 );
++                goto err_exit;
++            }
++
++            memcpy( IV, buffer, 16 );
++        }
++
++        /*
++         * Finally write the HMAC.
++         */
++        mbedtls_md_hmac_finish( &sha_ctx, digest );
++
++        if( fwrite( digest, 1, 32, fout ) != 32 )
++        {
++            mbedtls_fprintf( stderr, "fwrite(%d bytes) failed\n", 16 );
++            goto err_exit;
++        }
++    }
++
++    if( (mode == MODE_DECRYPT_RSA_48BITS) || (mode == MODE_DECRYPT_IMGKEY_RSA) ||
++		(mode == MODE_DECRYPT_NORMAL) || (mode == MODE_DECRYPT_RSA))
++    {
++
++#if defined(_WIN32_WCE)
++		filesize = fseek( fin, 0L, SEEK_END );
++#else
++#if defined(_WIN32)
++		/*
++		 * Support large files (> 2Gb) on Win32
++		 */
++		li_size.QuadPart = 0;
++		li_size.LowPart  =
++			SetFilePointer( (HANDLE) _get_osfhandle( _fileno( fin ) ),
++							li_size.LowPart, &li_size.HighPart, FILE_END );
++
++		if( li_size.LowPart == 0xFFFFFFFF && GetLastError() != NO_ERROR )
++		{
++			mbedtls_fprintf( stderr, "SetFilePointer(0,FILE_END) failed\n" );
++			goto err_exit;
++		}
++
++		filesize = li_size.QuadPart;
++#else
++		if( ( filesize = lseek( fileno( fin ), 0, SEEK_END ) ) < 0 )
++		{
++			perror( "lseek" );
++			goto err_exit;
++		}
++#endif
++#endif
++
++		if( fseek( fin, 0, SEEK_SET ) < 0 )
++		{
++			mbedtls_fprintf( stderr, "fseek(0,SEEK_SET) failed\n" );
++			goto err_exit;
++		}
++
++        /*
++         *  The encrypted file must be structured as follows:
++         *
++         *        00 .. 15              Initialization Vector
++         *        16 .. 31              AES Encrypted Block #1
++         *           ..
++         *      N*16 .. (N+1)*16 - 1    AES Encrypted Block #N
++         *  (N+1)*16 .. (N+1)*16 + 32   HMAC-SHA-256(ciphertext)
++         */
++        if( filesize < 48 )
++        {
++            mbedtls_fprintf( stderr, "File too short to be encrypted.\n" );
++            goto err_exit;
++        }
++
++        if( ( filesize & 0x0F ) != 0 )
++        {
++            mbedtls_fprintf( stderr, "File size not a multiple of 16.\n" );
++            goto err_exit;
++        }
++
++        /*
++         * Subtract the IV + HMAC length.
++         */
++        filesize -= ( 16 + 32 );
++
++        /*
++         * Read the IV and original filesize modulo 16.
++         */
++        if( fread( buffer, 1, 16, fin ) != 16 )
++        {
++            mbedtls_fprintf( stderr, "fread(%d bytes) failed\n", 16 );
++            goto err_exit;
++        }
++
++        memcpy( IV, buffer, 16 );
++        lastn = IV[15] & 0x0F;
++
++#if DBG_PRINT
++		mbedtls_printf("IV:\n");
++		for(dbg_p_idx = 0; dbg_p_idx < 16; dbg_p_idx++) {
++			mbedtls_printf("0x%x ", IV[dbg_p_idx]);
++		}
++		mbedtls_printf("\n");
++#endif
++
++        /*
++         * Hash the IV and the secret key together IV_HASH_TIMES times
++         * using the result to setup the AES context and HMAC.
++         */
++        memset( digest, 0,  32 );
++        memcpy( digest, IV, 16 );
++
++        for( i = 0; i < IV_HASH_TIMES; i++ )
++        {
++            mbedtls_md_starts( &sha_ctx );
++            mbedtls_md_update( &sha_ctx, digest, 32 );
++            mbedtls_md_update( &sha_ctx, key, keylen );
++            mbedtls_md_finish( &sha_ctx, digest );
++        }
++
++#if DBG_PRINT
++		mbedtls_printf("digest:\n");
++		for(dbg_p_idx = 0; dbg_p_idx < 32; dbg_p_idx++) {
++			mbedtls_printf("0x%x ", digest[dbg_p_idx]);
++		}
++		mbedtls_printf("\n");
++#endif
++
++        mbedtls_aes_setkey_dec( &aes_ctx, digest, 256 );
++        mbedtls_md_hmac_starts( &sha_ctx, digest, 32 );
++
++        /*
++         * Decrypt and write the plaintext.
++         */
++        for( offset = 0; offset < filesize; offset += 16 )
++        {
++            if( fread( buffer, 1, 16, fin ) != 16 )
++            {
++                mbedtls_fprintf( stderr, "fread(%d bytes) failed\n", 16 );
++                goto err_exit;
++            }
++
++#if DBG_PRINT
++			mbedtls_printf("rsa chipher:\n");
++			for(dbg_p_idx = 0; dbg_p_idx < 16; dbg_p_idx++) {
++				mbedtls_printf("0x%x ", buffer[dbg_p_idx]);
++			}
++			mbedtls_printf("\n");
++#endif
++
++            memcpy( tmp, buffer, 16 );
++
++            mbedtls_md_hmac_update( &sha_ctx, buffer, 16 );
++            mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_DECRYPT, buffer, buffer );
++
++#if DBG_PRINT
++			mbedtls_printf("before XOR IV:\n");
++			for(dbg_p_idx = 0; dbg_p_idx < 16; dbg_p_idx++) {
++				mbedtls_printf("0x%x ", buffer[dbg_p_idx]);
++			}
++			mbedtls_printf("\n");
++
++			mbedtls_printf("IV:\n");
++			for(dbg_p_idx = 0; dbg_p_idx < 16; dbg_p_idx++) {
++				mbedtls_printf("0x%x ", IV[dbg_p_idx]);
++			}
++			mbedtls_printf("\n");
++#endif
++
++            for( i = 0; i < 16; i++ )
++                buffer[i] = (unsigned char)( buffer[i] ^ IV[i] );
++
++            memcpy( IV, tmp, 16 );
++
++            n = ( lastn > 0 && offset == filesize - 16 )
++                ? lastn : 16;
++
++#if DBG_PRINT
++			mbedtls_printf("plaintext:\n");
++			for(dbg_p_idx = 0; dbg_p_idx < n; dbg_p_idx++) {
++				mbedtls_printf("0x%x ", buffer[dbg_p_idx]);
++			}
++			mbedtls_printf("\n");
++#endif
++
++            if( fwrite( buffer, 1, n, fout ) != (size_t) n )
++            {
++                mbedtls_fprintf( stderr, "fwrite(%d bytes) failed\n", n );
++                goto err_exit;
++            }
++        }
++
++        /*
++         * Verify the message authentication code.
++         */
++        mbedtls_md_hmac_finish( &sha_ctx, digest );
++
++        if( fread( buffer, 1, 32, fin ) != 32 )
++        {
++            mbedtls_fprintf( stderr, "fread(%d bytes) failed\n", 32 );
++            goto err_exit;
++        }
++
++#if DBG_PRINT
++		mbedtls_printf("HMAC digest:\n");
++		for(dbg_p_idx = 0; dbg_p_idx < 32; dbg_p_idx++) {
++			mbedtls_printf("0x%x ", digest[dbg_p_idx]);
++		}
++		mbedtls_printf("\n");
++
++		mbedtls_printf("HMAC:\n");
++		for(dbg_p_idx = 0; dbg_p_idx < 32; dbg_p_idx++) {
++			mbedtls_printf("0x%x ", buffer[dbg_p_idx]);
++		}
++		mbedtls_printf("\n");
++#endif
++
++        /* Use constant-time buffer comparison */
++        diff = 0;
++        for( i = 0; i < 32; i++ ) {
++            diff |= digest[i] ^ buffer[i];
++#if DBG_PRINT
++			mbedtls_printf("diff:0x%x\n", diff);
++#endif
++
++        }
++
++        if( diff != 0 )
++        {
++            mbedtls_fprintf( stderr, "HMAC check failed: wrong key, "
++                             "or file corrupted.\n" );
++            goto err_exit;
++        }
++    }
++
++    ret = 0;
++	goto exit;
++
++err_exit:
++	ret = -1;
++exit:
++    if( fin )
++        fclose( fin );
++    if( fout )
++        fclose( fout );
++	if( fefuse )
++		fclose( fefuse );
++	if( fkey )
++		fclose( fkey );
++	//if( key )
++	//	free( key );
++
++    memset( buffer, 0, sizeof( buffer ) );
++    memset( digest, 0, sizeof( digest ) );
++
++    mbedtls_aes_free( &aes_ctx );
++    mbedtls_md_free( &sha_ctx );
++
++    return( ret );
++}
++#endif /* MBEDTLS_AES_C && MBEDTLS_SHA256_C && MBEDTLS_FS_IO */
++
+Index: mbedtls-2.5.1/programs/aes/CMakeLists.txt
+===================================================================
+--- mbedtls-2.5.1.orig/programs/aes/CMakeLists.txt	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/aes/CMakeLists.txt	2021-01-25 05:19:56.010158082 +0000
+@@ -1,9 +1,12 @@
+ add_executable(aescrypt2 aescrypt2.c)
+ target_link_libraries(aescrypt2 mbedtls)
+ 
++add_executable(aescrypt_secure_boot aescrypt_secure_boot.c)
++target_link_libraries(aescrypt_secure_boot mbedtls)
++
+ add_executable(crypt_and_hash crypt_and_hash.c)
+ target_link_libraries(crypt_and_hash mbedtls)
+ 
+-install(TARGETS aescrypt2 crypt_and_hash
++install(TARGETS aescrypt2 crypt_and_hash aescrypt_secure_boot
+         DESTINATION "bin"
+         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+Index: mbedtls-2.5.1/programs/aes/crypt_and_hash.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/aes/crypt_and_hash.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/aes/crypt_and_hash.c	2021-01-25 05:22:08.240481941 +0000
+@@ -116,7 +116,11 @@
+         while( *list )
+         {
+             cipher_info = mbedtls_cipher_info_from_type( *list );
+-            mbedtls_printf( "  %s\n", cipher_info->name );
++            /* for coverity(CID:207108), avoid referencing a null pointer */
++            if(NULL != cipher_info)
++            {
++                mbedtls_printf( "  %s\n", cipher_info->name );
++            }
+             list++;
+         }
+ 
+Index: mbedtls-2.5.1/programs/hash/CMakeLists.txt
+===================================================================
+--- mbedtls-2.5.1.orig/programs/hash/CMakeLists.txt	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/hash/CMakeLists.txt	2021-01-25 05:24:50.869500900 +0000
+@@ -1,9 +1,12 @@
+ add_executable(hello hello.c)
+ target_link_libraries(hello mbedtls)
+ 
++add_executable(sha256 sha256.c)
++target_link_libraries(sha256 mbedtls)
++
+ add_executable(generic_sum generic_sum.c)
+ target_link_libraries(generic_sum mbedtls)
+ 
+-install(TARGETS hello generic_sum
++install(TARGETS hello generic_sum sha256
+         DESTINATION "bin"
+         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+Index: mbedtls-2.5.1/programs/hash/generic_sum.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/hash/generic_sum.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/hash/generic_sum.c	2021-01-25 05:26:25.909421200 +0000
+@@ -49,7 +49,7 @@
+ #else
+ static int generic_wrapper( const mbedtls_md_info_t *md_info, char *filename, unsigned char *sum )
+ {
+-    int ret = mbedtls_md_file( md_info, filename, sum );
++    int ret = mbedtls_md_file( md_info, filename, sum, 0);
+ 
+     if( ret == 1 )
+         mbedtls_fprintf( stderr, "failed to open: %s\n", filename );
+Index: mbedtls-2.5.1/programs/hash/sha256.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ mbedtls-2.5.1/programs/hash/sha256.c	2021-01-25 05:28:31.572026986 +0000
+@@ -0,0 +1,186 @@
++/*
++ *  SHA256 file hash program
++ *
++ *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
++ *  SPDX-License-Identifier: Apache-2.0
++ *
++ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
++ *  not use this file except in compliance with the License.
++ *  You may obtain a copy of the License at
++ *
++ *  http://www.apache.org/licenses/LICENSE-2.0
++ *
++ *  Unless required by applicable law or agreed to in writing, software
++ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ *  See the License for the specific language governing permissions and
++ *  limitations under the License.
++ *
++ *  This file is part of mbed TLS (https://tls.mbed.org)
++ */
++
++#define DBG_PRINT 0
++
++#if !defined(MBEDTLS_CONFIG_FILE)
++#include "mbedtls/config.h"
++#else
++#include MBEDTLS_CONFIG_FILE
++#endif
++
++#if defined(MBEDTLS_PLATFORM_C)
++#include "mbedtls/platform.h"
++#else
++#include <stdio.h>
++#define mbedtls_fprintf    fprintf
++#define mbedtls_printf     printf
++#endif
++
++#include "mbedtls/aes.h"
++#include "mbedtls/md.h"
++#include "mbedtls/rsa.h"
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#if defined(_WIN32)
++#include <windows.h>
++#if !defined(_WIN32_WCE)
++#include <io.h>
++#endif
++#else
++#include <sys/types.h>
++#include <unistd.h>
++#endif
++
++#define IV_HASH_TIMES (32)
++
++#define USAGE   \
++    "\n  sha256 <input filename> <output filename>\n" \
++    "\n"
++
++#if !defined(MBEDTLS_SHA256_C) || \
++    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_MD_C)
++int main( void )
++{
++    mbedtls_printf("MBEDTLS_AES_C and/or MBEDTLS_SHA256_C "
++                    "and/or MBEDTLS_FS_IO and/or MBEDTLS_MD_C "
++                    "not defined.\n");
++    return( 0 );
++}
++#else
++int main( int argc, char *argv[] )
++{
++    int ret = 1;
++
++    unsigned int n;
++    FILE *fin = NULL, *fout = NULL;
++
++    mbedtls_md_context_t sha_ctx;
++	unsigned char digest[32];
++	unsigned char buffer[1024];
++
++#if defined(_WIN32_WCE)
++	long filesize, offset;
++#elif defined(_WIN32)
++	LARGE_INTEGER li_size;
++	__int64 filesize, offset;
++#else
++	off_t filesize, offset;
++#endif
++
++#if	DBG_PRINT
++	unsigned int dbg_p_idx;
++#endif
++
++    mbedtls_md_init( &sha_ctx );
++
++    ret = mbedtls_md_setup( &sha_ctx, mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ), 1 );
++    if( ret != 0 )
++    {
++        mbedtls_printf( "  ! mbedtls_md_setup() returned -0x%04x\n", -ret );
++        goto exit;
++    }
++
++    /*
++     * Parse the command-line arguments.
++     */
++    if( argc != 3)
++    {
++        mbedtls_printf( USAGE );
++
++#if defined(_WIN32)
++        mbedtls_printf( "\n  Press Enter to exit this program.\n" );
++        fflush( stdout ); getchar();
++#endif
++
++        goto exit;
++    }
++
++    if( strcmp( argv[1], argv[2] ) == 0 )
++    {
++        mbedtls_fprintf( stderr, "input and output filenames must differ\n" );
++        goto exit;
++    }
++
++    if( ( fin = fopen( argv[1], "rb" ) ) == NULL )
++    {
++        mbedtls_fprintf( stderr, "fopen(%s,rb) failed\n", argv[2] );
++        goto exit;
++    }
++
++    if( ( fout = fopen( argv[2], "wb+" ) ) == NULL )
++    {
++        mbedtls_fprintf( stderr, "fopen(%s,wb+) failed\n", argv[3] );
++        goto exit;
++    }
++
++	if( ( filesize = lseek( fileno( fin ), 0, SEEK_END ) ) < 0 )
++    {
++        perror( "lseek" );
++        goto exit;
++    }
++
++	if( fseek( fin, 0, SEEK_SET ) < 0 )
++    {
++        mbedtls_fprintf( stderr, "fseek(0,SEEK_SET) failed\n" );
++        goto exit;
++    }
++
++    mbedtls_md_starts( &sha_ctx );
++	for( offset = 0; offset < filesize; offset += sizeof(buffer) )
++    {
++        n = ( filesize - offset > sizeof(buffer) ) ? sizeof(buffer) : ( filesize - offset );
++
++		if( fread( buffer, 1, n, fin ) != (size_t) n )
++        {
++            mbedtls_fprintf( stderr, "fread(%d bytes) failed\n", n );
++            goto exit;
++        }
++		mbedtls_md_update( &sha_ctx, buffer, n );
++	}
++    mbedtls_md_finish( &sha_ctx, digest );
++
++	if( fwrite( digest, 1, 32, fout ) != 32 )
++    {
++        mbedtls_fprintf( stderr, "fwrite(%d bytes) failed\n", 16 );
++        goto exit;
++    }
++
++    ret = 0;
++
++exit:
++    if( fin )
++        fclose( fin );
++    if( fout )
++        fclose( fout );
++
++    memset( buffer, 0, sizeof( buffer ) );
++    memset( digest, 0, sizeof( digest ) );
++
++    mbedtls_md_free( &sha_ctx );
++
++    return( ret );
++}
++#endif /* MBEDTLS_AES_C && MBEDTLS_SHA256_C && MBEDTLS_FS_IO */
++
+Index: mbedtls-2.5.1/programs/pkey/gen_key.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/pkey/gen_key.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/pkey/gen_key.c	2021-01-25 05:38:49.257512112 +0000
+@@ -149,37 +149,58 @@
+ {
+     int ret;
+     FILE *f;
+-    unsigned char output_buf[16000];
+-    unsigned char *c = output_buf;
++    unsigned char *output_buf = NULL;
++    unsigned char *c = NULL;
+     size_t len = 0;
+ 
+-    memset(output_buf, 0, 16000);
++    /* for coverity(CID:207125), avoid stack_use_local_overflow */
++    output_buf = (unsigned char *)malloc(16000);
++    if(NULL != output_buf)
++    {
++        memset(output_buf, 0, 16000);
++    }
++    else
++    {
++        return MBEDTLS_ERR_PK_ALLOC_FAILED;
++    }
++    c = output_buf;
+     if( opt.format == FORMAT_PEM )
+     {
+         if( ( ret = mbedtls_pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
++        {
++            free(output_buf);
+             return( ret );
++        }
+ 
+         len = strlen( (char *) output_buf );
+     }
+     else
+     {
+         if( ( ret = mbedtls_pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
++        {
++            free(output_buf);
+             return( ret );
++        }
+ 
+         len = ret;
+         c = output_buf + sizeof(output_buf) - len;
+     }
+ 
+     if( ( f = fopen( output_file, "wb" ) ) == NULL )
++    {
++        free(output_buf);
+         return( -1 );
++    }
+ 
+     if( fwrite( c, 1, len, f ) != len )
+     {
+         fclose( f );
++        free(output_buf);
+         return( -1 );
+     }
+ 
+     fclose( f );
++    free(output_buf);
+ 
+     return( 0 );
+ }
+Index: mbedtls-2.5.1/programs/pkey/key_app_writer.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/pkey/key_app_writer.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/pkey/key_app_writer.c	2021-01-25 05:40:51.244275687 +0000
+@@ -107,17 +107,30 @@
+ {
+     int ret;
+     FILE *f;
+-    unsigned char output_buf[16000];
+-    unsigned char *c = output_buf;
++    unsigned char *output_buf = NULL;
++    unsigned char *c = NULL;
+     size_t len = 0;
+ 
+-    memset(output_buf, 0, 16000);
++    /* for coverity(CID:207125), avoid stack_use_local_overflow */
++    output_buf = (unsigned char *)malloc(16000);
++    if(NULL != output_buf)
++    {
++        memset(output_buf, 0, 16000);
++    }
++    else
++    {
++        return MBEDTLS_ERR_PK_ALLOC_FAILED;
++    }
++    c = output_buf;
+ 
+ #if defined(MBEDTLS_PEM_WRITE_C)
+     if( opt.output_format == OUTPUT_FORMAT_PEM )
+     {
+         if( ( ret = mbedtls_pk_write_pubkey_pem( key, output_buf, 16000 ) ) != 0 )
++        {
++            free(output_buf);
+             return( ret );
++        }
+ 
+         len = strlen( (char *) output_buf );
+     }
+@@ -125,22 +138,30 @@
+ #endif
+     {
+         if( ( ret = mbedtls_pk_write_pubkey_der( key, output_buf, 16000 ) ) < 0 )
++        {
++            free(output_buf);
+             return( ret );
++        }
+ 
+         len = ret;
+         c = output_buf + sizeof(output_buf) - len - 1;
+     }
+ 
+     if( ( f = fopen( output_file, "w" ) ) == NULL )
++    {
++        free(output_buf);
+         return( -1 );
++    }
+ 
+     if( fwrite( c, 1, len, f ) != len )
+     {
+         fclose( f );
++        free(output_buf);
+         return( -1 );
+     }
+ 
+     fclose( f );
++    free(output_buf);
+ 
+     return( 0 );
+ }
+@@ -149,17 +170,30 @@
+ {
+     int ret;
+     FILE *f;
+-    unsigned char output_buf[16000];
+-    unsigned char *c = output_buf;
++    unsigned char *output_buf = NULL;
++    unsigned char *c = NULL;
+     size_t len = 0;
+ 
+-    memset(output_buf, 0, 16000);
++    /* for coverity(CID:207122), avoid stack_use_local_overflow */
++    output_buf = (unsigned char *)malloc(16000);
++    if(NULL != output_buf)
++    {
++        memset(output_buf, 0, 16000);
++    }
++    else
++    {
++        return MBEDTLS_ERR_PK_ALLOC_FAILED;
++    }
++    c = output_buf;
+ 
+ #if defined(MBEDTLS_PEM_WRITE_C)
+     if( opt.output_format == OUTPUT_FORMAT_PEM )
+     {
+         if( ( ret = mbedtls_pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
++        {
++            free(output_buf);
+             return( ret );
++        }
+ 
+         len = strlen( (char *) output_buf );
+     }
+@@ -167,22 +201,30 @@
+ #endif
+     {
+         if( ( ret = mbedtls_pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
++        {
++            free(output_buf);
+             return( ret );
++        }
+ 
+         len = ret;
+         c = output_buf + sizeof(output_buf) - len - 1;
+     }
+ 
+     if( ( f = fopen( output_file, "w" ) ) == NULL )
++    {
++        free(output_buf);
+         return( -1 );
++    }
+ 
+     if( fwrite( c, 1, len, f ) != len )
+     {
+         fclose( f );
++        free(output_buf);
+         return( -1 );
+     }
+ 
+     fclose( f );
++    free(output_buf);
+ 
+     return( 0 );
+ }
+Index: mbedtls-2.5.1/programs/pkey/pk_sign.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/pkey/pk_sign.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/pkey/pk_sign.c	2021-01-25 05:44:46.850162028 +0000
+@@ -114,7 +114,7 @@
+ 
+     if( ( ret = mbedtls_md_file(
+                     mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
+-                    argv[2], hash ) ) != 0 )
++                    argv[2], hash, 0) ) != 0 )
+     {
+         mbedtls_printf( " failed\n  ! Could not open or read %s\n\n", argv[2] );
+         goto exit;
+Index: mbedtls-2.5.1/programs/pkey/pk_verify.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/pkey/pk_verify.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/pkey/pk_verify.c	2021-01-25 05:45:53.067319579 +0000
+@@ -110,7 +110,7 @@
+ 
+     if( ( ret = mbedtls_md_file(
+                     mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
+-                    argv[2], hash ) ) != 0 )
++                    argv[2], hash, 0) ) != 0 )
+     {
+         mbedtls_printf( " failed\n  ! Could not open or read %s\n\n", argv[2] );
+         goto exit;
+Index: mbedtls-2.5.1/programs/pkey/rsa_priv.txt
+===================================================================
+--- mbedtls-2.5.1.orig/programs/pkey/rsa_priv.txt	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/pkey/rsa_priv.txt	2021-01-25 05:51:47.364110974 +0000
+@@ -1,8 +1,8 @@
+-N = A1D46FBA2318F8DCEF16C280948B1CF27966B9B47225ED2989F8D74B45BD36049C0AAB5AD0FF003553BA843C8E12782FC5873BB89A3DC84B883D25666CD22BF3ACD5B675969F8BEBFBCAC93FDD927C7442B178B10D1DFF9398E52316AAE0AF74E594650BDC3C670241D418684593CDA1A7B9DC4F20D2FDC6F66344074003E211
++N = B7DD30017279476D996C37967AE64B9CA75318543D40EE76B1CF8EF8BEA9264C821AC5BF3D3D1298C7B5EB81285E7DC535629CB398D260DACFCA64BDA84C4050613D78EDEB6578A0471AA27063938E931F132711ABC29E5DE1BCB04122DB35A416C672528F19614FC2215F4CD07EE8D8B518A06752FBAB70CBD2AB9FDAC30329D94043660D71D80A2760E35C8880E464931EE9BAFDFE4A293D0011E241C27BADEBEC0863A48F461ED74878470728C6C436BAC01177AEC8C171AAA8B1FFA42F3A01A449F3D740FCBE45CC4BC9C5C2A8F71437918C99902893FD5A6C50FD864599DBBDCEA4A038239BDF0F45CCD93BDB270C5398CEAA977712A96E3480E13B1F81
+ E = 010001
+-D = 589552BB4F2F023ADDDD5586D0C8FD857512D82080436678D07F984A29D892D31F1F7000FC5A39A0F73E27D885E47249A4148C8A5653EF69F91F8F736BA9F84841C2D99CD8C24DE8B72B5C9BE0EDBE23F93D731749FEA9CFB4A48DD2B7F35A2703E74AA2D4DB7DE9CEEA7D763AF0ADA7AC176C4E9A22C4CDA65CEC0C65964401
+-P = CD083568D2D46C44C40C1FA0101AF2155E59C70B08423112AF0C1202514BBA5210765E29FF13036F56C7495894D80CF8C3BAEE2839BACBB0B86F6A2965F60DB1
+-Q = CA0EEEA5E710E8E9811A6B846399420E3AE4A4C16647E426DDF8BBBCB11CD3F35CE2E4B6BCAD07AE2C0EC2ECBFCC601B207CDD77B5673E16382B1130BF465261
+-DP = 0D0E21C07BF434B4A83B116472C2147A11D8EB98A33CFBBCF1D275EF19D815941622435AAF3839B6C432CA53CE9E772CFBE1923A937A766FD93E96E6EDEC1DF1
+-DQ = 269CEBE6305DFEE4809377F078C814E37B45AE6677114DFC4F76F5097E1F3031D592567AC55B9B98213B40ECD54A4D2361F5FAACA1B1F51F71E4690893C4F081
+-QP = 97AC5BB885ABCA314375E9E4DB1BA4B2218C90619F61BD474F5785075ECA81750A735199A8C191FE2D3355E7CF601A70E5CABDE0E02C2538BB9FB4871540B3C1
++D = 9599B711B65ECFAB718607C4BCC2DD0ADD6A530557C19945A26FCB58C16947EC4080201DF669D6D3D0CB488F92952FA862439654DB2771FF17CB0A24F6E6F3FD72E15D9FD8447BDD8D7D326657DF1BC6C1260847EC8531EE195A39DF05C96EDFD0582F74D55245476C21533560FFA1DD919C34075E11BFF0CB26E2D5F25D72181D5B83BC5D8D2F03A1110F1141964D754DD9D938BF4B1D69FEAC5EE70C11CF69EE0067E17F5E7730DA93A9519872380905CE696EF9108F9BC5B92C54E7CE7BDCB85BFA4B51DCC3218458CDD5CDD8A92C66EE88429B2710DEAC7468FC21827F896B4FFB4F4E75ECB59DC6C0C8BE68F920F02E6C05497C0F5671B75D9D1EDC9401
++P = E3FD528A47EC62EF73FE2CD0FCD7924463050662FA873EE8027579FA6E9BACD8E33F22A00EA7792000613595735768475000218D5127E80FE5091E7CF9FD57874F13669013D3D69D1431D76DFB33EA6137D72B1154F51DA31DC7EA054FFE470CA57EF1D6858818F8042A7C524A207DC43865AF873850260C849A10B33E18A571
++Q = CE7409E18BAC6143695589F6863A9E361A2CC9E30B1BCE2ECB041FB6EB3593EAE16999933C300326F74C0563F7D95AFA31C25C9F721825DCC9F64641722C3FF9E2211CA85191BA00F9188D71E06B1B9508DB4E42B7879BDC3E187BE10C7F98F27036BA16BDF7CA0FB5596F65F03F9A8F0C0197FE1EE90B12C64D110EF6FCD311
++DP = 82838915CA18A3866A836E0A7143C2E2CD409A285D3CC121360F2435DDCDD6840E8B1CFA3D8957C89F0F070AB80DA88F7257B0DD62411312CE4D8B1B864CA627BA77E3B5C4F3F71ED2E9B966A7704FD339913E815C7E396A20694A29A262712FE729A5ADE5A14491EE6897E4CFB48BEAA1526CCA5ECD5B0ABD7A28E7433BFEB1
++DQ = 3BBF0D14FEACD64101FCC53E58BE22071A301804E2B41B49236B801A199B99C10196E3E0DE2C2EDD59F7E01F7C1CA4DD7F04F6751639B2CB608F2AE9C9B6D094EA4216DF072C1B1E28F85806BAA1848BEED238A5CA232E91E04E899B2958CBD46D71090D87D06BE37BE1F4011633F1F0AFD2CE3FB6864EB4123B3F528B5BC361
++QP = 9C314BFA099CAA1A79E2AA6BDC81F860D454E3C8951CBF891F3504A7B083BDFF4ED4B258342A6ED4181E62E47A3AD5E19AE0FF6B5A3B0E53CDE26B4E30DC21BF11D0335E2C04916C5768C0947AFA948DD4BAC198D9120ED3B7D96A1EEB225A928D0F8C39FAF1A6103CC8583282A683D681AD3CB4D0245252FD7D580844F72AA1
+Index: mbedtls-2.5.1/programs/pkey/rsa_pub.txt
+===================================================================
+--- mbedtls-2.5.1.orig/programs/pkey/rsa_pub.txt	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/pkey/rsa_pub.txt	2021-01-25 05:51:57.203688598 +0000
+@@ -1,2 +1,2 @@
+-N = A1D46FBA2318F8DCEF16C280948B1CF27966B9B47225ED2989F8D74B45BD36049C0AAB5AD0FF003553BA843C8E12782FC5873BB89A3DC84B883D25666CD22BF3ACD5B675969F8BEBFBCAC93FDD927C7442B178B10D1DFF9398E52316AAE0AF74E594650BDC3C670241D418684593CDA1A7B9DC4F20D2FDC6F66344074003E211
++N = B7DD30017279476D996C37967AE64B9CA75318543D40EE76B1CF8EF8BEA9264C821AC5BF3D3D1298C7B5EB81285E7DC535629CB398D260DACFCA64BDA84C4050613D78EDEB6578A0471AA27063938E931F132711ABC29E5DE1BCB04122DB35A416C672528F19614FC2215F4CD07EE8D8B518A06752FBAB70CBD2AB9FDAC30329D94043660D71D80A2760E35C8880E464931EE9BAFDFE4A293D0011E241C27BADEBEC0863A48F461ED74878470728C6C436BAC01177AEC8C171AAA8B1FFA42F3A01A449F3D740FCBE45CC4BC9C5C2A8F71437918C99902893FD5A6C50FD864599DBBDCEA4A038239BDF0F45CCD93BDB270C5398CEAA977712A96E3480E13B1F81
+ E = 010001
+Index: mbedtls-2.5.1/programs/pkey/rsa_sign_pss.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/pkey/rsa_sign_pss.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/pkey/rsa_sign_pss.c	2021-01-25 05:55:13.023282814 +0000
+@@ -125,7 +125,7 @@
+ 
+     if( ( ret = mbedtls_md_file(
+                     mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
+-                    argv[2], hash ) ) != 0 )
++                    argv[2], hash, 0) ) != 0 )
+     {
+         mbedtls_printf( " failed\n  ! Could not open or read %s\n\n", argv[2] );
+         goto exit;
+Index: mbedtls-2.5.1/programs/pkey/rsa_verify_pss.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/pkey/rsa_verify_pss.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/pkey/rsa_verify_pss.c	2021-01-25 05:57:24.677631396 +0000
+@@ -124,7 +124,7 @@
+ 
+     if( ( ret = mbedtls_md_file(
+                     mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ),
+-                    argv[2], hash ) ) != 0 )
++                    argv[2], hash, 0) ) != 0 )
+     {
+         mbedtls_printf( " failed\n  ! Could not open or read %s\n\n", argv[2] );
+         goto exit;
+Index: mbedtls-2.5.1/programs/ssl/ssl_client2.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/ssl/ssl_client2.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/ssl/ssl_client2.c	2021-01-25 06:01:58.909859656 +0000
+@@ -63,6 +63,8 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
++unsigned char buf[MBEDTLS_SSL_MAX_CONTENT_LEN + 1];
++
+ #define DFL_SERVER_NAME         "localhost"
+ #define DFL_SERVER_ADDR         NULL
+ #define DFL_SERVER_PORT         "4433"
+@@ -358,7 +360,7 @@
+  * Test recv/send functions that make sure each try returns
+  * WANT_READ/WANT_WRITE at least once before sucesseding
+  */
+-static int my_recv( void *ctx, unsigned char *buf, size_t len )
++static int my_recv( void *ctx, unsigned char *buf_l, size_t len )
+ {
+     static int first_try = 1;
+     int ret;
+@@ -369,13 +371,13 @@
+         return( MBEDTLS_ERR_SSL_WANT_READ );
+     }
+ 
+-    ret = mbedtls_net_recv( ctx, buf, len );
++    ret = mbedtls_net_recv( ctx, buf_l, len );
+     if( ret != MBEDTLS_ERR_SSL_WANT_READ )
+         first_try = 1; /* Next call will be a new operation */
+     return( ret );
+ }
+ 
+-static int my_send( void *ctx, const unsigned char *buf, size_t len )
++static int my_send( void *ctx, const unsigned char *buf_l, size_t len )
+ {
+     static int first_try = 1;
+     int ret;
+@@ -386,7 +388,7 @@
+         return( MBEDTLS_ERR_SSL_WANT_WRITE );
+     }
+ 
+-    ret = mbedtls_net_send( ctx, buf, len );
++    ret = mbedtls_net_send( ctx, buf_l, len );
+     if( ret != MBEDTLS_ERR_SSL_WANT_WRITE )
+         first_try = 1; /* Next call will be a new operation */
+     return( ret );
+@@ -398,19 +400,19 @@
+  */
+ static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *flags )
+ {
+-    char buf[1024];
++    char buf_l[1024];
+     ((void) data);
+ 
+     mbedtls_printf( "\nVerify requested for (Depth %d):\n", depth );
+-    mbedtls_x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
+-    mbedtls_printf( "%s", buf );
++    mbedtls_x509_crt_info( buf_l, sizeof( buf_l ) - 1, "", crt );
++    mbedtls_printf( "%s", buf_l );
+ 
+     if ( ( *flags ) == 0 )
+         mbedtls_printf( "  This certificate has no flags\n" );
+     else
+     {
+-        mbedtls_x509_crt_verify_info( buf, sizeof( buf ), "  ! ", *flags );
+-        mbedtls_printf( "%s\n", buf );
++        mbedtls_x509_crt_verify_info( buf_l, sizeof( buf_l ), "  ! ", *flags );
++        mbedtls_printf( "%s\n", buf_l );
+     }
+ 
+     return( 0 );
+@@ -437,7 +439,6 @@
+ {
+     int ret = 0, len, tail_len, i, written, frags, retry_left;
+     mbedtls_net_context server_fd;
+-    unsigned char buf[MBEDTLS_SSL_MAX_CONTENT_LEN + 1];
+ #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
+     size_t psk_len = 0;
+Index: mbedtls-2.5.1/programs/test/benchmark.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/test/benchmark.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/test/benchmark.c	2021-01-25 06:04:00.284649502 +0000
+@@ -193,21 +193,37 @@
+ {
+     size_t use_len;
+     int rnd;
++    size_t result;
++    FILE *random_data = NULL;
+ 
+     if( rng_state != NULL )
+         rng_state  = NULL;
+ 
++    /*for coverity(CID:66708), Use a compliant random number generator*/
++    random_data = fopen("/dev/urandom", "rb");
++    if(NULL == random_data)
++    {
++        return -1;
++    }
++
+     while( len > 0 )
+     {
+         use_len = len;
+         if( use_len > sizeof(int) )
+             use_len = sizeof(int);
+ 
+-        rnd = rand();
++        /*rnd = rand();*/
++        result = fread(&rnd, 1, use_len, random_data);
++        if(result != use_len)
++        {
++            fclose(random_data);
++            return -1;
++        }
+         memcpy( output, &rnd, use_len );
+         output += use_len;
+         len -= use_len;
+     }
++    fclose(random_data);
+ 
+     return( 0 );
+ }
+Index: mbedtls-2.5.1/programs/test/ssl_cert_test.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/test/ssl_cert_test.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/test/ssl_cert_test.c	2021-01-25 06:05:13.089524267 +0000
+@@ -83,7 +83,7 @@
+     int ret, i;
+     mbedtls_x509_crt cacert;
+     mbedtls_x509_crl crl;
+-    char buf[10240];
++    char buf[1024];/* for coverity(CID:207123), avoid stack_use_local_overflow */
+ 
+     mbedtls_x509_crt_init( &cacert );
+     mbedtls_x509_crl_init( &crl );
+Index: mbedtls-2.5.1/programs/test/udp_proxy.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/test/udp_proxy.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/test/udp_proxy.c	2021-01-25 06:07:34.855438799 +0000
+@@ -313,12 +313,25 @@
+ {
+     int ret;
+     mbedtls_net_context *dst = p->dst;
++    int rand_duplicate;
++    FILE *random_data = NULL;
++    size_t result = 0;
+ 
+     /* insert corrupted ApplicationData record? */
+     if( opt.bad_ad &&
+         strcmp( p->type, "ApplicationData" ) == 0 )
+     {
+-        unsigned char buf[MAX_MSG_SIZE];
++        /* for coverity(CID:146974), avoid stack_use_local_overflow */
++        unsigned char *buf = NULL;
++        buf = (unsigned char *)malloc(MAX_MSG_SIZE);
++        if(NULL == buf)
++        {
++            return -1;
++        }
++        else
++        {
++            memset(buf, 0, MAX_MSG_SIZE);
++        }
+         memcpy( buf, p->buf, p->len );
+         ++buf[p->len - 1];
+ 
+@@ -326,8 +339,10 @@
+         if( ( ret = mbedtls_net_send( dst, buf, p->len ) ) <= 0 )
+         {
+             mbedtls_printf( "  ! mbedtls_net_send returned %d\n", ret );
++            free(buf);
+             return( ret );
+         }
++        free(buf);
+     }
+ 
+     print_packet( p, why );
+@@ -337,10 +352,26 @@
+         return( ret );
+     }
+ 
++    /* for coverity(CID:207104), use a compliant random number generator */
++    random_data = fopen("/dev/urandom", "rb");
++    if(NULL == random_data)
++    {
++        return -1;
++    }
++    else
++    {
++        result = fread(&rand_duplicate, 1, sizeof(int), random_data);
++        fclose(random_data);
++        if(result != sizeof(int))
++        {
++            return -1;
++        }
++    }
++
+     /* Don't duplicate Application Data, only handshake covered */
+     if( opt.duplicate != 0 &&
+         strcmp( p->type, "ApplicationData" ) != 0 &&
+-        rand() % opt.duplicate == 0 )
++        rand_duplicate % opt.duplicate == 0 )
+     {
+         print_packet( p, "duplicated" );
+ 
+@@ -403,55 +434,90 @@
+                     mbedtls_net_context *src )
+ {
+     int ret;
+-    packet cur;
++    packet *cur = NULL;
+     size_t id;
+-
++    unsigned int random_opt[2] = {0};
++    FILE *random_data = NULL;
++    size_t result;
++
++    /* for coverity(CID:207120), avoid stack_use_local_overflow */
++    cur = (packet *)malloc(sizeof(packet));
++    if(NULL == cur)
++    {
++        return -1;
++    }
++    else
++    {
++        memset(cur, 0, sizeof(packet));
++    }
+     /* receive packet */
+-    if( ( ret = mbedtls_net_recv( src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
++    if( ( ret = mbedtls_net_recv( src, cur->buf, sizeof( cur->buf ) ) ) <= 0 )
+     {
+         mbedtls_printf( "  ! mbedtls_net_recv returned %d\n", ret );
++        free(cur);
+         return( ret );
+     }
+ 
+-    cur.len  = ret;
+-    cur.type = msg_type( cur.buf, cur.len );
+-    cur.way  = way;
+-    cur.dst  = dst;
+-    print_packet( &cur, NULL );
+-
+-    id = cur.len % sizeof( dropped );
++    cur->len  = ret;
++    cur->type = msg_type( cur->buf, cur->len );
++    cur->way  = way;
++    cur->dst  = dst;
++    print_packet( cur, NULL );
++
++    id = cur->len % sizeof( dropped );
++
++    /* for coverity(CID:207103), use a compliant random number generator */
++    random_data = fopen("/dev/urandom", "rb");
++    if(NULL == random_data)
++    {
++        free(cur);
++        return -1;
++    }
++    else
++    {
++        result = fread(random_opt, 1, sizeof(unsigned int) * 2, random_data);
++        fclose(random_data);
++        if(result != sizeof(unsigned int) * 2)
++        {
++            free(cur);
++            return -1;
++        }
++    }
+ 
+     /* do we want to drop, delay, or forward it? */
+     if( ( opt.mtu != 0 &&
+-          cur.len > (unsigned) opt.mtu ) ||
++          cur->len > (unsigned) opt.mtu ) ||
+         ( opt.drop != 0 &&
+-          strcmp( cur.type, "ApplicationData" ) != 0 &&
++          strcmp( cur->type, "ApplicationData" ) != 0 &&
+           ! ( opt.protect_hvr &&
+-              strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
+-          cur.len != (size_t) opt.protect_len &&
++              strcmp( cur->type, "HelloVerifyRequest" ) == 0 ) &&
++          cur->len != (size_t) opt.protect_len &&
+           dropped[id] < DROP_MAX &&
+-          rand() % opt.drop == 0 ) )
++          random_opt[0] % opt.drop == 0 ) )
+     {
+-        update_dropped( &cur );
++        update_dropped( cur );
+     }
+     else if( ( opt.delay_ccs == 1 &&
+-               strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
++               strcmp( cur->type, "ChangeCipherSpec" ) == 0 ) ||
+              ( opt.delay != 0 &&
+-               strcmp( cur.type, "ApplicationData" ) != 0 &&
++               strcmp( cur->type, "ApplicationData" ) != 0 &&
+                ! ( opt.protect_hvr &&
+-                   strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
++                   strcmp( cur->type, "HelloVerifyRequest" ) == 0 ) &&
+                prev.dst == NULL &&
+-               cur.len != (size_t) opt.protect_len &&
++               cur->len != (size_t) opt.protect_len &&
+                dropped[id] < DROP_MAX &&
+-               rand() % opt.delay == 0 ) )
++               random_opt[1] % opt.delay == 0 ) )
+     {
+-        memcpy( &prev, &cur, sizeof( packet ) );
++        memcpy( &prev, cur, sizeof( packet ) );
+     }
+     else
+     {
+         /* forward and possibly duplicate */
+-        if( ( ret = send_packet( &cur, "forwarded" ) ) != 0 )
++        if( ( ret = send_packet( cur, "forwarded" ) ) != 0 )
++        {
++            free(cur);
+             return( ret );
++        }
+ 
+         /* send previously delayed message if any */
+         if( prev.dst != NULL )
+@@ -459,9 +525,13 @@
+             ret = send_packet( &prev, "delayed" );
+             memset( &prev, 0, sizeof( packet ) );
+             if( ret != 0 )
++            {
++                free(cur);
+                 return( ret );
++            }
+         }
+     }
++    free(cur);
+ 
+     return( 0 );
+ }
+Index: mbedtls-2.5.1/programs/x509/crl_app.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/x509/crl_app.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/x509/crl_app.c	2021-01-25 06:09:42.997938131 +0000
+@@ -68,7 +68,7 @@
+ int main( int argc, char *argv[] )
+ {
+     int ret = 0;
+-    unsigned char buf[100000];
++    unsigned char *buf = NULL;
+     mbedtls_x509_crl crl;
+     int i;
+     char *p, *q;
+@@ -77,6 +77,16 @@
+      * Set to sane values
+      */
+     mbedtls_x509_crl_init( &crl );
++    /* for coverity(CID:207126), avoid stack_use_local_overflow */
++    buf = (unsigned char *)malloc(100000);
++    if(NULL != buf)
++    {
++        memset(buf, 0, 100000);
++    }
++    else
++    {
++        goto exit;
++    }
+ 
+     if( argc == 0 )
+     {
+@@ -132,6 +142,11 @@
+     mbedtls_printf( "%s\n", buf );
+ 
+ exit:
++    if(NULL != buf)
++    {
++        free(buf);
++        buf = NULL;
++    }
+     mbedtls_x509_crl_free( &crl );
+ 
+ #if defined(_WIN32)
+Index: mbedtls-2.5.1/programs/x509/req_app.c
+===================================================================
+--- mbedtls-2.5.1.orig/programs/x509/req_app.c	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/programs/x509/req_app.c	2021-01-25 06:11:18.773826839 +0000
+@@ -68,7 +68,7 @@
+ int main( int argc, char *argv[] )
+ {
+     int ret = 0;
+-    unsigned char buf[100000];
++    unsigned char *buf = NULL;
+     mbedtls_x509_csr csr;
+     int i;
+     char *p, *q;
+@@ -116,6 +116,16 @@
+     }
+ 
+     mbedtls_printf( " ok\n" );
++    /* for coverity(CID:207124), avoid stack_use_local_overflow */
++    buf = (unsigned char *)malloc(100000);
++    if(NULL != buf)
++    {
++        memset(buf, 0, 100000);
++    }
++    else
++    {
++        goto exit;
++    }
+ 
+     /*
+      * 1.2 Print the CSR
+@@ -132,6 +142,11 @@
+     mbedtls_printf( "%s\n", buf );
+ 
+ exit:
++    if(NULL != buf)
++    {
++        free(buf);
++        buf = NULL;
++    }
+     mbedtls_x509_csr_free( &csr );
+ 
+ #if defined(_WIN32)
+Index: mbedtls-2.5.1/tests/suites/test_suite_md.function
+===================================================================
+--- mbedtls-2.5.1.orig/tests/suites/test_suite_md.function	2017-06-20 22:08:10.000000000 +0000
++++ mbedtls-2.5.1/tests/suites/test_suite_md.function	2021-01-25 06:14:38.297262062 +0000
+@@ -69,7 +69,7 @@
+     TEST_ASSERT( mbedtls_md( NULL, buf, 1, buf ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+ 
+ #if defined(MBEDTLS_FS_IO)
+-    TEST_ASSERT( mbedtls_md_file( NULL, "", buf ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
++    TEST_ASSERT( mbedtls_md_file( NULL, "", buf, 0) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+ #endif
+ 
+     TEST_ASSERT( mbedtls_md_hmac_starts( NULL, buf, 1 )
+@@ -378,7 +378,7 @@
+ /* END_CASE */
+ 
+ /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
+-void mbedtls_md_file( char *text_md_name, char *filename, char *hex_hash_string )
++void mbedtls_md_file( char *text_md_name, char *filename, char *hex_hash_string, int sepLen)
+ {
+     char md_name[100];
+     unsigned char hash_str[1000];
+@@ -393,7 +393,7 @@
+     md_info = mbedtls_md_info_from_string( md_name );
+     TEST_ASSERT( md_info != NULL );
+ 
+-    TEST_ASSERT( mbedtls_md_file( md_info, filename, output ) == 0 );
++    TEST_ASSERT( mbedtls_md_file( md_info, filename, output ,sepLen) == 0 );
+     hexify( hash_str, output, mbedtls_md_get_size( md_info ) );
+ 
+     TEST_ASSERT( strcmp( (char *) hash_str, hex_hash_string ) == 0 );

@@ -1,0 +1,19 @@
+Index: linux-4.1.52/Kconfig.zyxel
+===================================================================
+--- linux-4.1.52.orig/Kconfig.zyxel	2020-09-09 09:46:21.090661992 +0800
++++ linux-4.1.52/Kconfig.zyxel	2020-09-09 09:46:21.342661987 +0800
+@@ -7,3 +7,13 @@
+ 
+ config ZYXEL_PPTP_SUPPORT
+ 		bool "Support PPTP VPN"
++
++config MSTC_GPON
++	bool "Support MSTC Patch"
++
++config MSTC_TRANSCEIVER
++	tristate "Build MSTC GPON Transceiver Module"
++
++config MSTC_TRANSCEIVER_IMPL
++	int "Implementation index for MSTC GPON Transceiver Module"
++	depends on MSTC_TRANSCEIVER
+\ No newline at end of file

@@ -1,0 +1,39 @@
+Index: linux-4.1.52/net/core/skbuff.c
+===================================================================
+--- linux-4.1.52.orig/net/core/skbuff.c	2020-10-30 12:28:57.441915300 +0800
++++ linux-4.1.52/net/core/skbuff.c	2020-10-30 12:33:45.373915300 +0800
+@@ -161,6 +161,15 @@
+ }
+ EXPORT_SYMBOL(skb_shinforeset);
+ 
++static inline void bcm_skb_set_end_pointer(struct sk_buff *skb, const int end_offset)
++{
++#ifdef NET_SKBUFF_DATA_USES_OFFSET
++	skb->end = end_offset;
++#else
++	skb->end = skb->head + end_offset;
++#endif
++}
++
+ /**
+  *
+  *	skb_headerinit  -   initialize a socket buffer header
+@@ -190,7 +199,7 @@
+ 	skb_set_tail_pointer(skb, datalen);
+ 	/* FIXME!! check if this alignment is to ensure cache line aligned?
+ 	 * make sure skb buf ends at 16 bytes boudary */
+-	skb->end = skb->tail + (0x10 - (((uintptr_t)skb_tail_pointer(skb)) & 0xf));
++	bcm_skb_set_end_pointer(skb, SKB_DATA_ALIGN(headroom + datalen));
+ 	skb->len = datalen;
+ 
+ #if defined (CONFIG_BCM_KF_BPM_BUF_TRACKING)
+@@ -1054,7 +1063,8 @@
+ 	skb_set_tail_pointer(skb_p, fkb_p->len);
+ 	/* FIXME!! check whether this has to do with the cache line size
+ 	 * make sure skb buf ends at 16 bytes boudary */
+-	skb_p->end = skb_p->tail + (0x10 - (((uintptr_t)skb_tail_pointer(skb_p)) & 0xf)); 
++	bcm_skb_set_end_pointer(skb_p, SKB_DATA_ALIGN((skb_p->data -skb_p->head) +
++				fkb_p->len + BCM_SKB_TAILROOM));
+ 
+ #if defined (CONFIG_BCM_KF_BPM_BUF_TRACKING)
+ 	GBPM_INC_REF(skb_p->data);

@@ -1,0 +1,82 @@
+Index: wide-dhcpv6-20080615/common.c
+===================================================================
+--- wide-dhcpv6-20080615.orig/common.c
++++ wide-dhcpv6-20080615/common.c
+@@ -778,7 +778,7 @@ dhcp6_auth_replaycheck(method, prev, cur
+ 		return (1);
+ 	}
+ 
+-	return (((int64_t)(current - prev) > 0) ? 0 : 1);
++	return ((current > prev) ? 0 : 1);
+ }
+ 
+ int
+Index: wide-dhcpv6-20080615/dhcp6c.c
+===================================================================
+--- wide-dhcpv6-20080615.orig/dhcp6c.c
++++ wide-dhcpv6-20080615/dhcp6c.c
+@@ -2930,23 +2930,26 @@ process_auth(authparam, dh6, len, optinf
+ 
+ 		// see if here we need to SAVE_KEY or USE_KEY.
+ 		if (optinfo->reconfigauth_type == 1) {
++            if (!optinfo->reconfigauth_val) {
++                dprintf(LOG_WARNING, FNAME, "Authentication Information is empty");
++                return (-1);
++            }
++
++            if ((key = malloc(sizeof(*key))) == NULL) {
++                dprintf(LOG_WARNING, FNAME, "Fail to allocate memory for Authentication");
++                return (-1);
++            }
++            memset(key, 0, sizeof(*key));
++
++            key->secretlen = 16;
++            key->secret = malloc(key->secretlen);
++            if (key->secret == NULL) {
++                dprintf(LOG_WARNING, FNAME, "Fail to allocate memory for Replay Detection");
++                free(key);
++                return (-1);
++            }
++            memset(key->secret, 0, sizeof(key->secretlen));
+ 
+-			if ((key = malloc(sizeof(*key))) == NULL) {
+-				return (-1);
+-			}
+-			key->secretlen = 16;
+-			key->secret = malloc(key->secretlen);
+-			memset(key->secret, 0, sizeof(key->secretlen));
+-
+-			if (key->secret == NULL) {
+-				dprintf(LOG_WARNING, FNAME, "failed "
+-					"allocate memory for auth realm");
+-				return (-1);
+-			}
+-
+-			if (! optinfo->reconfigauth_val) {
+-				return (-1);
+-			}
+ 			memcpy(key->secret, optinfo->reconfigauth_val, key->secretlen);
+ 
+ 			authparam->key = key;
+@@ -2997,7 +3000,7 @@ process_auth(authparam, dh6, len, optinf
+ 			 */
+ 			return (-1);
+ 		}
+-	} else {
++	} else if (authenticated == 1 || authenticated_reconf == 1){
+ 		/* if authenticated, update the "previous" RD value */
+ 		authparam->prevrd = optinfo->authrd;
+ 		authparam->flags &= ~AUTHPARAM_FLAGS_NOPREVRD;
+@@ -3099,12 +3102,6 @@ set_auth(ev, optinfo)
+ 			return (-1);
+ 		}
+ 
+-		if (dhcp6_validate_key(authparam->key)) {
+-			dprintf(LOG_INFO, FNAME, "key_RECONFIG %s is invalid",
+-			    authparam->key->name);
+-			return (-1);
+-		}
+-
+ 		if (get_rdvalue(optinfo->authrdm, &optinfo->authrd,
+ 		    sizeof(optinfo->authrd))) {
+ 			dprintf(LOG_ERR, FNAME, "failed to get a replay "

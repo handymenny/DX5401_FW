@@ -1,0 +1,20 @@
+Index: gcc-4.6.3/gcc/ira-int.h
+===================================================================
+--- gcc-4.6.3.orig/gcc/ira-int.h	2011-01-03 20:52:22.000000000 +0000
++++ gcc-4.6.3/gcc/ira-int.h	2021-03-05 06:38:03.321591573 +0000
+@@ -1123,8 +1123,13 @@
+ ira_allocno_object_iter_cond (ira_allocno_object_iterator *i, ira_allocno_t a,
+ 			      ira_object_t *o)
+ {
+-  *o = ALLOCNO_OBJECT (a, i->n);
+-  return i->n++ < ALLOCNO_NUM_OBJECTS (a);
++	int n = i->n++;
++	if (n < ALLOCNO_NUM_OBJECTS (a))
++	{
++		*o = ALLOCNO_OBJECT (a, n);
++		return true;
++    }
++	return false;
+ }
+ 
+ /* Loop over all objects associated with allocno A.  In each

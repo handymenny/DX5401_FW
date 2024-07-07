@@ -1,0 +1,33 @@
+Index: ppp-2.4.3/pppd/demand.c
+===================================================================
+--- ppp-2.4.3.orig/pppd/demand.c
++++ ppp-2.4.3/pppd/demand.c
+@@ -98,7 +98,11 @@ demand_conf()
+     flush_flag = 0;
+     fcs = PPP_INITFCS;
+ 
++#ifdef MAX_PACKET_2000
++    netif_set_mtu(0, MIN(lcp_allowoptions[0].mru, PPP_MAXMRU));
++#else
+     netif_set_mtu(0, MIN(lcp_allowoptions[0].mru, PPP_MRU));
++#endif
+     if (ppp_send_config(0, PPP_MRU, (u_int32_t) 0, 0, 0) < 0
+ 	|| ppp_recv_config(0, PPP_MRU, (u_int32_t) 0, 0, 0) < 0)
+ 	    fatal("Couldn't set up demand-dialled PPP interface: %m");
+Index: ppp-2.4.3/pppd/plugins/rp-pppoe/plugin.c
+===================================================================
+--- ppp-2.4.3.orig/pppd/plugins/rp-pppoe/plugin.c
++++ ppp-2.4.3/pppd/plugins/rp-pppoe/plugin.c
+@@ -450,10 +450,12 @@ PPPoEDevnameHook(char *cmd, char **argv,
+ 	    lcp_allowoptions[0].neg_pcompression = 0;
+ 	    lcp_wantoptions[0].neg_pcompression = 0;
+ 
++#ifndef MAX_PACKET_2000 //Support Jumbo Frame
+         if (lcp_allowoptions[0].mru > MAX_PPPOE_MTU)
+ 	    lcp_allowoptions[0].mru = MAX_PPPOE_MTU;
+         if (lcp_wantoptions[0].mru > MAX_PPPOE_MTU)
+ 	    lcp_wantoptions[0].mru = MAX_PPPOE_MTU;
++#endif
+ 
+ 	    ccp_allowoptions[0].deflate = 0 ;
+ 	    ccp_wantoptions[0].deflate = 0 ;

@@ -1,0 +1,86 @@
+Index: dnsmasq-2.78/src/dhcp.c
+===================================================================
+--- dnsmasq-2.78.orig/src/dhcp.c
++++ dnsmasq-2.78/src/dhcp.c
+@@ -1001,15 +1001,16 @@ static int relay_upstream4(struct dhcp_r
+     to.in.sin_addr = relay->server.addr.addr4;
+     to.in.sin_port = htons(daemon->dhcp_server_port);
+ 
+-#if 1
++
+     /*+++ Kide@zyxel:
+      * I am not sure the origial design of it. But the src address of all dhcp relayed pkts should
+      * be changed to the one of the interface uplinked to dhcp server?!
+      */
+-    send_from(daemon->dhcpfd, 1, (char *) mess, sz, &to, &from, 0);
+-#else
+-    send_from(daemon->dhcpfd, 0, (char *) mess, sz, &to, &from, 0);
+-#endif
++    if(daemon->dhcp_source_ip == 1)
++      send_from(daemon->dhcpfd, 1, (char *) mess, sz, &to, &from, 0);
++    else
++      send_from(daemon->dhcpfd, 0, (char *) mess, sz, &to, &from, 0);
++
+ 
+     if (option_bool(OPT_LOG_OPTS)) {
+       inet_ntop(AF_INET, &relay->local, daemon->addrbuff, ADDRSTRLEN);
+Index: dnsmasq-2.78/src/dnsmasq.h
+===================================================================
+--- dnsmasq-2.78.orig/src/dnsmasq.h
++++ dnsmasq-2.78/src/dnsmasq.h
+@@ -1127,7 +1127,7 @@ extern struct daemon {
+ #ifdef ZYXEL_PATCH
+   struct dhcp_ifname *dhcp_ifnames;
+ #endif
+-
++  int dhcp_source_ip;
+ } *daemon;
+ 
+ /* cache.c */
+Index: dnsmasq-2.78/src/option.c
+===================================================================
+--- dnsmasq-2.78.orig/src/option.c
++++ dnsmasq-2.78/src/option.c
+@@ -169,6 +169,7 @@ struct myoption {
+ #ifdef ZYXEL_TTNET_EDNS// add ppp username to edns option for TT
+ #define LOPT_PPP_USER      353
+ #endif
++#define LOPT_RELAY_SOURCE  354
+ 
+ #ifdef HAVE_GETOPT_LONG
+ static const struct option opts[] =
+@@ -343,6 +344,7 @@ static const struct myoption opts[] =
+ #ifdef ZYXEL_PATCH
+   {"dhcp-ifname", 1, 0, LOPT_TAG_IFNAME},
+ #endif
++  {"dhcp-relay-sourceip",1,0,LOPT_RELAY_SOURCE},
+   {NULL, 0, 0, 0}
+ };
+ 
+@@ -783,6 +785,8 @@ static struct {
+   LOPT_TAG_IFNAME, ARG_DUP, "set:<tag>,<ifname>",
+         gettext_noop("Map interface name to option set."), NULL},
+ #endif
++  {
++  LOPT_RELAY_SOURCE, ARG_DUP, "<1>|<0>", gettext_noop("Choose WAN as DHCP Relay Source IP or not"), NULL},
+   {0, 0, NULL, NULL, NULL}
+ };
+ 
+@@ -4363,6 +4367,17 @@ static int one_opt(int option, char *arg
+     }
+ #endif
+ 
++  case LOPT_RELAY_SOURCE:
++    {
++         if(!arg || (strcmp(arg, "1") == 0))
++           daemon->dhcp_source_ip =1;
++         else if(strcmp(arg, "0") == 0)
++           daemon->dhcp_source_ip =0;
++         else
++           ret_err(_("invalid parameter"));
++      break;
++    }
++
+   default:
+     ret_err(_
+             ("unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support)"));

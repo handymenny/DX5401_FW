@@ -1,0 +1,15 @@
+Index: dnsmasq-2.78/src/option.c
+===================================================================
+--- dnsmasq-2.78.orig/src/option.c
++++ dnsmasq-2.78/src/option.c
+@@ -2516,7 +2516,9 @@ static int one_opt(int option, char *arg
+     break;
+ 
+   case 'u':                    /* --user */
+-    daemon->username = opt_string_alloc(arg);
++	if(opt_string_alloc(arg) != NULL){
++    	daemon->username = opt_string_alloc(arg);
++	}
+     break;
+ 
+   case 'g':                    /* --group */

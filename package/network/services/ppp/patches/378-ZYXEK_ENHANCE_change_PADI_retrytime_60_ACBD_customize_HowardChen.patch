@@ -1,0 +1,13 @@
+Index: ppp-2.4.3/pppd/plugins/rp-pppoe/pppoe.h
+===================================================================
+--- ppp-2.4.3.orig/pppd/plugins/rp-pppoe/pppoe.h	2021-07-23 17:55:14.626873064 +0800
++++ ppp-2.4.3/pppd/plugins/rp-pppoe/pppoe.h	2021-07-23 17:57:27.626878054 +0800
+@@ -188,6 +188,8 @@
+ /* Initial timeout for PADO/PADS */
+ #ifdef ACEN_CUSTOMIZATION
+ #define PADI_TIMEOUT 30
++#elif ACBD_CUSTOMIZATION
++#define PADI_TIMEOUT 60
+ #else
+ #define PADI_TIMEOUT 5
+ #endif

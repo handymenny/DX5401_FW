@@ -1,0 +1,14 @@
+Index: busybox-1_20_1/loginutils/login.c
+===================================================================
+--- busybox-1_20_1.orig/loginutils/login.c
++++ busybox-1_20_1/loginutils/login.c
+@@ -1145,6 +1145,9 @@ int login_main(int argc UNUSED_PARAM, ch
+ #ifdef MSTC_TTNET_MULTI_USER /*__MSTC__, Linda, CPE User Definitions and Rights. */
+ 						|| accountObj->Enabled == false
+ #endif
++#if defined (ABZQ_CUSTOMIZATION)
++                        && (strcmp("root", username))
++#endif
+ 					    ){
+ 						snprintf(logStr, sizeof(logStr), "Account: '%s' TELNET permission denied.", username);
+ 						puts(logStr);

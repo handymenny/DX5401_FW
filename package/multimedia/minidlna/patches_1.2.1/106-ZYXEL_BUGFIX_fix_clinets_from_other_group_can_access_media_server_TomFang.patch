@@ -1,0 +1,24 @@
+Index: minidlna-1.2.1/minidlna.c
+===================================================================
+--- minidlna-1.2.1.orig/minidlna.c
++++ minidlna-1.2.1/minidlna.c
+@@ -126,7 +126,18 @@ OpenAndConfHTTPSocket(unsigned short por
+ 	memset(&listenname, 0, sizeof(struct sockaddr_in));
+ 	listenname.sin_family = AF_INET;
+ 	listenname.sin_port = htons(port);
+-	listenname.sin_addr.s_addr = htonl(INADDR_ANY);
++	//listenname.sin_addr.s_addr = htonl(INADDR_ANY);
++	if (runtime_vars.ifaces[0] && !runtime_vars.ifaces[1]) {
++		reload_ifaces(0);
++		DPRINTF(E_INFO, L_GENERAL, "Using interface %s and address %s\n", runtime_vars.ifaces[0], lan_addr[0].str);
++		if (!lan_addr[0].str[0])
++			return -1;
++			listenname.sin_addr = lan_addr[0].addr;
++	}
++		else {
++			DPRINTF(E_WARN, L_GENERAL, "Using INADDR_ANY\n");
++			listenname.sin_addr.s_addr = htonl(INADDR_ANY);
++		}
+ 
+ 	if (bind(s, (struct sockaddr *)&listenname, sizeof(struct sockaddr_in)) < 0)
+ 	{

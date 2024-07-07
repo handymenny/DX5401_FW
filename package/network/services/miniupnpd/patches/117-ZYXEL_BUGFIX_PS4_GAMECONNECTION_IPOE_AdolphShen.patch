@@ -1,0 +1,110 @@
+Index: miniupnpd-1.6.20110730/upnpdescgen.c
+===================================================================
+--- miniupnpd-1.6.20110730.orig/upnpdescgen.c	2021-03-16 17:36:04.641151294 +0800
++++ miniupnpd-1.6.20110730/upnpdescgen.c	2021-03-16 17:37:54.207968480 +0800
+@@ -136,6 +136,7 @@
+ /* 0 */
+ 	{root_device, INITHELPER(1,2)},
+ 	{"specVersion", INITHELPER(3,2)},
++	{"URLBase","http://10.0.0.138:5000"},
+ #if defined(ENABLE_L3F_SERVICE) || defined(HAS_DUMMY_SERVICE) || defined(ENABLE_DP_SERVICE)
+ 	{"device", INITHELPER(5,13)},
+ #else
+@@ -846,7 +847,7 @@
+ 	int top;
+ 	const char * eltname, *s;
+ 	char c;
+-	/*to resolve destiny 2 error code :cabage*/
++	/*identify pppoe or ipoe*/
+ 	FILE *pppfp = NULL;
+ 	char defaultGateway[256] = {0};
+ 	bool isppp = false;
+@@ -868,6 +869,18 @@
+ 		}
+ 	}
+ 	pclose(pppfp);
++	/*for modulename & serialNumber*/
++	FILE *Infofp = NULL;
++	char buf[128]={'\0'};
++	char ZyXELserialNumber[128] = {'\0'},ZyXELmodelname[128] = {'\0'},ZyXELhost[128] = {'\0'};
++	
++	Infofp = fopen("/tmp/miniupnpDeviceInfo", "r");
++	if(Infofp!=NULL){
++		fgets(buf, sizeof(buf), Infofp);
++		sscanf(buf,"%s(zyxel)%s(zyxel)%[^\n]",ZyXELserialNumber,ZyXELmodelname,ZyXELhost);
++		fclose(Infofp);
++	}
++	
+ 	
+ 	struct {
+ 		unsigned short i;
+@@ -890,11 +903,16 @@
+ 				str = strcat_char(str, len, tmplen, '<');
+ 				str = strcat_str(str, len, tmplen, eltname+1);
+ 				str = strcat_char(str, len, tmplen, '>');
+-				if(strstr(eltname,"serviceType") && isppp){
+-					/*to resolve destiny 2 error code :cabage*/
++				if(strstr(eltname,"modelName")!=NULL){
++					str = strcat_str(str, len, tmplen, ZyXELmodelname);
++				}else if(strstr(eltname,"serialNumber")!=NULL){
++					str = strcat_str(str, len, tmplen, ZyXELserialNumber);
++				}else if(strstr(eltname,"modelName")!=NULL && isppp){
+ 					str = strcat_str(str, len, tmplen, SERVICE_TYPE_WANPPPC);
+-					printf("PPP conection packet\n");
+-				}else{
++				}else if(strstr(eltname,"URLBase")!=NULL){
++					str = strcat_str(str, len, tmplen, ZyXELhost);
++				}
++				else{ 
+ 					str = strcat_str(str, len, tmplen, p[i].data);
+ 				}
+ 				str = strcat_char(str, len, tmplen, '<');
+Index: miniupnpd-1.6.20110730/upnpdescstrings.h
+===================================================================
+--- miniupnpd-1.6.20110730.orig/upnpdescstrings.h	2021-03-16 17:36:04.633147297 +0800
++++ miniupnpd-1.6.20110730/upnpdescstrings.h	2021-03-16 17:37:52.375583066 +0800
+@@ -8,9 +8,35 @@
+ #define __UPNPDESCSTRINGS_H__
+ 
+ #include "config.h"
++/*According to zupup...*/
++#define ROOTDEV_FRIENDLYNAME		"A1 WLAN Box"
++#define ROOTDEV_MANUFACTURER		"ZyXEL"
++#define ROOTDEV_MANUFACTURERURL		"http://www.zyxel.com/"
++#define ROOTDEV_MODELNAME		"ZyXEL Router"
++#define ROOTDEV_MODELDESCRIPTION	"ZyXEL Router"
++#define ROOTDEV_MODELURL		""
++
++#define WANDEV_FRIENDLYNAME			"WANDevice"
++#define WANDEV_MANUFACTURER			"ZYXEL"
++#define WANDEV_MANUFACTURERURL		"http://www.zyxel.com/"
++#define WANDEV_MODELNAME			"DX3101-B0"
++#define WANDEV_MODELDESCRIPTION		"Dual-Band Wireless AX/N VDSL2 4-port Combo WAN IAD"
++#define WANDEV_MODELNUMBER			"1.0"
++#define WANDEV_MODELURL				"http://www.zyxel.com/"
++#define WANDEV_UPC					"MINIUPNPD"
++
++#define WANCDEV_FRIENDLYNAME		"WANConnectionDevice"
++#define WANCDEV_MANUFACTURER		WANDEV_MANUFACTURER
++#define WANCDEV_MANUFACTURERURL		WANDEV_MANUFACTURERURL
++#define WANCDEV_MODELNAME			"MiniUPnPd"
++#define WANCDEV_MODELDESCRIPTION	"MiniUPnP daemon"
++#define WANCDEV_MODELNUMBER			UPNP_VERSION
++#define WANCDEV_MODELURL			"http://miniupnp.free.fr/"
++#define WANCDEV_UPC					"MINIUPNPD"
++
+ 
+ /* strings used in the root device xml description */
+-#define ROOTDEV_FRIENDLYNAME		"A1 WLAN Box"
++/*#define ROOTDEV_FRIENDLYNAME		"A1 WLAN Box"
+ #define ROOTDEV_MANUFACTURER		"ZyXEL Communications Corp."
+ #define ROOTDEV_MANUFACTURERURL		"http://www.zyxel.com"
+ #define ROOTDEV_MODELNAME		"ZyXEL Router"
+@@ -34,6 +60,6 @@
+ #define WANCDEV_MODELNUMBER			UPNP_VERSION
+ #define WANCDEV_MODELURL			"http://miniupnp.free.fr/"
+ #define WANCDEV_UPC					"MINIUPNPD"
+-
++*/
+ #endif
+ 

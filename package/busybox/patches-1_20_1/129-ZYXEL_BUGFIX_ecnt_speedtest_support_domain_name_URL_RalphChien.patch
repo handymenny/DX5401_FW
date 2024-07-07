@@ -1,0 +1,110 @@
+Index: busybox-1_20_1/networking/wget.c
+===================================================================
+--- busybox-1_20_1.orig/networking/wget.c	2021-03-16 17:22:27.782047742 +0800
++++ busybox-1_20_1/networking/wget.c	2021-03-16 17:32:13.865200452 +0800
+@@ -501,11 +501,14 @@
+ 	   echo "destport=21" > /proc/tc3162/speed_test
+ 	   echo "host=192.168.176.1" > /proc/tc3162/speed_test
+ 	   echo "action=GET /100MB.zip 192.168.176.1 80" > /proc/tc3162/speed_test
++	   Or
++	   echo "host=<domain name>:<port>" > /proc/tc3162/speed_test
++	   echo "action=GET /100MB.zip <domain name> <port>" > /proc/tc3162/speed_test
+ 	*/
+ 	f_ip = strtok(s, ":");
+ 	if(f_ip != NULL)
+ 		f_port = strtok(NULL, ":");
+-#if 1
++
+ 	memset(&hint, 0 , sizeof(hint));
+ 	hint.ai_family = AF_INET; // ipv4 only
+ 	hint.ai_socktype = SOCK_STREAM;
+@@ -517,7 +520,7 @@
+ 		f_url = strdup(host_info);
+ 	}
+ 	freeaddrinfo(result);
+-#endif
++
+ 	if(access(TCP_WINDOW_SIZE_VARIABLE, F_OK) != -1)
+ 	{
+ 		printf("get from %s to set tcp window variables!\n", TCP_WINDOW_SIZE_VARIABLE);
+@@ -540,7 +543,7 @@
+ 	}
+ 	else
+ 	{
+-		printf("file not exist!\n");
++		printf(" %s file not exist!\n", TCP_WINDOW_SIZE_VARIABLE);
+ 		/* use the original UPLOAD_MULTI_PART */
+ 		tcp_scale = DEFAULT_TCP_SCALE;
+ 		tcp_window = DEFAULT_TCP_WINDOW;
+@@ -631,8 +634,8 @@
+ 	//Ralph 20190402: Econet suggest run 4 sessions for downloading to effective use of bandwidth.
+ 	for(i = 0; i < 4; i++)
+ 	{
+-		//if(f_url == NULL)
+-		//{
++		if(f_url == NULL)
++		{
+ 			// /* Set host */
+ 			sprintf(str, "echo \"host=%s:%s\" > /proc/tc3162/speed_test", f_ip,f_port);
+ 			printf("sysCmd= %s\n",str);
+@@ -640,36 +643,34 @@
+ 			sprintf(str, "echo \"action=GET /%s %s %s\" > /proc/tc3162/speed_test", target_path, f_ip, f_port);
+ 			printf("sysCmd= %s\n", str);
+ 			system(str);
+-			
+-			//When set one by one session, it should first set ROMTime.
+-			system("dmesg | tail -n 1 > /var/output");
+-			fp = fopen("/var/output", "r");
+-			if(fp != NULL)
++		}
++		else
++		{
++			/* Set host */
++			sprintf(str, "echo \"host=%s:%s\" > /proc/tc3162/speed_test", f_url, f_port);
++			printf("sysCmd= %s\n",str);
++			system(str);
++			sprintf(str, "echo \"action=GET /%s %s %s\" > /proc/tc3162/speed_test", target_path, f_url, f_port);
++			printf("sysCmd= %s\n", str);
++			system(str);
++		}
++		
++		//When set one by one session, it should first set ROMTime.
++		system("dmesg | tail -n 1 > /var/output");
++		fp = fopen("/var/output", "r");
++		if(fp != NULL)
++		{
++			while(fgets(str, sizeof(str), fp) != NULL)
+ 			{
+-				while(fgets(str, sizeof(str), fp) != NULL)
++				if(strstr(str, "speed_test_set_action:") != NULL)
+ 				{
+-					if(strstr(str, "speed_test_set_action:") != NULL)
+-					{
+-						// set ROMTime
+-						getDateTime(ROMTime);
+-						printf("[%s][%d] speed_test started\n",__FUNCTION__,__LINE__);
+-					}
++					// set ROMTime
++					getDateTime(ROMTime);
++					printf("[%s][%d] speed_test started\n",__FUNCTION__,__LINE__);
+ 				}
+-				fclose(fp);
+ 			}
+-		//}
+-		//else
+-		//{
+-			// /* Set host */
+-		//	sprintf(str, "echo \"host=%s\" > /proc/tc3162/speed_test", f_url);
+-		//	printf("sysCmd= %s\n",str);
+-		//	system(str);
+-		//	sprintf(str, "echo \"action=GET /%s %s %s\" > /proc/tc3162/speed_test", target_path, f_url, f_port);
+-		//	printf("sysCmd= %s\n", str);
+-		//	system(str);
+-			// free(f_url);
+-		//}
+-
++			fclose(fp);
++		}
+ 	}
+ 
+ 

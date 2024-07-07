@@ -1,0 +1,26 @@
+Index: secure_header-7.3.267.0/tools/secure_header/Makefile
+===================================================================
+--- secure_header-7.3.267.0.orig/tools/secure_header/Makefile	2020-12-02 05:35:27.000000000 +0000
++++ secure_header-7.3.267.0/tools/secure_header/Makefile	2021-01-11 09:21:48.112283467 +0000
+@@ -1,10 +1,12 @@
+ 
+ ifeq ($(TCSUPPORT_OPENWRT), 1)
+ HOST_CC=gcc
+-CFLAGS = -I$(GLOBAL_INC_DIR)/boot
++#CFLAGS = -I$(GLOBAL_INC_DIR)/boot
++CFLAGS = -I$(STAGING_DIR)/usr/include/global_inc/boot
+ else
+ CC=gcc
+-CFLAGS += -I$(GLOBAL_INC_DIR)/boot
++#CFLAGS += -I$(GLOBAL_INC_DIR)/boot
++CFLAGS += -I$(STAGING_DIR)/usr/include/global_inc/boot
+ endif
+ 
+ OBJS=secure_header.o
+@@ -45,4 +47,4 @@
+ endif
+ 
+ clean:
+-	rm -f *.o *.a $(EXECS)
+\ No newline at end of file
++	rm -f *.o *.a $(EXECS)

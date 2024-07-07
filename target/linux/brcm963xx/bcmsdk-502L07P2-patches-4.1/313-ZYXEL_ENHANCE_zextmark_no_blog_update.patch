@@ -1,0 +1,155 @@
+Index: linux-4.1.52/include/net/xfrm.h
+===================================================================
+--- linux-4.1.52.orig/include/net/xfrm.h	2020-05-12 04:18:17.657941886 +0000
++++ linux-4.1.52/include/net/xfrm.h	2020-05-19 06:35:08.478810400 +0000
+@@ -1782,7 +1782,7 @@
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_NETFILTER_XT_CONNZEXTMARK
++#ifdef CONFIG_NETFILTER_XT_ZEXTMARK
+ static inline int xfrm_zextmark_get(struct nlattr **attrs, struct xfrm_mark *m)
+ {
+ 	if (attrs[XFRMA_ZEXTMARK])
+Index: linux-4.1.52/net/netfilter/Makefile
+===================================================================
+--- linux-4.1.52.orig/net/netfilter/Makefile	2020-05-12 04:18:17.657941886 +0000
++++ linux-4.1.52/net/netfilter/Makefile	2020-05-19 06:29:46.723569700 +0000
+@@ -110,9 +110,7 @@
+ obj-$(CONFIG_NETFILTER_XT_MARK) += xt_mark.o
+ obj-$(CONFIG_NETFILTER_XT_CONNMARK) += xt_connmark.o
+ #jessy
+-ifeq ("$(CONFIG_ZYXEL_EXT_MARK)", "y")
+ obj-$(CONFIG_NETFILTER_XT_CONNZEXTMARK) += xt_connzextmark.o
+-endif
+ obj-$(CONFIG_NETFILTER_XT_SET) += xt_set.o
+ obj-$(CONFIG_NETFILTER_XT_NAT) += xt_nat.o
+ 
+@@ -201,9 +199,6 @@
+ obj-$(CONFIG_NETFILTER_XT_MATCH_FLOWLABEL) += xt_flowlabel.o
+ endif #BCM_KF # defined(CONFIG_BCM_KF_NETFILTER)
+ #jessy
+-ifeq ("$(CONFIG_ZYXEL_EXT_MARK)", "y")
+-obj-$(CONFIG_NETFILTER_XT_MATCH_ZEXTMARK) += xt_zextmark.o
+-endif
+ 
+ # ipset
+ obj-$(CONFIG_IP_SET) += ipset/
+Index: linux-4.1.52/net/netfilter/nf_conntrack_netlink.c
+===================================================================
+--- linux-4.1.52.orig/net/netfilter/nf_conntrack_netlink.c	2020-05-12 04:18:18.665888160 +0000
++++ linux-4.1.52/net/netfilter/nf_conntrack_netlink.c	2020-05-19 06:26:55.661921500 +0000
+@@ -911,6 +911,12 @@
+ 	filter->mark.val = ntohl(nla_get_be32(cda[CTA_MARK]));
+ 	filter->mark.mask = ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
+ 
++#ifdef CONFIG_ZYXEL_EXT_MARK
++	if (cda[CTA_ZEXTMARK]&& cda[CTA_ZEXTMARK_MASK]) {
++		filter->zextmark.val = ntohl(nla_get_be32(cda[CTA_ZEXTMARK]));
++		filter->zextmark.mask = ntohl(nla_get_be32(cda[CTA_ZEXTMARK_MASK]));
++	}
++#endif
+ 	return filter;
+ #else
+ 	return ERR_PTR(-EOPNOTSUPP);
+@@ -929,10 +935,9 @@
+ 		return 1;
+ 
+ #ifdef CONFIG_ZYXEL_EXT_MARK			// 20180621 jessy zyxel
+-            if (filter && !((ct->zextmark & filter->zextmark.mask) ==
+-					filter->zextmark.val)) {
++	if ((ct->zextmark & filter->zextmark.mask) == filter->zextmark.val ) {
+ 				return 1;
+-			}
++	}
+ #endif
+ #endif
+ 
+@@ -1192,7 +1197,11 @@
+ {
+ 	struct ctnetlink_filter *filter = NULL;
+ 
+-	if (cda[CTA_MARK] && cda[CTA_MARK_MASK]) {
++#ifndef CONFIG_ZYXEL_EXT_MARK
++		if (cda[CTA_MARK] && cda[CTA_MARK_MASK]) {
++#else
++		if ((cda[CTA_MARK] && cda[CTA_MARK_MASK]) || (cda[CTA_ZEXTMARK] && cda[CTA_ZEXTMARK_MASK])) {  // 20180620 jessy zyxel
++#endif
+ 		filter = ctnetlink_alloc_filter(cda);
+ 		if (IS_ERR(filter))
+ 			return PTR_ERR(filter);
+@@ -1282,7 +1291,7 @@
+ #ifndef CONFIG_ZYXEL_EXT_MARK
+ 		if (cda[CTA_MARK] && cda[CTA_MARK_MASK]) {
+ #else
+-		if ((cda[CTA_MARK] && cda[CTA_MARK_MASK]) || (cda[CTA_ZEXTMARK]&& cda[CTA_ZEXTMARK_MASK])) {  // 20180620 jessy zyxel
++		if ((cda[CTA_MARK] && cda[CTA_MARK_MASK]) || (cda[CTA_ZEXTMARK] && cda[CTA_ZEXTMARK_MASK])) {  // 20180620 jessy zyxel
+ #endif
+ 			struct ctnetlink_filter *filter;
+ 
+@@ -1290,13 +1299,11 @@
+ 			if (IS_ERR(filter))
+ 				return PTR_ERR(filter);
+ 
+-#ifdef CONFIG_ZYXEL_EXT_MARK
+-			if (cda[CTA_MARK] && cda[CTA_MARK_MASK])  { // 20180621 jessy zyxel
+-				    filter->mark.val = ntohl(nla_get_be32(cda[CTA_MARK]));
+-				    filter->mark.mask =
+-					    ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
++			if (cda[CTA_MARK] && cda[CTA_MARK_MASK])  { 
++					filter->mark.val = ntohl(nla_get_be32(cda[CTA_MARK]));
++					filter->mark.mask = ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
+ 			}
+-
++#ifdef CONFIG_ZYXEL_EXT_MARK
+ 			if (cda[CTA_ZEXTMARK] && cda[CTA_ZEXTMARK_MASK])  {  // 20180621 jessy zyxel
+ 				filter->zextmark.val = ntohl(nla_get_be32(cda[CTA_ZEXTMARK]));
+ 				filter->zextmark.mask = ntohl(nla_get_be32(cda[CTA_ZEXTMARK_MASK]));
+@@ -2277,6 +2284,9 @@
+ #ifdef CONFIG_NF_CONNTRACK_MARK
+ 	       + nla_total_size(sizeof(u_int32_t)) /* CTA_MARK */
+ #endif
++#ifdef CONFIG_ZYXEL_EXT_MARK
++	       + nla_total_size(sizeof(u_int32_t)) /* CTA_ZEXTMARK */
++#endif
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
+ 	       + nla_total_size(sizeof(u_int16_t)) /* CTA_ZONE */
+ #endif
+@@ -2339,7 +2349,11 @@
+ 		goto nla_put_failure;
+ 
+ #ifdef CONFIG_NF_CONNTRACK_MARK
++#ifndef CONFIG_ZYXEL_EXT_MARK
+ 	if (ct->mark && ctnetlink_dump_mark(skb, ct) < 0)
++#else
++	if ( ( ct->mark || ct->zextmark ) && ctnetlink_dump_mark(skb, ct) < 0)
++#endif
+ 		goto nla_put_failure;
+ #endif
+ 	if (ctnetlink_dump_labels(skb, ct) < 0)
+Index: linux-4.1.52/net/netfilter/xt_zextmark.c
+===================================================================
+--- linux-4.1.52.orig/net/netfilter/xt_zextmark.c	2020-05-12 04:18:17.653942098 +0000
++++ linux-4.1.52/net/netfilter/xt_zextmark.c	2020-05-19 06:28:18.034665000 +0000
+@@ -37,9 +37,9 @@
+ 	const struct xt_mark_tginfo2 *markinfo = par->targinfo;
+ 	int mark = 0;
+ #if 0
+-    printk("[%s %d]markinfo->mode(0x%x) ZLD_CB_DATA(skb)->zextmark(0x%x)\n",
++    printk("[%s %d]markinfo->mode(0x%x) markinfo->mark=(0x%x), ZLD_CB_DATA(skb)->zextmark(0x%x)\n",
+             __FUNCTION__,__LINE__,
+-            markinfo->mode,ZLD_CB_DATA(skb)->zextmark);
++            markinfo->mode,markinfo->mark, ZLD_CB_DATA(skb)->zextmark);
+ #endif
+ 	switch (markinfo->mode) {
+ 		case XT_MARK_SET:
+@@ -63,7 +63,8 @@
+ 			break;
+         }
+ 
+-#if defined(CONFIG_BCM_KF_BLOG) && defined(CONFIG_BLOG_FEATURE)
++#if 0
++// #if defined(CONFIG_BCM_KF_BLOG) && defined(CONFIG_BLOG_FEATURE)
+ 	skb->ipt_check |= IPT_TARGET_MARK;
+ 	skb->ipt_log.u32[BLOG_ORIGINAL_MARK_INDEX] = ZLD_CB_DATA(skb)->zextmark;
+ 	skb->ipt_log.u32[BLOG_TARGET_MARK_INDEX] = mark;

@@ -1,0 +1,1749 @@
+Index: linux-4.1.52/arch/arm/kernel/traps.c
+===================================================================
+--- linux-4.1.52.orig/arch/arm/kernel/traps.c	2018-05-28 10:26:45.000000000 +0800
++++ linux-4.1.52/arch/arm/kernel/traps.c	2020-10-05 11:30:09.099389000 +0800
+@@ -19,6 +19,10 @@
+ #include <linux/uaccess.h>
+ #include <linux/hardirq.h>
+ #include <linux/kdebug.h>
++#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++#include <linux/fs.h>
++#include <linux/slab.h>
++#endif
+ #include <linux/module.h>
+ #include <linux/kexec.h>
+ #include <linux/bug.h>
+@@ -226,6 +230,136 @@
+ 	barrier();
+ }
+ 
++#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++const int CONFIG_DEFAULT_ZYXEL_OOPS_FILE_NUM = 5;
++EXPORT_SYMBOL(CONFIG_DEFAULT_ZYXEL_OOPS_FILE_NUM);
++
++const char CONFIG_DEFAULT_ZYXEL_RECORD_CALL_TRACE_PATH[] = "/misc/koops/";
++EXPORT_SYMBOL(CONFIG_DEFAULT_ZYXEL_RECORD_CALL_TRACE_PATH);
++
++char oops_folder_path[64] = {0};
++int oops_file_num = 0;
++
++struct file *oops_file = NULL;
++EXPORT_SYMBOL(oops_file);
++
++extern char *oops_buf;
++
++extern long sys_mkdir(const char *pathname, int mode);
++extern long sys_unlink(const char *pathname);
++
++typedef struct time_struct_s{
++	int year;
++	int mon;
++	int day;
++	int hr;
++	int min;
++	int sec;
++} time_struct_t;
++
++extern void mktime_to_ts(time_t time, time_struct_t* ts);
++
++/*
++ * Assigning the core file storing path (name) & 
++ * limiting the number of core files to OOPS_FILE_NUM
++ */
++static int check_permitted_oops(char *oops_name, const char *path)
++{
++	mm_segment_t old_addr_limit;
++	int err = 0;
++	struct file *file = NULL;
++	char *buf = NULL;
++	int file_cnt, d_min_i;
++	struct dentry *de, *de_min;
++	struct list_head *list, *tmp_list;
++	time_struct_t ts;
++	struct timeval tv;
++
++	old_addr_limit=get_fs();
++	set_fs(get_ds());
++
++	/* open the dir from 'path' for storing core dump file */
++	file = filp_open(path, O_DIRECTORY, 0);
++	if (IS_ERR(file)) {
++		err = sys_mkdir(path, 0x1ff); /* returns zero when success */
++		if( err ) {
++			err = PTR_ERR(file);
++			goto out;
++		}
++		else {
++			file = filp_open(path, O_DIRECTORY, 0);
++			if (IS_ERR(file)) {
++				err = PTR_ERR(file);
++				goto out;
++			}
++		}
++	}
++
++	/* prepare some memory */
++	buf = kmalloc(128, GFP_ATOMIC); /* Jinhua: FIXME */
++	if( !buf ){
++		err = -1;
++		goto out;
++	}
++
++	/* unlink oldest core dump file(s) */
++	file_cnt = oops_file_num, d_min_i = LONG_MAX;
++	de = NULL, de_min = NULL;
++
++	while( file_cnt >= oops_file_num ){
++		if( de_min ){
++			sprintf(buf,"%s%s", path, de_min->d_name.name);
++			if( sys_unlink(buf) ){
++				printk("unlink error: %s\n", buf);
++				err = -2;
++				goto out;
++			}
++		}
++
++		file_cnt = 0;
++		d_min_i = LONG_MAX;
++		de = NULL;
++		de_min = NULL;
++
++		list_for_each(list, &file->f_path.dentry->d_subdirs) { //change f_path.dentry for compile issue
++			//de = list_entry(list, struct dentry, d_u.d_child); 
++			de = list_entry(list, struct dentry, d_child); //change to d_child for struct dentry changes
++
++			tmp_list = (struct list_head *)(&de->d_hash);
++			if ( !(de->d_inode && !list_empty(tmp_list)) ) {
++				/* It's empty dentry : ignored */
++				continue;
++			}
++			++file_cnt;
++
++			if( de->d_inode->i_mtime.tv_sec < d_min_i ){
++				d_min_i = de->d_inode->i_mtime.tv_sec;
++				de_min = de;
++			}
++		}
++	}
++
++	/* create a full path name for this dumping */
++	do_gettimeofday(&tv);
++	mktime_to_ts(tv.tv_sec, &ts);
++
++	mktime_to_ts(tv.tv_sec, &ts);
++	sprintf(buf, "%s%04d-%02d-%02d_%02d-%02d-%02d_%s",
++			path, ts.year, ts.mon, ts.day, ts.hr, ts.min, ts.sec, oops_name);
++
++	strcpy(oops_name, buf);
++
++out:
++	set_fs(old_addr_limit);
++	if(!IS_ERR(file)) {
++		filp_close(file, NULL);
++	}
++	kfree(buf);
++
++	return err;
++}
++#endif //CONFIG_ZYXEL_RECORD_CALL_TRACE
++
+ #ifdef CONFIG_PREEMPT
+ #define S_PREEMPT " PREEMPT"
+ #else
+@@ -247,6 +381,9 @@
+ 	struct task_struct *tsk = current;
+ 	static int die_counter;
+ 	int ret;
++#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++	char oops_name[64];
++#endif
+ 
+ 	pr_emerg("Internal error: %s: %x [#%d]" S_PREEMPT S_SMP S_ISA "\n",
+ 	         str, err, ++die_counter);
+@@ -254,10 +391,30 @@
+ 	/* trap and error numbers are mostly meaningless on ARM */
+ 	ret = notify_die(DIE_OOPS, str, regs, err, tsk->thread.trap_no, SIGSEGV);
+ 	if (ret == NOTIFY_STOP)
++	{
+ 		return 1;
++	}
++
++#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++	/* Open kenel oops dump file */
++	sprintf(oops_name, "oops.txt");
++	if(strlen(oops_folder_path) == 0) {
++		strcpy(oops_folder_path, CONFIG_DEFAULT_ZYXEL_RECORD_CALL_TRACE_PATH);
++	}
++	check_permitted_oops(oops_name, oops_folder_path);
++	oops_file = filp_open(oops_name, O_CREAT | O_RDWR, 0644);
++	if (IS_ERR(oops_file)) 
++	{
++		oops_file = NULL;
++		printk(KERN_EMERG "Create file error--------\n");
++	}
++#endif //CONFIG_ZYXEL_RECORD_CALL_TRACE
+ 
+ 	print_modules();
+ 	__show_regs(regs);
++#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++	pr_emerg("%s,%d,oops=%s\n", __FUNCTION__, __LINE__, oops_name);
++#endif
+ 	pr_emerg("Process %.*s (pid: %d, stack limit = 0x%p)\n",
+ 		 TASK_COMM_LEN, tsk->comm, task_pid_nr(tsk), end_of_stack(tsk));
+ 
+@@ -268,6 +425,19 @@
+ 		dump_instr(KERN_EMERG, regs);
+ 	}
+ 
++	#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++
++	/* Close kenel oops dump file */
++	if (oops_file != NULL) {
++		if (oops_file->f_op && oops_file->f_op->fsync) 
++		{
++			oops_file->f_op->fsync(oops_file, 0, sizeof(oops_buf), 1); // changed for compile issue
++		}
++		filp_close(oops_file, NULL);
++		oops_file = NULL;
++		printk("%s,%d, close oops_file\n", __FUNCTION__, __LINE__);
++	}
++	#endif //CONFIG_ZYXEL_RECORD_CALL_TRACE
+ 	return 0;
+ }
+ 
+@@ -316,7 +486,11 @@
+ 	if (in_interrupt())
+ 		panic("Fatal exception in interrupt");
+ 	if (panic_on_oops)
+-		panic("Fatal exception");
++	{
++		//panic("Fatal exception");
++		panic("Fatal exception.................................20200210");
++	}
++
+ 	if (signr)
+ 		do_exit(signr);
+ }
+Index: linux-4.1.52/kernel/module.c
+===================================================================
+--- linux-4.1.52.orig/kernel/module.c	2020-10-05 11:30:08.299389000 +0800
++++ linux-4.1.52/kernel/module.c	2020-10-05 11:30:09.099389000 +0800
+@@ -3944,6 +3944,9 @@
+ {
+ 	struct module *mod;
+ 	char buf[8];
++	#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++	struct module_use *useMe;
++	#endif
+ 
+ 	printk(KERN_DEFAULT "Modules linked in:");
+ 	/* Most callers should already have preempt disabled, but make sure */
+@@ -3951,7 +3954,39 @@
+ 	list_for_each_entry_rcu(mod, &modules, list) {
+ 		if (mod->state == MODULE_STATE_UNFORMED)
+ 			continue;
++#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++		printk("%s %d %d ",
++			   mod->name,
++			   (int)(mod->init_size+mod->core_size),
++			   module_refcount(mod));
++
++		//list_for_each_entry(useMe, &(mod->modules_which_use_me), list) {
++		//	printk("%s,",useMe->module_which_uses->name);
++		//}
++		/* kernel 4.1 changes module_use struct...
++		   so modify it..,
++		   new struct has source and target, choose one for compile pass only, 
++		   not exactly know the diff for source and target in module_use struct
++		   Trevor, 20200212  
++		 */
++		list_for_each_entry(useMe, &(mod->source_list), source_list) {
++			printk("%s,",useMe->source->name);
++		}
++
++		printk( "- %s",
++				mod->state == MODULE_STATE_GOING ? "Unloading":
++				mod->state == MODULE_STATE_COMING ? "Loading":
++				"Live");
++
++		printk(" 0x%x %s",
++			   (int)mod->module_core, module_flags(mod, buf));
++
++		printk("\n");
++		printk("----------------------------\n");
++
++#else // CONFIG_ZYXEL_RECORD_CALL_TRACE
+ 		pr_cont(" %s%s", mod->name, module_flags(mod, buf));
++#endif // CONFIG_ZYXEL_RECORD_CALL_TRACE
+ #if defined(CONFIG_BCM_KF_EXTRA_DEBUG) 
+ 	{
+ 		printk(" init_addr(%p - %p), core_addr(%p - %p)\n",
+Index: linux-4.1.52/kernel/printk/printk.c
+===================================================================
+--- linux-4.1.52.orig/kernel/printk/printk.c	2020-10-05 11:30:08.983389000 +0800
++++ linux-4.1.52/kernel/printk/printk.c	2020-10-05 11:30:09.099389000 +0800
+@@ -34,6 +34,9 @@
+ #include <linux/memblock.h>
+ #include <linux/syscalls.h>
+ #include <linux/kexec.h>
++#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++#include <linux/fs.h>
++#endif
+ #include <linux/kdb.h>
+ #include <linux/ratelimit.h>
+ #include <linux/kmsg_dump.h>
+@@ -1467,6 +1470,12 @@
+ 	return 0;
+ }
+ 
++#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++extern struct file *oops_file;
++char oops_buf[LOG_LINE_MAX];
++static int oops_len = 0;
++#endif
++
+ /*
+  * Can we actually use the console at this time on this cpu?
+  *
+@@ -1697,13 +1706,21 @@
+ 	 * prefix which might be passed-in as a parameter.
+ 	 */
+ 	text_len = vscnprintf(text, sizeof(textbuf), fmt, args);
++	
++	#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++	if (oops_file != NULL) 
++	{
++		memcpy(oops_buf, text, text_len);
++		oops_len = text_len;
++	}
++	#endif
+ 
+ 	/* mark and strip a trailing newline */
+ 	if (text_len && text[text_len-1] == '\n') {
+ 		text_len--;
+ 		lflags |= LOG_NEWLINE;
+ 	}
+-
++	
+ 	/* strip kernel syslog prefix and extract log level or control flags */
+ 	if (facility == 0) {
+ 		int kern_level = printk_get_level(text);
+@@ -1875,6 +1892,9 @@
+ 	printk_func_t vprintk_func;
+ 	va_list args;
+ 	int r;
++#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++	static loff_t pos=0;
++#endif
+ 
+ 	va_start(args, fmt);
+ 
+@@ -1887,6 +1907,29 @@
+ 	vprintk_func = this_cpu_read(printk_func);
+ 	r = vprintk_func(fmt, args);
+ 
++	#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++	/* Write kernel oops infomation to file */
++	if(oops_file != NULL) {
++		mm_segment_t fs;
++		fs = get_fs();
++		set_fs(KERNEL_DS);
++		if (pos == 0)
++		{
++			/* only at first time write will enter */
++			vfs_write(oops_file, oops_buf, oops_len, &pos );
++			pos += oops_len;
++			set_fs(fs);
++			va_end(args);
++			return r;			
++		}
++
++		//vfs_write(oops_file, oops_buf, sizeof(oops_buf), &pos );
++		vfs_write(oops_file, oops_buf, oops_len, &pos );
++		pos += oops_len;
++		set_fs(fs);
++	}
++	#endif
++
+ 	va_end(args);
+ 
+ 	return r;
+@@ -2822,7 +2865,8 @@
+ }
+ EXPORT_SYMBOL_GPL(kmsg_dump_unregister);
+ 
+-static bool always_kmsg_dump;
++//static bool always_kmsg_dump;
++static bool always_kmsg_dump = 1; //Trevor, 20200205
+ module_param_named(always_kmsg_dump, always_kmsg_dump, bool, S_IRUGO | S_IWUSR);
+ 
+ /**
+@@ -2837,10 +2881,10 @@
+ {
+ 	struct kmsg_dumper *dumper;
+ 	unsigned long flags;
+-
++	
+ 	if ((reason > KMSG_DUMP_OOPS) && !always_kmsg_dump)
+ 		return;
+-
++	
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(dumper, &dump_list, list) {
+ 		if (dumper->max_reason && reason > dumper->max_reason)
+Index: linux-4.1.52/kernel/sched/core.c
+===================================================================
+--- linux-4.1.52.orig/kernel/sched/core.c	2020-10-05 11:30:08.303389000 +0800
++++ linux-4.1.52/kernel/sched/core.c	2020-10-05 11:30:09.103389000 +0800
+@@ -4389,8 +4389,18 @@
+ 	return 0;
+ }
+ 
++#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++extern struct file *oops_file;
++#endif
++
+ int __sched _cond_resched(void)
+ {
++	#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE)
++	if(oops_file) {
++		return 0;
++	}
++	#endif
++
+ 	if (should_resched(0)) {
+ 		preempt_schedule_common();
+ 		return 1;
+Index: linux-4.1.52/fs/coredump.c
+===================================================================
+--- linux-4.1.52.orig/fs/coredump.c	2018-05-28 10:26:45.000000000 +0800
++++ linux-4.1.52/fs/coredump.c	2020-10-05 11:30:09.103389000 +0800
+@@ -57,6 +57,10 @@
+ 	int used, size;
+ };
+ 
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++char core_folder_path[64] = {'\0'};
++#endif
++
+ /* The maximal length of core_pattern is also specified in sysctl.c */
+ 
+ static int expand_corename(struct core_name *cn, int size)
+@@ -502,6 +506,464 @@
+ 	return err;
+ }
+ 
++#if defined(CONFIG_ZYXEL_RECORD_CALL_TRACE) || defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++typedef struct time_struct_s{
++    int year;
++    int mon;
++    int day;
++    int hr;
++    int min;
++    int sec;
++} time_struct_t;
++
++void mktime_to_ts(time_t time, time_struct_t* ts)
++{
++	time_t ttls;
++	time_t days;
++	time_t result;
++	time_t tmp;
++
++	ttls = time;
++	ts->sec = ttls % 60;
++	ttls -= ts->sec;
++	ts->min = (ttls % 3600)/60;
++	ttls -= ts->min * 60;
++	ts->hr = (ttls % 86400)/3600;
++	ttls -= ts->hr * 3600;
++
++	days = ttls/86400;
++	result = 1970;
++
++    /* Calculating Years */
++    while(1){
++		/* leap year */
++		if (((result%400)==0) || (((result%4)==0) && ((result%100)!=0))) {
++			if( days >= 366 )
++				tmp = 366;
++			else
++				break;
++		}
++		/* normal year */
++		else {
++			if( days >= 365 )
++				tmp = 365;
++			else
++				break;
++		}
++
++		result += 1;
++		days -= tmp;
++	}
++    ts->year = result;
++
++    /* Calculating Months */
++    result = 1;
++    tmp = 31;
++	days += 1;
++    while( days > tmp ){
++        result += 1;
++        days -= tmp;
++        switch(result){
++        case 3: case 5: case 7:
++        case 8: case 10: case 12:
++            tmp = 31;
++            break;
++        case 4: case 6: case 9: case 11:
++            tmp = 30;
++            break;
++        case 2:
++            if (((ts->year%400)==0) || (((ts->year%4)==0) && ((ts->year%100)!=0)))
++                tmp = 29;
++            else
++                tmp = 28;
++            break;
++        }
++    }
++    ts->mon = result;
++    ts->day = days;
++}
++
++EXPORT_SYMBOL(mktime_to_ts);
++#endif //(defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE) || defined(CONFIG_ZYXEL_RECORD_CALL_TRACE))
++
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++#define SUCCESS	0
++#define FAILURE	-1
++#define BUFFER_SIZE	1024
++
++/* Store coredump file rules in ITEM_FILE_NAME */
++#define CONFIG_ZYXEL_KERNEL_COREDUMP_FOLDER_PATH	"/misc/coredump/"
++#define ITEM_FILE_NAME	"/misc/coredump_rule.txt"
++#define ITEM_FILE_NAME_ONLY "coredump_rule.txt"
++#define ITEM_FOLDER_PATH	"Folder_Path"
++#define ITEM_PRE_THRESHOLD	"Pre_Threshold"
++#define ITEM_POST_THRESHOLD	"Post_Threshold"
++
++/* CORE_FOLDER_PATH is the storage folder path of core dump file.
++  * Before create core dump file, CORE_SIZE_PRE_THRESHOLD is checked total file size in CORE_FOLDER_PATH.
++  * After create core dump file, CORE_SIZE_POST_THRESHOLD is checked total file size in CORE_FOLDER_PATH. 
++  */
++int core_pre_threshold;
++int core_post_threshold;
++
++/* Parse config file to change storing coredump file rules */
++static int parseConf(char *fileName)
++{
++	mm_segment_t oldfs;
++	struct file *fp = NULL;		
++	char *buf = NULL, *p = NULL, *tmp = NULL, *tmp2 = NULL;
++	char *val = NULL;
++	int len = 0;
++	int ret = FAILURE;
++	char folder_path[64];
++	char pre_threshold[16];
++	char post_threshold[16];
++    char rule_info[128];
++    int createFlag = 0;
++
++	oldfs = get_fs();
++    set_fs(KERNEL_DS);
++
++	if(fileName == NULL) {
++		printk("%s: Error!! fileName is NULL\n", __FUNCTION__);
++		goto exit;
++	}
++
++	fp = filp_open(fileName,O_RDONLY, 0);		
++	if(IS_ERR(fp)){
++		printk("%s: %s is not exist, create it\n", __FUNCTION__, fileName);
++        createFlag = 1;
++    }
++
++    if (createFlag)
++    {
++        fp = filp_open(fileName, O_RDWR | O_CREAT, 0664);
++        if (IS_ERR(fp) || (fp == NULL)) 
++        {
++            printk("%s,%d, create %s failed\n", __FUNCTION__, __LINE__, fileName);
++            goto exit;
++        } 
++        else 
++        {
++            memset(rule_info, 0, sizeof(rule_info));
++            /* write default coredump rule item  */
++            sprintf(rule_info, "%s=%s\n%s=%d\n%s=%d\n",
++                    ITEM_FOLDER_PATH, core_folder_path,
++                    ITEM_PRE_THRESHOLD, core_pre_threshold,
++                    ITEM_POST_THRESHOLD, core_post_threshold);
++            ret = vfs_write(fp, (const char *)rule_info, strlen(rule_info), &fp->f_pos);
++            //printk("%s,%d, create %s DONE\n", __FUNCTION__, __LINE__, fileName);
++        }
++    }
++	
++    buf = kmalloc(BUFFER_SIZE, GFP_ATOMIC);
++	if(buf == NULL) {
++		printk("%s: Error!! malloc() failed\n", __FUNCTION__);
++		goto exit;
++	}
++
++	memset(buf, 0, BUFFER_SIZE);
++
++    if (createFlag)
++    {
++        len = strlen(rule_info);
++        sprintf(buf,"%s",rule_info);
++    }
++    else
++    {
++        len = vfs_read(fp, buf, BUFFER_SIZE, &fp->f_pos);
++        if(len == BUFFER_SIZE) {
++            printk("%s: Error!! File %s is too large\n", __FUNCTION__, fileName);
++            goto exit;
++        }
++    }
++
++	p = buf;
++	//printk("%s,%d: buf=%s, len=%d \n", __FUNCTION__, __LINE__, buf, len);
++	if(p >= (buf + len)) {
++		printk("%s: Error!! File format is incorrect.\n", __FUNCTION__);
++		goto exit;
++	}
++
++	while(p < (buf + len)) {
++		if((val = strchr(p, '=')) == NULL) {
++			break;
++		}
++
++		*val = '\0';
++		val++;
++
++		tmp = strchr(val, '\n');
++		if(tmp != NULL) {
++			tmp2 = tmp - 1;
++			if(*tmp2 == '\r') {
++				*tmp2 = '\0';
++			} else {
++				*tmp = '\0';
++			}
++		}
++
++		while(*val == ' ') {
++			val++;
++		}
++
++		tmp2 = strchr(val, ' ');
++		if(tmp2 != NULL) {
++			*tmp2 = '\0';
++		}
++
++		if(strstr(p, ITEM_FOLDER_PATH) != NULL) {
++			strncpy(folder_path, val, 64);						
++		} else if(strstr(p, ITEM_PRE_THRESHOLD) != NULL) {
++			strncpy(pre_threshold, val, 16);			
++		} else if(strstr(p, ITEM_POST_THRESHOLD) != NULL) {
++			strncpy(post_threshold, val, 16);			
++		}
++
++		if(tmp == NULL) {
++			break;
++		} else {
++			p = (tmp + 1);
++		}
++	}
++
++	if(strlen(folder_path)>0){
++		strcpy(core_folder_path, folder_path);
++	}
++
++	if(strlen(pre_threshold)>0){
++		core_pre_threshold = simple_strtol(pre_threshold, NULL, 0);
++	}
++
++	if(strlen(post_threshold)>0){
++		core_post_threshold = simple_strtol(post_threshold, NULL, 0);
++	}
++
++	printk(KERN_INFO "Post-change: folder_path = %s, pre_threshold = %d, post_threshold = %d\n", core_folder_path, core_pre_threshold, core_post_threshold);
++	
++	ret = SUCCESS;
++
++exit:
++	set_fs(oldfs);
++	if(!IS_ERR(fp)) {
++		filp_close(fp, NULL);
++	}
++	kfree(buf);
++	return ret;			
++}
++
++/*
++ * Assigning the core file storing path (name) & 
++ * limiting the number of core files to CORES
++ */
++static int check_permitted_cores(char *corename, const char *path)
++{
++	mm_segment_t old_addr_limit;
++	int err = 0;
++	struct file *file = NULL;
++	char *buf = NULL;
++	int size, d_min_i, min_size;
++	struct dentry *de, *de_min;
++	struct list_head *list;
++	//time_struct_t ts;
++	//struct timeval tv;
++
++	old_addr_limit=get_fs();
++	set_fs(get_ds());
++
++	/* open the dir from 'path' for storing core dump file */
++	file = filp_open(path, O_DIRECTORY, 0);
++	if (IS_ERR(file)) {
++		err = sys_mkdir(path, 0x1ff); /* returns zero when success */
++		if( err ) {
++			err = PTR_ERR(file);
++			goto out;
++		}
++		else {
++			file = filp_open(path, O_DIRECTORY, 0);
++			if (IS_ERR(file)) {
++				err = PTR_ERR(file);
++				goto out;
++			}
++		}
++	}
++
++	/* prepare some memory */
++	buf = kmalloc(128, GFP_ATOMIC); /* Jinhua: FIXME */
++	if( !buf ){
++		err = -1;
++		goto out;
++	}
++
++	/* unlink oldest core dump file(s) */
++	size = 0, d_min_i = LONG_MAX, min_size = 0;
++	de = NULL, de_min = NULL;
++
++	do {
++		size = 0;
++		d_min_i = LONG_MAX;
++		de = NULL;
++		de_min = NULL;
++		min_size = 0;
++
++		list_for_each(list, &file->f_path.dentry->d_subdirs) 
++        {
++			de = list_entry(list, struct dentry, d_child);
++
++			if ( !(de->d_inode && !list_empty((struct list_head *)(&de->d_hash))) ) 
++            {
++				/* It's empty dentry : ignored */
++				continue;
++			}
++
++			size += de->d_inode->i_size;
++
++			if( de->d_inode->i_mtime.tv_sec < d_min_i ) 
++            {
++				d_min_i = de->d_inode->i_mtime.tv_sec;
++				de_min = de;
++			}
++		}
++
++		printk(KERN_INFO "Pre-check_permitted_cores >> size: %d, threshold: %d\n", size, core_pre_threshold);
++
++		if (core_pre_threshold != 0 && size > core_pre_threshold ) 
++		{
++			if( de_min ) 
++            {
++				min_size = de_min->d_inode->i_size;
++				sprintf(buf, "%s%s", path, de_min->d_name.name);
++                if( sys_unlink(buf) ) 
++                {
++                    printk("%s,%d,unlink error: %s\n", __FUNCTION__, __LINE__, buf);
++                    err = -2;
++                    goto out;
++                }
++				size -= min_size;
++				printk(KERN_INFO "Pre-check_permitted_cores >> reduce size: %d, del size: %d, del file: %s\n", size, min_size, buf);
++			}
++		}
++	} while(core_pre_threshold != 0 && size > core_pre_threshold);
++
++#if 0
++	/* don't change corename, it will be handled by new kernel core_pattern */
++	/* create a full path name for this dumping */
++	do_gettimeofday(&tv);
++	mktime_to_ts(tv.tv_sec, &ts);
++
++	sprintf(buf, "%s%04d-%02d-%02d_%02d-%02d-%02d_%s_%s",
++			path, ts.year, ts.mon, ts.day, ts.hr, ts.min, ts.sec,
++			current->comm, corename);
++	//strcpy(corename, buf);
++#endif
++
++   // printk("%s,%d,%s,%s\n", __FUNCTION__, __LINE__, current->comm, corename);
++
++out:
++	set_fs(old_addr_limit);
++	if(!IS_ERR(file)) {
++		filp_close(file, NULL);
++	}
++	kfree(buf);
++
++	return err;
++}
++
++static int check_permitted_cores_2(const char *path)
++{
++	mm_segment_t old_addr_limit;
++	int err = 0;
++	struct file *file = NULL;
++	char *buf = NULL;
++	int size, d_min_i, min_size;
++	struct dentry *de, *de_min;
++	struct list_head *list;
++
++	old_addr_limit=get_fs();
++	set_fs(get_ds());
++
++	/* open the dir from 'path' for storing core dump file */
++	file = filp_open(path, O_DIRECTORY, 0);
++	if (IS_ERR(file)) {
++		err = sys_mkdir(path, 0x1ff); /* returns zero when success */
++		if( err ) {
++			err = PTR_ERR(file);
++			goto out;
++		}
++		else {
++			file = filp_open(path, O_DIRECTORY, 0);
++			if (IS_ERR(file)) {
++				err = PTR_ERR(file);
++				goto out;
++			}
++		}
++	}
++
++	/* prepare some memory */
++	buf = kmalloc(128, GFP_ATOMIC); /* Jinhua: FIXME */
++	if( !buf ){
++		err = -1;
++		goto out;
++	}
++
++	/* unlink oldest core dump file(s) */
++	size = 0, d_min_i = LONG_MAX, min_size = 0;
++	de = NULL, de_min = NULL;
++
++	do {
++		size = 0;
++		d_min_i = LONG_MAX;
++		de = NULL;
++		de_min = NULL;
++		min_size = 0;
++
++		list_for_each(list, &file->f_path.dentry->d_subdirs) 
++        {
++			de = list_entry(list, struct dentry, d_child);
++
++			if ( !(de->d_inode && !list_empty((struct list_head *)(&de->d_hash))) ) 
++            {
++				/* It's empty dentry : ignored */
++				continue;
++			}
++
++			size += de->d_inode->i_size;
++
++			if( de->d_inode->i_mtime.tv_sec < d_min_i ) 
++            {
++				d_min_i = de->d_inode->i_mtime.tv_sec;
++				de_min = de;
++			}
++		}
++		printk(KERN_INFO "Post-check_permitted_cores_2 >> size: %d, threshold: %d\n", size, core_post_threshold);
++		if(core_post_threshold != 0 && size > core_post_threshold) 
++        {
++			if( de_min ) {
++				min_size = de_min->d_inode->i_size;
++				sprintf(buf, "%s%s", path, de_min->d_name.name);
++				if( sys_unlink(buf) ) {
++					printk("unlink error: %s\n", buf);
++					err = -2;
++					goto out;
++				}
++				size -= min_size;
++				printk(KERN_INFO "Post-check_permitted_cores_2 >> reduce size: %d, del size: %d, del file: %s\n", size, min_size, buf);
++			}
++		}
++	} while(core_post_threshold != 0 && size > core_post_threshold);
++
++out:
++	set_fs(old_addr_limit);
++	if(!IS_ERR(file)) {
++		filp_close(file, NULL);
++	}
++	kfree(buf);
++
++    //printk("%s,%d, err=%d\n", __FUNCTION__, __LINE__, err);
++	return err;
++}
++#endif /* CONFIG_ZYXEL_DEC_AND_GZIP_CORE */
++
+ void do_coredump(const siginfo_t *siginfo)
+ {
+ 	struct core_state core_state;
+@@ -529,6 +991,21 @@
+ 		.mm_flags = mm->flags,
+ 	};
+ 
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++	/* update config file into core_folder_path before core_pattern */
++    parseConf(ITEM_FILE_NAME);
++
++    if(strlen(core_folder_path) == 0) 
++    {
++        strcpy(core_folder_path, CONFIG_ZYXEL_KERNEL_COREDUMP_FOLDER_PATH);
++    }
++
++    /* always reset core_pattern when create coredump file */
++    sprintf(core_pattern, "%score.%%e.%%p.%%h.%%t.gz",core_folder_path);
++
++    printk("%s,%d, core_folder_path=%s, core_pattern=%s\n", __FUNCTION__, __LINE__, core_folder_path, core_pattern);
++#endif
++
+ 	audit_core_dumps(siginfo->si_signo);
+ 
+ 	binfmt = mm->binfmt;
+@@ -685,22 +1162,38 @@
+ 				cn.corename, open_flags, 0600);
+ 			path_put(&root);
+ 		} else {
++#if defined (CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++			//printk("%s,%d, cn.corename=%s\n", __FUNCTION__, __LINE__, cn.corename);
++            check_permitted_cores(cn.corename, core_folder_path);
++            cprm.file = filp_open(cn.corename, open_flags, 0600);
++#else /*CONFIG_ZYXEL_DEC_AND_GZIP_CORE*/
+ 			cprm.file = filp_open(cn.corename, open_flags, 0600);
++#endif/*CONFIG_ZYXEL_DEC_AND_GZIP_CORE*/
++
+ 		}
++
+ 		if (IS_ERR(cprm.file))
++        {
+ 			goto fail_unlock;
+-
++        }
++		
+ 		inode = file_inode(cprm.file);
+ 		if (inode->i_nlink > 1)
++        {
+ 			goto close_fail;
++        }
+ 		if (d_unhashed(cprm.file->f_path.dentry))
++        {
+ 			goto close_fail;
++        }
+ 		/*
+ 		 * AK: actually i see no reason to not allow this for named
+ 		 * pipes etc, but keep the previous behaviour for now.
+ 		 */
+ 		if (!S_ISREG(inode->i_mode))
++        {
+ 			goto close_fail;
++        }
+ 		/*
+ 		 * Don't dump core if the filesystem changed owner or mode
+ 		 * of the file during file creation. This is an issue when
+@@ -708,19 +1201,29 @@
+ 		 * filesystem.
+ 		 */
+ 		if (!uid_eq(inode->i_uid, current_fsuid()))
++        {
+ 			goto close_fail;
++        }
+ 		if ((inode->i_mode & 0677) != 0600)
++        {
+ 			goto close_fail;
++        }
+ 		if (!(cprm.file->f_mode & FMODE_CAN_WRITE))
++        {
+ 			goto close_fail;
++        }
+ 		if (do_truncate(cprm.file->f_path.dentry, 0, 0, cprm.file))
++        {
+ 			goto close_fail;
++        }
+ 	}
+ 
+ 	/* get us an unshared descriptor table; almost always a no-op */
+ 	retval = unshare_files(&displaced);
+ 	if (retval)
++    {
+ 		goto close_fail;
++    }
+ 	if (displaced)
+ 		put_files_struct(displaced);
+ 	if (!dump_interrupted()) {
+@@ -737,12 +1240,16 @@
+ 	if (ispipe)
+ 		atomic_dec(&core_dump_count);
+ fail_unlock:
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++    check_permitted_cores_2(core_folder_path);
++#endif
+ 	kfree(cn.corename);
+ 	coredump_finish(mm, core_dumped);
+ 	revert_creds(old_cred);
+ fail_creds:
+ 	put_cred(cred);
+ fail:
++
+ 	return;
+ }
+ 
+Index: linux-4.1.52/fs/binfmt_elf.c
+===================================================================
+--- linux-4.1.52.orig/fs/binfmt_elf.c	2018-05-28 10:26:45.000000000 +0800
++++ linux-4.1.52/fs/binfmt_elf.c	2020-10-05 11:32:24.647389000 +0800
+@@ -38,6 +38,10 @@
+ #include <asm/uaccess.h>
+ #include <asm/param.h>
+ #include <asm/page.h>
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++#include <linux/zutil.h>
++#include <linux/crc32.h>
++#endif
+ 
+ #ifndef user_long_t
+ #define user_long_t long
+@@ -1371,6 +1375,483 @@
+ 	return sz;
+ }
+ 
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++/***************************************************************************
++ * 
++ *  This part will add all necessary gzip code for elf_core_dump() use.
++ *  It's from MSTC lib.
++ *  main file is :
++ *  gzio.c
++ **************************************************************************
++ */
++#ifndef ZEXTERN
++#  define ZEXTERN extern
++#endif
++#ifndef ZEXPORT
++#  define ZEXPORT
++#endif
++#ifndef ZEXPORTVA
++#  define ZEXPORTVA
++#endif
++
++#define z_off_t long
++#define FAR
++#define Z_BUFSIZE 16384
++#define Z_NULL 0
++#define EOF (-1)
++#define Z_RLE 3
++#define ALLOC(size) kmalloc(size, GFP_KERNEL)
++#define TRYFREE(p) {if (p) kfree(p);}
++
++static int const gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
++
++typedef void  *voidp;
++typedef voidp gzFile;
++typedef void const *voidpc;
++
++typedef unsigned char       Byte;  /* 8 bits */
++typedef Byte  FAR           Bytef;
++typedef ush FAR ushf;
++typedef Byte FAR *voidpf;
++typedef ush Pos;
++typedef Pos FAR Posf;
++typedef uch FAR uchf;
++
++#if 0
++voidpf zcalloc (unsigned items, unsigned size)
++{
++    items += size - size;
++    return (voidpf)ALLOC(items * size);
++}
++#endif
++
++typedef struct gz_stream {
++	z_stream stream;
++	int      z_err;   /* error code for last stream operation */
++	int      z_eof;   /* set if end of input file */
++	struct file* file;/* .gz file */
++	Byte     *inbuf;  /* input buffer */
++	Byte     *outbuf; /* output buffer */
++	uLong    crc;     /* crc32 of uncompressed data */
++	char     *msg;    /* error message */
++	char     *path;   /* path name for debugging only */
++	int      transparent; /* 1 if input file is not a .gz file */
++	char     mode;    /* 'w' or 'r' */
++	z_off_t  start;   /* start of compressed data in file (header skipped) */
++	z_off_t  in;      /* bytes into deflate or inflate */
++	z_off_t  out;     /* bytes out of deflate or inflate */
++	int      back;    /* one character push-back */
++	int      last;    /* true if push-back is last character */
++} gz_stream;
++
++/* ===========================================================================
++     Writes the given number of uncompressed bytes into the compressed file.
++   gzwrite returns the number of bytes actually written (0 in case of error).
++*/
++int ZEXPORT gzwrite (gzFile file, voidpc buf, unsigned len)
++{
++	gz_stream *s = (gz_stream*)file;
++	int ret = 0;
++	mm_segment_t old_addr_limit;
++
++	if (s == NULL || s->mode != 'w') return Z_STREAM_ERROR;
++
++	s->stream.next_in = (Bytef*)buf;
++	s->stream.avail_in = len;
++
++	while (s->stream.avail_in != 0) {
++
++		if (s->stream.avail_out == 0) {
++
++			s->stream.next_out = s->outbuf;
++
++			old_addr_limit = get_fs();
++			set_fs(KERNEL_DS);
++
++			//ret = s->file->f_op->write(s->file, s->outbuf, Z_BUFSIZE, &(s->file->f_pos));
++			ret = vfs_write(s->file, s->outbuf, Z_BUFSIZE, &(s->file->f_pos));
++			
++			set_fs(old_addr_limit);
++
++			if (ret != Z_BUFSIZE) {
++				s->z_err = Z_ERRNO;
++				break;
++			}
++			s->stream.avail_out = Z_BUFSIZE;
++		}
++		s->in += s->stream.avail_in;
++		s->out += s->stream.avail_out;
++		//s->z_err = deflate(&(s->stream), Z_NO_FLUSH);
++		s->z_err = zlib_deflate(&(s->stream), Z_NO_FLUSH);
++		s->in -= s->stream.avail_in;
++		s->out -= s->stream.avail_out;
++		if (s->z_err != Z_OK) 
++		{
++			break;
++		}
++	}
++
++	s->crc = crc32(s->crc, (const Bytef *)buf, len);
++	//s->crc = zlib_adler32(s->crc, (const Bytef *)buf, len);
++
++	return (int)(len - s->stream.avail_in);
++}
++
++ /* ===========================================================================
++ * Cleanup then free the given gz_stream. Return a zlib error code.
++   Try freeing in the reverse order of allocations.
++ */
++static int destroy(gz_stream *s, int close)
++{
++    int err = Z_OK;
++
++    if (!s) return Z_STREAM_ERROR;
++
++    TRYFREE(s->msg);
++
++    if (s->stream.state != NULL) {
++        if (s->mode == 'w') {
++#ifdef NO_GZCOMPRESS
++            err = Z_STREAM_ERROR;
++#else
++            //err = deflateEnd(&(s->stream));
++            err = zlib_deflateEnd(&(s->stream));
++#endif
++        } else if (s->mode == 'r') {
++            //err = inflateEnd(&(s->stream));
++            err = zlib_inflateEnd(&(s->stream));
++        }
++    }
++
++	/* FIXME: elf_core_dump will close s->file */
++	if ( close && s->file != NULL && filp_close(s->file, NULL)) {
++		err = Z_ERRNO;
++	}
++
++    if (s->z_err < 0) err = s->z_err;
++    
++	/* free workspace is allocated */
++    if (s->stream.workspace)
++    {
++        vfree(s->stream.workspace);
++        s->stream.workspace = NULL;
++	    //printk("%s,%d, free stream.workspace\n", __FUNCTION__, __LINE__);
++    }
++    
++	TRYFREE(s->inbuf);
++    TRYFREE(s->outbuf);
++    TRYFREE(s->path);
++    TRYFREE(s);
++    return err;
++}
++
++/*
++ * Wirting data to file.
++ */
++static int fprintk(struct file *file, const char *fmt, ...)
++{
++	va_list args;
++	int printed_len;
++	char fprintk_buf[128];
++	mm_segment_t old_addr_limit;
++
++	va_start(args, fmt);
++	printed_len = vsnprintf(fprintk_buf, sizeof(fprintk_buf), fmt, args);
++	va_end(args);
++
++	old_addr_limit = get_fs();
++	set_fs(KERNEL_DS);
++
++	//file->f_op->write(file, fprintk_buf, printed_len, &(file->f_pos));
++	vfs_write(file, fprintk_buf, printed_len, &(file->f_pos));
++	
++	set_fs(old_addr_limit);	
++
++	return printed_len;
++}
++
++/*
++ * ZyXEL -- Opens a gzip (.gz) file for writing. The mode parameter
++ * is as in fopen ("wb").
++ * gz_open returns NULL if the file could not be opened or if there was
++ * insufficient memory to allocate the (de)compression state. errno
++ * can be checked to distinguish the two cases (if errno is zero, the
++ * zlib error is Z_MEM_ERROR).
++ */
++gzFile kernel_gz_open (struct file* file, const char *path, const char *mode, int close)
++{
++	int err;
++	char *p = (char*)mode;
++	gz_stream *s;
++	char fmode[80]; /* copy of mode, without the compression level */
++	char *m = fmode;
++	int errno = 0; 
++
++	if (!path || !mode) return Z_NULL;
++
++	s = (gz_stream *)ALLOC(sizeof(gz_stream));
++	if (!s) return Z_NULL;
++
++	s->stream.next_in = s->inbuf = Z_NULL;
++	s->stream.next_out = s->outbuf = Z_NULL;
++	s->stream.avail_in = s->stream.avail_out = 0;
++	s->stream.total_in = 0;
++	s->stream.total_out = 0;
++
++	s->file = NULL;
++	s->z_err = Z_OK;
++	s->z_eof = 0;
++	s->in = 0;
++	s->out = 0;
++	s->back = EOF;
++	s->crc = crc32(0L, Z_NULL, 0);
++	//s->crc = zlib_adler32(0L, Z_NULL, 0);
++	s->msg = NULL;
++	s->transparent = 0;
++
++	s->path = (char*)ALLOC(strlen(path)+1);
++	if (s->path == NULL) {
++		return destroy(s,close), (gzFile)Z_NULL;
++	}
++	strcpy(s->path, path); /* do this early for debugging */
++
++	s->mode = '\0';
++	do {
++		if (*p == 'r') s->mode = 'r';
++		if (*p == 'w' || *p == 'a') s->mode = 'w';
++		*m++ = *p; /* copy the mode */
++	} while (*p++ && m != fmode + sizeof(fmode));
++	if (s->mode == '\0') return destroy(s,close), (gzFile)Z_NULL;
++
++	if (s->mode == 'w') 
++	{
++#ifdef NO_GZCOMPRESS
++		err = Z_STREAM_ERROR;
++#else
++
++        /* ref. crypto/zlib.c, use zlib_deflateInit2() must call this first, Trevor, 20200313 */
++        s->stream.workspace = vzalloc(zlib_deflate_workspacesize(-MAX_WBITS, DEF_MEM_LEVEL)); 
++        if (!s->stream.workspace)
++        {
++            return destroy(s,close), (gzFile)Z_NULL;  
++        }
++
++        //printk("%s,%d, Z_DEFAULT_COMPRESSION=%d, %d, WBITS=%d, DEF_MEM_LEVEL=%d, strategy=%d\n", __FUNCTION__, __LINE__, 
++		//		Z_DEFAULT_COMPRESSION, Z_DEFLATED, MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY); //test
++		err = zlib_deflateInit2(&(s->stream), Z_DEFAULT_COMPRESSION, Z_DEFLATED, -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY);
++		/* windowBits is passed < 0 to suppress zlib header */
++
++		s->stream.next_out = s->outbuf = (Byte*)ALLOC(Z_BUFSIZE);
++#endif
++		if (err != Z_OK || s->outbuf == Z_NULL) 
++        {
++			return destroy(s,close), (gzFile)Z_NULL;
++		}
++	}
++	else{
++		return destroy(s,close), (gzFile)Z_NULL;
++	}
++	s->stream.avail_out = Z_BUFSIZE;
++	errno = 0;
++
++	if( file ) /* CONFIG_MSTC_ZLIB_ */
++		s->file = file;
++	else
++		s->file =  filp_open(path, O_CREAT|O_RDWR, 0);
++
++	if ( IS_ERR(s->file) ) {
++		return destroy(s,close), (gzFile)Z_NULL;
++	}
++	if (s->mode == 'w') {
++		/* Write a very simple .gz header: */
++		fprintk(s->file, "%c%c%c%c%c%c%c%c%c%c", gz_magic[0], gz_magic[1],
++				Z_DEFLATED, 0 /*flags*/, 0,0,0,0 /*time*/, 0 /*xflags*/, OS_CODE);
++		s->start = 10L;
++		/* We use 10L instead of ftell(s->file) to because ftell causes an
++		 * fflush on some systems. This version of the library doesn't use
++		 * start anyway in write mode, so this initialization is not
++		 * necessary.
++		 */
++		//printk("%s,%d, write gz header\n", __FUNCTION__, __LINE__);
++	}
++
++	return (gzFile)s;
++}
++
++/* ===========================================================================
++     Flushes all pending output into the compressed file. The parameter
++   flush is as in the deflate() function.
++*/
++static int do_flush( gzFile file, int flush)
++{
++	uInt len;
++	int done = 0;
++	gz_stream *s = (gz_stream*)file;
++	int ret = 0;
++	mm_segment_t old_addr_limit;
++
++	if (s == NULL || s->mode != 'w') return Z_STREAM_ERROR;
++
++	s->stream.avail_in = 0; /* should be zero already anyway */
++
++	for (;;) {
++		len = Z_BUFSIZE - s->stream.avail_out;
++
++		if (len != 0) {
++			old_addr_limit = get_fs();
++			set_fs(KERNEL_DS);
++
++			ret = vfs_write(s->file, s->outbuf, len, &(s->file->f_pos));
++
++			set_fs(old_addr_limit);
++
++			if(ret != len) {
++				s->z_err = Z_ERRNO;
++				return Z_ERRNO;
++			}
++			s->stream.next_out = s->outbuf;
++			s->stream.avail_out = Z_BUFSIZE;
++		}
++		if (done) break;
++		s->out += s->stream.avail_out;
++		//s->z_err = deflate(&(s->stream), flush);
++		s->z_err = zlib_deflate(&(s->stream), flush);
++		s->out -= s->stream.avail_out;
++
++		/* Ignore the second of two consecutive flushes: */
++		if (len == 0 && s->z_err == Z_BUF_ERROR) s->z_err = Z_OK;
++
++		/* deflate has finished flushing only when it hasn't used up
++		 * all the available space in the output buffer:
++		 */
++		done = (s->stream.avail_out != 0 || s->z_err == Z_STREAM_END);
++
++		if (s->z_err != Z_OK && s->z_err != Z_STREAM_END) break;
++	}
++	return  s->z_err == Z_STREAM_END ? Z_OK : s->z_err;
++}
++
++/* ===========================================================================
++   Outputs a long in LSB order to the given file.
++   gzclose_dump_write is used for kernel.
++*/
++static void gzclose_dump_write(struct file *file, uLong x)
++{
++	Byte c;
++	int n;
++	mm_segment_t old_addr_limit;
++	
++	old_addr_limit = get_fs();
++	set_fs(KERNEL_DS);
++
++	for (n = 0; n < 4; n++) {
++		c = (Byte)(x & 0xff);
++		vfs_write(file, &c, 1, &file->f_pos);
++		x >>= 8;
++	}
++
++	set_fs(old_addr_limit);
++
++}
++
++/* ===========================================================================
++     Flushes all pending output if necessary, closes the compressed file
++   and deallocates all the (de)compression state.
++*/
++static int ZEXPORT gzclose(gzFile file, int close)
++{
++	gz_stream *s = (gz_stream*)file;
++
++	if (s == NULL) return Z_STREAM_ERROR;
++
++	if (s->mode == 'w') {
++#ifdef NO_GZCOMPRESS
++		return Z_STREAM_ERROR;
++#else
++		if (do_flush (file, Z_FINISH) != Z_OK)
++			return destroy((gz_stream*)file, close);
++
++		gzclose_dump_write (s->file, s->crc);
++		gzclose_dump_write (s->file, (uLong)(s->in & 0xffffffff));
++#endif
++	}
++	return destroy((gz_stream*)file, close);
++}
++
++#endif //CONFIG_ZYXEL_DEC_AND_GZIP_CORE
++
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++
++static int dump_write(gzFile gzfile, const void *addr, int nr)
++{
++    int len = 0;
++
++    if(nr > 0) {
++        len = gzwrite(gzfile, (char *)addr, nr);
++    }
++
++    return (len == nr);
++}
++
++static int dump_seek(gzFile gzfile, loff_t off)
++{
++    char *buf = (char *)get_zeroed_page(GFP_KERNEL);
++
++    if (!buf) {
++        return 0;
++    }
++
++    while (off > 0) {
++        unsigned long n = off;
++        if (n > PAGE_SIZE)
++            n = PAGE_SIZE;
++        if (!dump_write(gzfile, buf, n))
++            return 0;
++        off -= n;
++    }
++    free_page((unsigned long)buf);
++
++    return 1;
++}
++
++#define DUMP_WRITE(addr, nr, foffset)	\
++    do { if (!dump_write(gzfile, (addr), (nr))) return 0; *foffset += (nr); } while(0)
++
++static int alignfile(gzFile gzfile, loff_t *foffset)
++{
++    static const char buf[4] = { 0, };
++    DUMP_WRITE(buf, roundup(*foffset, 4) - *foffset, foffset);
++    return 1;
++}
++
++static int writenote(struct memelfnote *men, gzFile gzfile,
++            loff_t *foffset)
++{
++    struct elf_note en;
++    en.n_namesz = strlen(men->name) + 1;
++    en.n_descsz = men->datasz;
++    en.n_type = men->type;
++
++    DUMP_WRITE(&en, sizeof(en), foffset);
++    DUMP_WRITE(men->name, en.n_namesz, foffset);
++    if (!alignfile(gzfile, foffset))
++        return 0;
++    DUMP_WRITE(men->data, men->datasz, foffset);
++    if (!alignfile(gzfile, foffset))
++        return 0;
++
++    return 1;
++}
++#undef DUMP_WRITE
++
++#define DUMP_WRITE(addr, nr)	\
++    if ((size += (nr)) > limit || !dump_write(gzfile, (addr), (nr))) \
++        goto end_coredump;
++#define DUMP_SEEK(off)	\
++    if (!dump_seek(gzfile, (off))) \
++        goto end_coredump;
++#else //CONFIG_ZYXEL_DEC_AND_GZIP_CORE
++
+ static int writenote(struct memelfnote *men, struct coredump_params *cprm)
+ {
+ 	struct elf_note en;
+@@ -1383,6 +1864,8 @@
+ 	    dump_emit(cprm, men->data, men->datasz) && dump_align(cprm, 4);
+ }
+ 
++#endif //(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++
+ static void fill_elf_header(struct elfhdr *elf, int segs,
+ 			    u16 machine, u32 flags)
+ {
+@@ -1829,6 +2312,41 @@
+  * Write all the notes for each thread.  When writing the first thread, the
+  * process-wide notes are interleaved after the first thread-specific note.
+  */
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++static int write_note_info(struct elf_note_info *info,
++			   struct file *file, loff_t *foffset)
++{
++    bool first = 1;
++    struct elf_thread_core_info *t = info->thread;
++
++    do {
++        int i;
++
++        if (!writenote(&t->notes[0], file, foffset))
++            return 0;
++
++        if (first && !writenote(&info->psinfo, file, foffset))
++            return 0;
++        if (first && !writenote(&info->signote, file, foffset))
++            return 0;
++        if (first && !writenote(&info->auxv, file, foffset))
++            return 0;
++        if (first && info->files.data &&
++                !writenote(&info->files, file, foffset))
++            return 0;
++
++        for (i = 1; i < info->thread_notes; ++i)
++            if (t->notes[i].data &&
++                !writenote(&t->notes[i], file, foffset))
++                return 0;
++
++        first = 0;
++        t = t->next;
++    } while (t);
++
++    return 1;
++}
++#else//CONFIG_ZYXEL_DEC_AND_GZIP_CORE
+ static int write_note_info(struct elf_note_info *info,
+ 			   struct coredump_params *cprm)
+ {
+@@ -1862,6 +2380,7 @@
+ 
+ 	return 1;
+ }
++#endif//CONFIG_ZYXEL_DEC_AND_GZIP_CORE
+ 
+ static void free_note_info(struct elf_note_info *info)
+ {
+@@ -2147,6 +2666,7 @@
+ 	shdr4extnum->sh_info = segs;
+ }
+ 
++
+ /*
+  * Actual dumper
+  *
+@@ -2170,6 +2690,14 @@
+ 	elf_addr_t e_shoff;
+ 	elf_addr_t *vma_filesz = NULL;
+ 
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++	loff_t foffset;
++    gzFile gzfile = NULL;
++    unsigned long limit = cprm->limit; //for DUMP_WRITE()
++    size_t size = 0; //for DUMP_WRITE()
++	int write_count = 0; //debug purpose
++#endif
++
+ 	/*
+ 	 * We no longer stop all VM operations.
+ 	 * 
+@@ -2186,6 +2714,16 @@
+ 	elf = kmalloc(sizeof(*elf), GFP_KERNEL);
+ 	if (!elf)
+ 		goto out;
++	
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++	//printk("%s,%d, name=%s \n", __FUNCTION__, __LINE__, cprm->file->f_path.dentry->d_iname);
++    gzfile = kernel_gz_open(cprm->file, cprm->file->f_path.dentry->d_iname, "wb9 ", 0);
++    if( gzfile == NULL ){
++        printk("elf_core_dump: Failing to prepare zlib structure from kernel_gz_open\n");
++        goto cleanup;
++    }
++#endif
++
+ 	/*
+ 	 * The number of segs are recored into ELF header as 16bit value.
+ 	 * Please check DEFAULT_MAX_MAP_COUNT definition when you modify here.
+@@ -2220,6 +2758,10 @@
+ 	offset += sizeof(*elf);				/* Elf header */
+ 	offset += segs * sizeof(struct elf_phdr);	/* Program headers */
+ 
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++    foffset = offset;
++#endif
++
+ 	/* Write notes phdr entry */
+ 	{
+ 		size_t sz = get_note_info_size(&info);
+@@ -2262,11 +2804,16 @@
+ 
+ 	offset = dataoff;
+ 
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++	DUMP_WRITE(elf, sizeof(*elf));
++	DUMP_WRITE(phdr4note, sizeof(*phdr4note));
++#else
+ 	if (!dump_emit(cprm, elf, sizeof(*elf)))
+ 		goto end_coredump;
+ 
+ 	if (!dump_emit(cprm, phdr4note, sizeof(*phdr4note)))
+ 		goto end_coredump;
++#endif
+ 
+ 	/* Write program headers for segments dump */
+ 	for (i = 0, vma = first_vma(current, gate_vma); vma != NULL;
+@@ -2286,24 +2833,38 @@
+ 		if (vma->vm_flags & VM_EXEC)
+ 			phdr.p_flags |= PF_X;
+ 		phdr.p_align = ELF_EXEC_PAGESIZE;
+-
++		
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++		DUMP_WRITE(&phdr, sizeof(phdr));
++#else
+ 		if (!dump_emit(cprm, &phdr, sizeof(phdr)))
+ 			goto end_coredump;
++#endif
+ 	}
+ 
+ 	if (!elf_core_write_extra_phdrs(cprm, offset))
+ 		goto end_coredump;
+ 
+  	/* write out the notes section */
+-	if (!write_note_info(&info, cprm))
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++    if (!write_note_info(&info, gzfile, &foffset))
++#else
++    if (!write_note_info(&info, cprm))
++#endif
+ 		goto end_coredump;
+ 
+ 	if (elf_coredump_extra_notes_write(cprm))
+ 		goto end_coredump;
+ 
+ 	/* Align to page */
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++	DUMP_SEEK(dataoff - foffset);
++#else
+ 	if (!dump_skip(cprm, dataoff - cprm->written))
+ 		goto end_coredump;
++#endif
++
++	//printk("%s,%d, PAGE_SIZE=%lu, write_count=%d\n", __FUNCTION__, __LINE__, PAGE_SIZE, write_count);
+ 
+ 	for (i = 0, vma = first_vma(current, gate_vma); vma != NULL;
+ 			vma = next_vma(vma, gate_vma)) {
+@@ -2319,11 +2880,24 @@
+ 			page = get_dump_page(addr);
+ 			if (page) {
+ 				void *kaddr = kmap(page);
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++				write_count++; //debug purpose
++				stop = !dump_write(gzfile, kaddr, PAGE_SIZE);				
++#else
+ 				stop = !dump_emit(cprm, kaddr, PAGE_SIZE);
++#endif
+ 				kunmap(page);
+ 				page_cache_release(page);
+-			} else
++			} 
++            else
++            {
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++				write_count++; //debug purpose
++				stop = !dump_seek(gzfile, PAGE_SIZE);
++#else
+ 				stop = !dump_skip(cprm, PAGE_SIZE);
++#endif
++            }
+ 			if (stop)
+ 				goto end_coredump;
+ 		}
+@@ -2334,8 +2908,17 @@
+ 		goto end_coredump;
+ 
+ 	if (e_phnum == PN_XNUM) {
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE) // MSTC lib doesn't have this
++		if (!dump_write(gzfile, shdr4extnum, sizeof(*shdr4extnum)))
++#else
+ 		if (!dump_emit(cprm, shdr4extnum, sizeof(*shdr4extnum)))
++#endif
++		{
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE) // MSTC lib doesn't have this
++			write_count++; //test only
++#endif
+ 			goto end_coredump;
++		}
+ 	}
+ 
+ end_coredump:
+@@ -2348,6 +2931,15 @@
+ 	kfree(phdr4note);
+ 	kfree(elf);
+ out:
++#if defined(CONFIG_ZYXEL_DEC_AND_GZIP_CORE)
++    if(gzfile != NULL) 
++    {
++        if(gzclose(gzfile, 0) != Z_OK) {
++            printk("elf_core_dump: Failing to gzclose\n");
++        }
++    }
++#endif //CONFIG_ZYXEL_DEC_AND_GZIP_CORE
++	//printk("%s,%d, PAGE_SIZE=%lu, write_count=%d DONE\n", __FUNCTION__, __LINE__, PAGE_SIZE, write_count);
+ 	return has_dumped;
+ }
+ 
+Index: linux-4.1.52/Kconfig.zyxel
+===================================================================
+--- linux-4.1.52.orig/Kconfig.zyxel	2020-10-05 11:30:08.879389000 +0800
++++ linux-4.1.52/Kconfig.zyxel	2020-10-05 11:30:09.103389000 +0800
+@@ -16,4 +16,10 @@
+ 
+ config MSTC_TRANSCEIVER_IMPL
+ 	int "Implementation index for MSTC GPON Transceiver Module"
+-	depends on MSTC_TRANSCEIVER
+\ No newline at end of file
++	depends on MSTC_TRANSCEIVER
++
++config ZYXEL_RECORD_CALL_TRACE
++        bool "ZyXEL feature - kernel oops file saving after boot"
++
++config ZYXEL_DEC_AND_GZIP_CORE
++        bool "ZyXEL feature - kernel coredump file saving after boot"

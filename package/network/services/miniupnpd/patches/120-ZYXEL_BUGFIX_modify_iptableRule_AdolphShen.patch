@@ -1,0 +1,70 @@
+Index: miniupnpd-1.6.20110730/miniupnpd.c
+===================================================================
+--- miniupnpd-1.6.20110730.orig/miniupnpd.c	2021-04-14 14:18:22.528817792 +0800
++++ miniupnpd-1.6.20110730/miniupnpd.c	2021-04-14 14:41:13.997770865 +0800
+@@ -927,10 +927,10 @@
+ 	else
+ 	{
+ #ifdef USE_DAEMON
+-		/*if(daemon(0, 0)<0) {
++		if(daemon(0, 0)<0) {
+ 			perror("daemon()");
+ 		}
+-		pid = getpid();*/
++		pid = getpid();
+ #else
+ 		pid = daemonize();
+ #endif
+Index: miniupnpd-1.6.20110730/netfilter/iptcrdr.c
+===================================================================
+--- miniupnpd-1.6.20110730.orig/netfilter/iptcrdr.c	2021-04-14 14:18:22.484795790 +0800
++++ miniupnpd-1.6.20110730/netfilter/iptcrdr.c	2021-04-14 14:43:17.243646594 +0800
+@@ -749,16 +749,36 @@
+ 	struct ipt_entry * e;
+ 	struct ipt_entry_match *match = NULL;
+ 	struct ipt_entry_target *target = NULL;
+-
++	char tmpstr[512]={'\0'};
++	char iface[20]={'\0'};
++	char buf[20]={'\0'};
++	int i=0;
++	FILE *fp_iface = NULL;
++	
++	fp_iface =fopen("/tmp/upnpIface","r");
++	if(fp_iface != NULL){
++		fgets(buf, sizeof(buf), fp_iface);
++		sscanf(buf,"%s",iface);
++	}
++	fclose(fp_iface );
++	
+ 	e = calloc(1, sizeof(struct ipt_entry));
+ 	e->ip.proto = proto;
+ 	if(proto == IPPROTO_TCP)
+ 	{
+ 		match = get_tcp_match(eport);
++		printf("iptables rule: iptables -t nat -A MINIUPNPD -i %s -p tcp --dport %d -j DNAT --to %s:%d\n",iface,eport,iaddr,iport);
++		sprintf(tmpstr,"iptables -t nat -A MINIUPNPD -i %s -p tcp --dport %d -j DNAT --to %s:%d",iface,eport,iaddr,iport);
++		system(tmpstr);
++		r=0;
+ 	}
+ 	else
+ 	{
+ 		match = get_udp_match(eport);
++		printf("iptables rule: iptables -t nat -A MINIUPNPD -i %s -p udp --dport %d -j DNAT --to %s:%d\n",iface,eport,iaddr,iport);
++		sprintf(tmpstr,"iptables -t nat -A MINIUPNPD -i %s -p udp --dport %d -j DNAT --to %s:%d",iface,eport,iaddr,iport);
++		system(tmpstr);
++		r=0;
+ 	}
+ 	e->nfcache = NFC_IP_DST_PT;
+ 	target = get_dnat_target(iaddr, iport);
+@@ -779,8 +799,8 @@
+ 		e->ip.src.s_addr = inet_addr(rhost);
+ 		e->ip.smsk.s_addr = INADDR_NONE;
+ 	}
+-	
+-	r = iptc_init_verify_and_append("nat", miniupnpd_nat_chain, e, "addnatrule()");
++	//use the command  to replace api
++	//r = iptc_init_verify_and_append("nat", miniupnpd_nat_chain, e, "addnatrule()");
+ 	free(target);
+ 	free(match);
+ 	free(e);

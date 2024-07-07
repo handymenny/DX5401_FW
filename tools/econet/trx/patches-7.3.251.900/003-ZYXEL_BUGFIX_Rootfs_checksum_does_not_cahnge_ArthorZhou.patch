@@ -1,0 +1,13 @@
+Index: econet-trx-7.3.251.900/tools/trx/trx.c
+===================================================================
+--- econet-trx-7.3.251.900.orig/tools/trx/trx.c
++++ econet-trx-7.3.251.900/tools/trx/trx.c
+@@ -708,7 +708,7 @@ int main(int argc, char **argv)
+ 				perror( "ZyXEL header: Read rootfs image error" );
+ 				return errno;
+ 			}
+-			rootfsCrc = crc32buf(buffer, count);
++			rootfsCrc += crc32buf(buffer, count);
+ 			rootfs_size += count;
+ 		}
+ 

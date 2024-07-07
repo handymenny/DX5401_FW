@@ -1,0 +1,78 @@
+Index: wide-dhcpv6-20080615/dhcp6c.c
+===================================================================
+--- wide-dhcpv6-20080615.orig/dhcp6c.c
++++ wide-dhcpv6-20080615/dhcp6c.c
+@@ -2481,20 +2481,16 @@ client6_recvreply(ifp, dh6, len, optinfo
+ 					DHCP6_LISTVAL_IANA, &iaparam, 0);
+ 				if (!iav) {
+ 					ev->timeouts++;
+-					client6_send(ev);
+ 
+ 					//dhcp6_set_timeoparam(ev);
+-					dhcp6_reset_timer(ev);					
+ 					dprintf(LOG_INFO, FNAME, "no IA_NA option after sending RENEW or REBIND packet");
+-					return (0);
++					return (-1);
+ 				}
+ 				siav = TAILQ_FIRST(&iav->sublist);
+ 				if(!siav){
+ 					ev->timeouts++;
+-					client6_send(ev);
+-					dhcp6_reset_timer(ev);					
+ 					dprintf(LOG_INFO, FNAME, "no prefix option in IA_NA option ");
+-					return (0);
++					return (-1);
+ 				}
+ 			}
+ 			else if (evd->type == DHCP6_EVDATA_IAPD) {
+@@ -2507,20 +2503,16 @@ client6_recvreply(ifp, dh6, len, optinfo
+ 					DHCP6_LISTVAL_IAPD, &iaparam, 0);
+ 				if (!iav) {
+ 					ev->timeouts++;
+-					client6_send(ev);
+ 
+ 					//dhcp6_set_timeoparam(ev);
+-					dhcp6_reset_timer(ev);
+ 					dprintf(LOG_INFO, FNAME, "no IA_PD option after sending RENEW or REBIND packet");
+-					return (0);
++					return (-1);
+ 				}
+ 				siav = TAILQ_FIRST(&iav->sublist);
+ 				if(!siav){
+ 					ev->timeouts++;
+-					client6_send(ev);
+-					dhcp6_reset_timer(ev);					
+ 					dprintf(LOG_INFO, FNAME, "no prefix option in IA_PD option ");
+-					return (0);
++					return (-1);
+ 				}
+ 			}
+ 		}
+@@ -2549,12 +2541,10 @@ client6_recvreply(ifp, dh6, len, optinfo
+ 	  		 */
+ 			if (lv->val_num16 == DH6OPT_STCODE_UNSPECFAIL) { 
+ 				ev->timeouts++;
+-				client6_send(ev);
+ 
+ 				//dhcp6_set_timeoparam(ev);
+-				dhcp6_reset_timer(ev);
+ 				dprintf(LOG_INFO, FNAME, "DH6OPT_STCODE_UNSPECFAIL");
+-				return (0);
++				return (-1);
+ 			}
+ 			/*Kerker 
+ 			 *Receipt reply with status code->notonlink
+@@ -2585,12 +2575,10 @@ client6_recvreply(ifp, dh6, len, optinfo
+ 	  		 */
+ 			if (lv->val_num16 == DH6OPT_STCODE_USEMULTICAST) {
+ 				ev->timeouts++;
+-				client6_send(ev);
+ 
+ 				//dhcp6_set_timeoparam(ev);
+-				dhcp6_reset_timer(ev);
+ 				dprintf(LOG_INFO, FNAME, "DH6OPT_STCODE_USEMULTICAST");
+-				return (0);
++				return (-1);
+ 			}
+ 		}
+ 	}

@@ -1,0 +1,489 @@
+Index: linux-4.1.52/Kconfig.zyxel
+===================================================================
+--- linux-4.1.52.orig/Kconfig.zyxel
++++ linux-4.1.52/Kconfig.zyxel
+@@ -41,4 +41,7 @@ config ZYXEL_L2TP_SUPPORT
+         bool "Support L2TP VPN"
+ 
+ config ZYXEL_BAD_BLOCK_UNMARK
+-       bool "Support unmakr flash bad block"
+\ No newline at end of file
++       bool "Support unmakr flash bad block"
++
++config ZYXEL_BAD_BLOCK_WORKAROUND
++       bool "support kernel bad block workaround"
+\ No newline at end of file
+Index: linux-4.1.52/drivers/mtd/nand/brcmnand/brcmnand.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/nand/brcmnand/brcmnand.c
++++ linux-4.1.52/drivers/mtd/nand/brcmnand/brcmnand.c
+@@ -53,6 +53,15 @@ Boston, MA 02111-1307, USA.
+ #include "bcm_intr.h"
+ #endif
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++#include <linux/seq_file.h>
++#include <linux/proc_fs.h>
++#include <linux/uaccess.h>
++
++#include <linux/semaphore.h>
++static struct semaphore sem_nand_read_write;
++#endif
++
+ /*
+  * This flag controls if WP stays on between erase/write commands to mitigate
+  * flash corruption due to power glitches. Values:
+@@ -63,6 +72,11 @@ Boston, MA 02111-1307, USA.
+ static int wp_on = 1;
+ module_param(wp_on, int, 0444);
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++static u32 nandWriteFailCounter = 0;
++u32 nandbadBlockCounter = 0;
++#endif
++
+ /***********************************************************************
+  * Definitions
+  ***********************************************************************/
+@@ -1810,6 +1824,10 @@ static int brcmnand_verify_erased_page(s
+ 	unsigned int max_bitflips = 0;
+ 	int page = addr >> chip->page_shift;
+ 	int ret;
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++	struct brcmnand_host *host = chip->priv;
++	struct brcmnand_controller *ctrl = host->ctrl;
++#endif
+ #if defined(CONFIG_BCM_KF_MTD_BCMNAND)
+ 	u8 *oobs = chip->oob_poi;
+ 	struct nand_ecclayout *ecclayout = chip->ecc.layout;
+@@ -1834,9 +1852,15 @@ static int brcmnand_verify_erased_page(s
+ 	/* read without ecc for verification */
+ 	chip->cmdfunc(mtd, NAND_CMD_READ0, 0x00, page);
+ 	ret = chip->ecc.read_page_raw(mtd, chip, buf, true, page);
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++	if (ret){
++		dev_err(ctrl->dev, "chip->ecc.read_page_raw return failed (ret %d )\n",ret);
++		return ret;
++	}
++#else
+ 	if (ret)
+ 		return ret;
+-
++#endif
+ 	for (i = 0; i < chip->ecc.steps; i++, oob += sas) {
+ 		unsigned int bitflips = 0;
+ 
+@@ -1869,9 +1893,16 @@ static int brcmnand_verify_erased_page(s
+ 		addr += chip->ecc.size;
+ 
+ 		/* Too many bitflips */
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++		if (bitflips > chip->ecc.strength){
++			dev_err(ctrl->dev, "Too many bitflips (bitflips %d chip->ecc.strength %d)\n",
++				bitflips,chip->ecc.strength);
++			return -EBADMSG;
++		}
++#else
+ 		if (bitflips > chip->ecc.strength)
+ 			return -EBADMSG;
+-
++#endif
+ 		max_bitflips = max(max_bitflips, bitflips);
+ 	}
+ 
+@@ -1891,7 +1922,9 @@ static int brcmnand_read(struct mtd_info
+ 	int eccpos, eccpos_idx = 0;
+ #endif
+ 	dev_dbg(ctrl->dev, "read %llx -> %p\n", (unsigned long long)addr, buf);
+-
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++	down( &sem_nand_read_write );
++#endif
+ try_dmaread:
+ 	brcmnand_write_reg(ctrl, BRCMNAND_UNCORR_COUNT, 0);
+ 
+@@ -1901,8 +1934,15 @@ try_dmaread:
+ 		if (err) {
+ 			if (mtd_is_bitflip_or_eccerr(err))
+ 				err_addr = addr;
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++			else{
++				up( &sem_nand_read_write);
++				return -EIO;
++			}
++#else
+ 			else
+ 				return -EIO;
++#endif
+ 		}
+ 	} else {
+ 		if (oob)
+@@ -1926,12 +1966,27 @@ try_dmaread:
+ 			retry = false;
+ 			goto try_dmaread;
+ 		}
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++		up( &sem_nand_read_write );
++#endif
+ 		ret = brcmnand_verify_erased_page(mtd, chip, buf, addr);
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++		down( &sem_nand_read_write );
++#endif
+ 		if (ret < 0) {
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++			dev_err(ctrl->dev, "uncorrectable error at 0x%llx (ret %d ecc_stats.failed %d)\n",
++				(unsigned long long)err_addr,ret,mtd->ecc_stats.failed);
++
++#else
+ 			dev_err(ctrl->dev, "uncorrectable error at 0x%llx\n",
+ 				(unsigned long long)err_addr);
++#endif
+ 			mtd->ecc_stats.failed++;
+ 			/* NAND layer expects zero on ECC errors */
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++			up( &sem_nand_read_write );
++#endif
+ 			return 0;
+ 		} else {
+ 			if (buf)
+@@ -1954,6 +2009,9 @@ try_dmaread:
+ 				dev_info(&host->pdev->dev,
+ 					"corrected %d bitflips in blank page at 0x%llx\n",
+ 					ret, (unsigned long long)addr);
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++			up( &sem_nand_read_write );
++#endif
+ 			return ret;
+ 		}
+ 	}
+@@ -1961,13 +2019,24 @@ try_dmaread:
+ 	if (mtd_is_bitflip(err)) {
+ 		unsigned int corrected = brcmnand_count_corrected(ctrl);
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++		dev_err(ctrl->dev, "corrected error at 0x%llx (ecc_stats.corrected %d ,corrected %d)\n",
++			(unsigned long long)err_addr,mtd->ecc_stats.corrected,corrected);
++
++#else
+ 		dev_dbg(ctrl->dev, "corrected error at 0x%llx\n",
+ 			(unsigned long long)err_addr);
++#endif
+ 		mtd->ecc_stats.corrected += corrected;
+ 		/* Always exceed the software-imposed threshold */
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++		up( &sem_nand_read_write );
++#endif
+ 		return max(mtd->bitflip_threshold, corrected);
+ 	}
+-
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++	up( &sem_nand_read_write );
++#endif
+ 	return 0;
+ }
+ 
+@@ -2033,6 +2102,9 @@ static int brcmnand_write(struct mtd_inf
+ 	struct brcmnand_controller *ctrl = host->ctrl;
+ 	unsigned int i, j, trans = mtd->writesize >> FC_SHIFT;
+ 	int status, ret = 0;
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++	const u32 *buf2 = NULL;
++#endif
+ #if defined(CONFIG_BCM_KF_MTD_BCMNAND)
+ 	u8* oob_in = oob;
+ 	if (brcmnand_check_dying_gasp(ctrl->soc)) {
+@@ -2042,6 +2114,9 @@ static int brcmnand_write(struct mtd_inf
+ #endif
+ 
+ 	dev_dbg(ctrl->dev, "write %llx <- %p\n", (unsigned long long)addr, buf);
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++	down( &sem_nand_read_write );
++#endif
+ 
+ 	if (unlikely((unsigned long)buf & 0x03)) {
+ 		dev_warn(ctrl->dev, "unaligned buffer: %p\n", buf);
+@@ -2050,6 +2125,9 @@ static int brcmnand_write(struct mtd_inf
+ 
+ #if defined(CONFIG_BCM_KF_MTD_BCMNAND)
+ 	if ((chip->options & NAND_PAGE_NOP1) && !buf && oob) { // quit if writing OOB only to NOP=1 parallel NAND device
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++		up( &sem_nand_read_write );
++#endif
+ 		return 0;
+ 	}
+ 
+@@ -2087,6 +2165,9 @@ static int brcmnand_write(struct mtd_inf
+ 		(void)brcmnand_read_reg(ctrl, BRCMNAND_CMD_ADDRESS);
+ 
+ 		if (buf) {
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++			buf2 = buf;
++#endif
+ 			brcmnand_soc_data_bus_prepare(ctrl->soc);
+ 
+ 			for (j = 0; j < FC_WORDS; j++, buf++)
+@@ -2118,14 +2199,24 @@ static int brcmnand_write(struct mtd_inf
+ 			brcmnand_set_ecc_enabled(host, 1);
+ #endif
+ 		if (status & NAND_STATUS_FAIL) {
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++			dev_info(ctrl->dev, "program failed at %llx, status %x\n",
++				(unsigned long long)addr, status);
++			print_hex_dump(KERN_ALERT, "", DUMP_PREFIX_OFFSET, 32, 1, buf2 , FC_BYTES, 1);
++			nandWriteFailCounter++;
++#else
+ 			dev_info(ctrl->dev, "program failed at %llx\n",
+ 				(unsigned long long)addr);
++#endif
+ 			ret = -EIO;
+ 			goto out;
+ 		}
+ 	}
+ out:
+ 	brcmnand_wp(mtd, 1);
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++	up( &sem_nand_read_write );
++#endif
+ 	return ret;
+ }
+ 
+@@ -2640,6 +2731,91 @@ static const struct of_device_id brcmnan
+ };
+ MODULE_DEVICE_TABLE(of, brcmnand_of_match);
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++#define NAND_PARAMETER_ID 0
++#define PROC_CMD_MAX_LEN 8
++
++char *nand_parameter[][2] = {
++    {"writeFailCount", "nand driver write fail count"},
++    {"badBlockCount", "nand bad block count"},
++    {NULL}
++};
++
++static int nand_param_index_get(char *name)
++{
++    int i;
++
++    for (i = 0; nand_parameter[i][NAND_PARAMETER_ID] && strcmp(nand_parameter[i][NAND_PARAMETER_ID], name); i++);
++
++    return nand_parameter[i][NAND_PARAMETER_ID] ? i : -1;
++}
++
++static ssize_t nand_parameter_get(struct file *file, char *buff, size_t len, loff_t *offset)
++{
++    int i;
++	//struct nand_parameter_config *config;
++
++    if (*offset)
++        return 0;
++
++    if ((i = nand_param_index_get(file->f_path.dentry->d_iname)) == -1)
++        return 0;
++
++	if (strncmp((file->f_path.dentry->d_iname), "writeFailCount", sizeof("writeFailCount")) == 0)
++		*offset = sprintf(buff, "nand write fail count %u\n", nandWriteFailCounter);
++
++	if (strncmp((file->f_path.dentry->d_iname), "badBlockCount", sizeof("badBlockCount")) == 0)
++		*offset = sprintf(buff, "nand write fail bad block count %u\n", nandbadBlockCounter);
++
++    return *offset;
++}
++
++static ssize_t nand_parameter_set(struct file *file, const char *buff, size_t len, loff_t *offset)
++{
++    char input[PROC_CMD_MAX_LEN];
++    int i;
++
++    if (len > PROC_CMD_MAX_LEN)
++        len = PROC_CMD_MAX_LEN;
++
++    if ((i = nand_param_index_get(file->f_path.dentry->d_iname)) == -1)
++        return len;
++
++    if (copy_from_user(input, buff, len) != 0)
++        return -EFAULT;
++
++	if (strncmp((file->f_path.dentry->d_iname), "writeFailCount", sizeof("writeFailCount")) == 0){
++		nandWriteFailCounter++;
++		printk("nandWriteFailCounter will change to %d\n", nandWriteFailCounter);
++
++	}
++	else if (strncmp((file->f_path.dentry->d_iname), "badBlockCount", sizeof("badBlockCount")) == 0){
++		nandbadBlockCounter++;
++		printk("nandbadBlockCounter will change to %d\n", nandbadBlockCounter);
++	}
++	else
++		return -EFAULT;
++
++    return len;
++}
++
++static struct file_operations nand_proc_ops = {
++    .read  = nand_parameter_get,
++    .write = nand_parameter_set,
++};
++
++static void proc_entries_create(void)
++{
++    struct proc_dir_entry *dir;
++    int i;
++
++    dir = proc_mkdir("driver/nand", NULL);
++    for (i = 0; nand_parameter[i][NAND_PARAMETER_ID]; i++)
++        proc_create(nand_parameter[i][NAND_PARAMETER_ID], S_IWUSR | S_IRUSR, dir, &nand_proc_ops);
++}
++#endif
++
++
+ /***********************************************************************
+  * Platform driver setup (per controller)
+  ***********************************************************************/
+@@ -2734,6 +2910,10 @@ int brcmnand_probe(struct platform_devic
+ 		dev_info(dev, "enabling FLASH_DMA\n");
+ 	}
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++	sema_init( &sem_nand_read_write, 1);
++#endif
++
+ 	/* Disable automatic device ID config, direct addressing */
+ 	brcmnand_rmw_reg(ctrl, BRCMNAND_CS_SELECT,
+ 			 CS_SELECT_AUTO_DEVICE_ID_CFG | 0xff, 0, 0);
+@@ -2816,6 +2996,10 @@ int brcmnand_probe(struct platform_devic
+ 	if (list_empty(&ctrl->host_list))
+ 		return -ENODEV;
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++	proc_entries_create();
++#endif
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(brcmnand_probe);
+Index: linux-4.1.52/drivers/mtd/ubi/build.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/ubi/build.c
++++ linux-4.1.52/drivers/mtd/ubi/build.c
+@@ -55,8 +55,12 @@
+ 
+ #if defined(CONFIG_BCM_KF_UBI)
+ /* Minimum Bad Erase Blocks per MTD partition */
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++#define  BRCM_MIN_BEB_PER_MTDPART 8
++#else
+ #define  BRCM_MIN_BEB_PER_MTDPART 4
+ #endif
++#endif
+ 
+ #ifdef CONFIG_MTD_UBI_MODULE
+ #define ubi_is_module() 1
+Index: linux-4.1.52/drivers/mtd/ubi/io.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/ubi/io.c
++++ linux-4.1.52/drivers/mtd/ubi/io.c
+@@ -215,6 +215,54 @@ retry:
+ 	return err;
+ }
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND) /* work around, to verify data when program failed. */
++static int verify_write_data(struct ubi_device *ubi, const void *buf, int pnum,
++			    int offset, int len)
++{
++	int err, i;
++	size_t read;
++	void *buf1;
++	loff_t addr = (loff_t)pnum * ubi->peb_size + offset;
++
++	buf1 = __vmalloc(len, GFP_NOFS, PAGE_KERNEL);
++	if (!buf1) {
++		ubi_err(ubi, "cannot allocate memory to check writes");
++		return -EIO;
++	}
++
++	err = mtd_read(ubi->mtd, addr, len, &read, buf1);
++	if (err && !mtd_is_bitflip(err)){
++		ubi_err(ubi, "error %d while reading %d bytes from PEB %d:%d, read %zd bytes", err, len, pnum, offset, read);
++		goto out_free;
++	}
++
++	for (i = 0; i < len; i++) {
++		uint8_t c = ((uint8_t *)buf)[i];
++		uint8_t c1 = ((uint8_t *)buf1)[i];
++
++		if (c == c1)
++			continue;
++
++		ubi_err(ubi, "self-check failed for PEB %d:%d, len %d",pnum, offset, len);
++		ubi_err(ubi, "data differ at position %d", i);
++		ubi_err(ubi, "orig data to buf:");
++		print_hex_dump(KERN_ALERT, "", DUMP_PREFIX_OFFSET, 32, 1, buf, 256, 0);
++		ubi_err(ubi, "read flash to buf1:");
++		print_hex_dump(KERN_ALERT, "", DUMP_PREFIX_OFFSET, 32, 1, buf1, 256, 0);
++		err = -EIO;
++		goto out_free;
++	}
++
++	vfree(buf1);
++	ubi_err(ubi, "self-check OK for PEB %d:%d, len %d",pnum, offset, len);
++	return 0;
++
++out_free:
++	vfree(buf1);
++	return err;
++}
++#endif
++
+ /**
+  * ubi_io_write - write data to a physical eraseblock.
+  * @ubi: UBI device description object
+@@ -283,10 +331,22 @@ int ubi_io_write(struct ubi_device *ubi,
+ 	addr = (loff_t)pnum * ubi->peb_size + offset;
+ 	err = mtd_write(ubi->mtd, addr, len, &written, buf);
+ 	if (err) {
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND) /* work around, to compare data when program failed. */
++		if(err == -EIO) {
++			err = verify_write_data(ubi, buf, pnum, offset, len);
++		}
++		if (err) {
++			ubi_err(ubi, "error %d while writing %d bytes to PEB %d:%d, written %zd bytes",
++			err, len, pnum, offset, written);
++			dump_stack();
++			ubi_dump_flash(ubi, pnum, offset, len);
++		}
++#else
+ 		ubi_err(ubi, "error %d while writing %d bytes to PEB %d:%d, written %zd bytes",
+ 			err, len, pnum, offset, written);
+ 		dump_stack();
+ 		ubi_dump_flash(ubi, pnum, offset, len);
++#endif
+ 	} else
+ 		ubi_assert(written == len);
+ 
+Index: linux-4.1.52/drivers/mtd/ubi/wl.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/ubi/wl.c
++++ linux-4.1.52/drivers/mtd/ubi/wl.c
+@@ -1114,6 +1114,9 @@ static int erase_worker(struct ubi_devic
+ 	if (err)
+ 		goto out_ro;
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++	nandbadBlockCounter++;
++#endif
+ 	spin_lock(&ubi->volumes_lock);
+ 	if (ubi->beb_rsvd_pebs > 0) {
+ 		if (available_consumed) {
+Index: linux-4.1.52/include/linux/mtd/mtd.h
+===================================================================
+--- linux-4.1.52.orig/include/linux/mtd/mtd.h
++++ linux-4.1.52/include/linux/mtd/mtd.h
+@@ -417,4 +417,8 @@ static inline int mtd_is_bitflip_or_ecce
+ 
+ unsigned mtd_mmap_capabilities(struct mtd_info *mtd);
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++extern u32 nandbadBlockCounter;
++#endif
++
+ #endif /* __MTD_MTD_H__ */

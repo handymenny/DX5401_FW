@@ -1,0 +1,15 @@
+Index: linux-4.1.52/net/bridge/br_fdb.c
+===================================================================
+--- linux-4.1.52.orig/net/bridge/br_fdb.c	2020-11-10 15:19:45.901119199 +0800
++++ linux-4.1.52/net/bridge/br_fdb.c	2020-11-10 15:53:51.857119199 +0800
+@@ -922,6 +922,10 @@
+                 /* Also flush the associated entries in accelerators */
+                 blog_notify_async(DESTROY_BRIDGEFDB, (void*)fdb, fdb->fdb_key,
+                     0, NULL, NULL);
++#if defined(CONFIG_BCM_KF_WL)
++                if (fdb->dst->dev && (fdb->dst->dev->priv_flags & IFF_BCM_WLANDEV))
++                    blog_notify_async(UPDATE_NETDEVICE, fdb->dst->dev, 0, 0, NULL, NULL);
++#endif /* CONFIG_BCM_KF_WL */
+                 blog_unlock();
+ #endif /* CONFIG_BCM_KF_BLOG && CONFIG_BLOG */
+ 			}

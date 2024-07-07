@@ -1,0 +1,15 @@
+Index: clinkc/src/cybergarage/http/chttp_server.c
+===================================================================
+--- clinkc.orig/src/cybergarage/http/chttp_server.c
++++ clinkc/src/cybergarage/http/chttp_server.c
+@@ -101,7 +101,10 @@ void cg_http_server_delete(CgHttpServer
+ 		cg_mutex_delete(httpServer->mutex);
+ #ifdef ZYXEL_PATCH
+ 	if(httpServer->ctxdata)
++	{
+ 		free(httpServer->ctxdata);
++		httpServer->ctxdata = NULL;
++	}
+ #endif
+ 
+ 	cg_list_remove((CgList *)httpServer);

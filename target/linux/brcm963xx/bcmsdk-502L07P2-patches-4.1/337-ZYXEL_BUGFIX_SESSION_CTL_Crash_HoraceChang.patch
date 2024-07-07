@@ -1,0 +1,58 @@
+Index: linux-4.1.52/net/netfilter/nf_conntrack_core.c
+===================================================================
+--- linux-4.1.52.orig/net/netfilter/nf_conntrack_core.c
++++ linux-4.1.52/net/netfilter/nf_conntrack_core.c
+@@ -182,6 +182,7 @@ EXPORT_SYMBOL_GPL(nf_session_reserve);
+ #ifdef CONFIG_ZYXEL_NF_SESSION_CTL//__ZYXEL__, Chi-Hsiang /proc/net/nf_session_ctl
+ //unsigned  int nf_session_ctl_max = 2048  __read_mostly;;	/*setup with /proc/sys/net/netfilter/ */
+ unsigned  int nf_session_ctl_max __read_mostly;
++spinlock_t nf_sess_ctl_lock;
+ EXPORT_SYMBOL_GPL(nf_session_ctl_max);
+ 
+ /*computes the hash_index for "session_control_table[hash_index] by ila"
+@@ -217,12 +218,18 @@ clean_session_ctl_lists(struct nf_conn *
+ 	hlist_nulls_for_each_entry_rcu(hc_ip, n, &net->ct.session_control_table[hashc_ip], hnnode)
+ 	{
+ 		if(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip == hc_ip->u3.ip){
++			spin_lock_bh(&nf_sess_ctl_lock);
+ 			atomic_dec(&hc_ip->sess_Cnt);
+ 			do_session_clean=0;
++			if( unlikely(atomic_read(&hc_ip->sess_Cnt) < 0) ) {
++				spin_unlock_bh(&nf_sess_ctl_lock);
++				continue;
++			}
+ 			if( unlikely(atomic_read(&hc_ip->sess_Cnt) <= 0) ) {
+ 				hlist_nulls_del_rcu(&hc_ip->hnnode);
+ 				kfree(&hc_ip->hnnode);
+ 			}
++			spin_unlock_bh(&nf_sess_ctl_lock);
+ 			break;
+ 		}
+ 	}
+@@ -237,12 +244,18 @@ clean_session_ctl_lists(struct nf_conn *
+ 
+ 		hlist_nulls_for_each_entry_rcu(hc_ip_wan, n, &net->ct.session_control_table[hash_ip_wan], hnnode) {
+ 			if(ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.ip == hc_ip_wan->u3.ip){
++				spin_lock_bh(&nf_sess_ctl_lock);
+ 				atomic_dec(&hc_ip_wan->sess_Cnt);
+ 				do_session_clean=0;
++				if( unlikely(atomic_read(&hc_ip_wan->sess_Cnt) < 0) ) {
++					spin_unlock_bh(&nf_sess_ctl_lock);
++					continue;
++				}
+ 				if( unlikely(atomic_read(&hc_ip_wan->sess_Cnt) <= 0) ) {
+ 					hlist_nulls_del_rcu(&hc_ip_wan->hnnode);
+ 					kfree(&hc_ip_wan->hnnode);
+ 				}
++				spin_unlock_bh(&nf_sess_ctl_lock);
+ 				break;
+ 			}
+ 		}
+@@ -2554,6 +2567,7 @@ int nf_conntrack_init_start(void)
+ 	int i, ret, cpu;
+ #ifdef CONFIG_ZYXEL_NF_SESSION_CTL//__ZYXEL__, Chi-Hsiang /proc/net/nf_session_ctl
+ 	nf_session_ctl_max = 2048;
++	spin_lock_init(&nf_sess_ctl_lock);
+ #endif
+ #ifdef CONFIG_ZYXEL_NF_SESSION_RSV
+ 	nf_session_reserve = 1;

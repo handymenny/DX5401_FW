@@ -1,0 +1,13 @@
+Index: minidlna-1.2.1/configure
+===================================================================
+--- minidlna-1.2.1.orig/configure
++++ minidlna-1.2.1/configure
+@@ -2605,7 +2605,7 @@ test -n "$target_alias" &&
+   test "$program_prefix$program_suffix$program_transform_name" = \
+     NONENONEs,x,x, &&
+   program_prefix=${target_alias}-
+-am__api_version='1.14'
++am__api_version='1.15'
+ 
+ # Find a good install program.  We prefer a C program (faster),
+ # so one script is as good as another.  But avoid the broken or

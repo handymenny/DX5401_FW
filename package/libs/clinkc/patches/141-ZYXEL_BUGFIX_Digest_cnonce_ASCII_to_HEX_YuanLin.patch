@@ -1,0 +1,69 @@
+Index: clinkc/include/cybergarage/http/chttp_authentication.h
+===================================================================
+--- clinkc.orig/include/cybergarage/http/chttp_authentication.h
++++ clinkc/include/cybergarage/http/chttp_authentication.h
+@@ -130,5 +130,7 @@ int cg_http_auth_storagelist_add(authSto
+ void cg_http_auth_storagelist_remove(authStorageList_t *storageList, authStorage_t *storage );
+ authStorage_t *cg_http_auth_storagelist_getbyaddr(authStorageList_t *storageList, char* ipaddr,  int port);
+ authStorage_t *cg_http_auth_storagelist_getbysock(authStorageList_t * storageList,CgSocket * sock);
+-
++#ifdef ZYXEL_HTTP_DIGEST_AUTH_WITH_HEX_CNONCE
++void digest_auth_cnonce_to_hex();
++#endif
+ #endif /*_CG_HTTP_AUTHENTICATION_H_*/
+Index: clinkc/src/cybergarage/http/chttp_authentication.c
+===================================================================
+--- clinkc.orig/src/cybergarage/http/chttp_authentication.c
++++ clinkc/src/cybergarage/http/chttp_authentication.c
+@@ -28,6 +28,9 @@
+ #include <zos_api.h>
+ 
+ int nc = 0;
++#ifdef ZYXEL_HTTP_DIGEST_AUTH_WITH_HEX_CNONCE
++bool cnonce_to_hex = false;
++#endif
+ CgHttpAuth *digestHead = NULL;
+ CgHttpAuth *digestTail = NULL;
+ 
+@@ -485,7 +488,10 @@ char *generateCnonce()
+ 	char cnonceBuf[10];
+ 	char *cnonce;
+ 	int cnonceLen;
+-
++#ifdef ZYXEL_HTTP_DIGEST_AUTH_WITH_HEX_CNONCE
++    char cnoncehex[32]={0};
++    char temp[5] = {0};
++#endif
+ 	/*get time*/
+ 	gettimeofday(&now, NULL);
+ 	snprintf(cnonceBuf, sizeof(cnonceBuf), "%09ld", (long)now.tv_sec);
+@@ -505,6 +511,17 @@ char *generateCnonce()
+ 	memset( cnonce, 0, cnonceLen+1 );
+ 	/* Perform base64 encoding*/
+ 	b64_encode(cnonceBuf, sizeof(cnonceBuf), cnonce, cnonceLen);
++#ifdef ZYXEL_HTTP_DIGEST_AUTH_WITH_HEX_CNONCE
++    memset( cnoncehex, 0, sizeof(cnoncehex));
++	if(cnonce_to_hex){        
++        for ( int i = 0; i < cnonceLen; i++ )
++        {
++            snprintf( temp,sizeof(temp),"%X", cnonce[i] );
++            strncat( cnoncehex, temp, sizeof(cnoncehex)-strlen(cnoncehex));
++        }
++        strncpy(cnonce, cnoncehex, cnonceLen);
++	}
++#endif
+ 	return cnonce;
+ }
+ 
+@@ -1175,6 +1192,11 @@ char to_hex(char code) {
+   static char hex[] = "0123456789ABCDEF";
+   return hex[code & 15];
+ }
++#ifdef ZYXEL_HTTP_DIGEST_AUTH_WITH_HEX_CNONCE
++void digest_auth_cnonce_to_hex() {
++  cnonce_to_hex = true;
++}
++#endif
+ 
+ char *cg_http_url_encode(char *str)
+ {

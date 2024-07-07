@@ -1,0 +1,23 @@
+Index: ebtables-v2.0.10-4/Makefile
+===================================================================
+--- ebtables-v2.0.10-4.orig/Makefile
++++ ebtables-v2.0.10-4/Makefile
+@@ -63,12 +63,15 @@ PROGSPECSD:=-DPROGVERSION=\"$(PROGVERSIO
+ 	-DEBTD_PIPE=\"$(PIPE)\" \
+ 	-DEBTD_PIPE_DIR=\"$(PIPE_DIR)\"
+ 
+-ifeq ("$(strip ${ZCFG_PLATFORM})","BROADCOM")
+-ifneq ("$(strip $(BRCM_WIFI_VER_157_60))","")
++# ifeq ("$(strip ${ZCFG_PLATFORM})","BROADCOM")
++ifeq ($(CONFIG_BCM502L07_WIFI_DRIVER),"17.10.157.60")
++PROGSPECS+=-DBCM_502L07P2_BSP
++PROGSPECSD+=-DBCM_502L07P2_BSP
++else ifeq ($(CONFIG_BCM502L07_WIFI_DRIVER),"17.10.188.55")
+ PROGSPECS+=-DBCM_502L07P2_BSP
+ PROGSPECSD+=-DBCM_502L07P2_BSP
+ endif
+-endif
++# endif
+ # Uncomment for debugging (slower)
+ #PROGSPECS+=-DEBT_DEBUG
+ #PROGSPECSD+=-DEBT_DEBUG

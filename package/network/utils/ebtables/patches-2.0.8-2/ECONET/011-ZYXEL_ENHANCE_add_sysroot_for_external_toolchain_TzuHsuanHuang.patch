@@ -1,0 +1,14 @@
+Index: ebtables-v2.0.8-2/Makefile
+===================================================================
+--- ebtables-v2.0.8-2.orig/Makefile	2020-10-20 16:27:42.134548222 +0800
++++ ebtables-v2.0.8-2/Makefile	2020-10-20 16:54:10.318551801 +0800
+@@ -16,6 +16,9 @@
+ DESTDIR:=
+ #RPATH:=/opt/CodeSourcery/mips-4.2/mips-linux-gnu/libc/uclibc/soft-float/usr/lib
+ #SYSROOT:=/opt/CodeSourcery/mips-4.2/mips-linux-gnu/libc/uclibc/soft-float
++ifneq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
++SYSROOT:=/opt/trendchip/mipsel-linux-uclibc-4.6.3-kernel3.18/usr/mipsel-buildroot-linux-uclibc/sysroot
++endif
+ RPATH:=$(SYSROOT)/usr/lib
+ 
+ #ECONET_SDK_PATH:=$(BUILD_DIR)/linux-mt75xx_pmg5317_t20a/econet-sdk-7.3.119.8

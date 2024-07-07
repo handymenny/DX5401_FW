@@ -1,0 +1,126 @@
+Index: busybox-1_20_1/loginutils/login.c
+===================================================================
+--- busybox-1_20_1.orig/loginutils/login.c
++++ busybox-1_20_1/loginutils/login.c
+@@ -735,8 +735,35 @@ int correct_wanPassword()
+ 
+     return r;
+ }
++void getSubnetPrefix4(char* subnet, char* subnetMaskPrefix){
++	char *str = NULL;
++	char *delim = ".";
++	int bitLen = 0;
++	int prefixLen = 0;
++	char *temp = (char*)malloc(32);
++	
++	strncpy(temp, 31, subnet);
++	str = strtok(temp, delim);
++
++	while(str){
++		bitLen = atoi(str);
++		if(bitLen < 0 || bitLen > 255) //invalid bitLen
++			return;
++		else{
++			while(bitLen > 0 && bitLen <= 255){
++				bitLen = bitLen >> 1;
++				prefixLen++;
++			}
++		}
++		str = strtok(NULL, delim);
++	}
++	snprintf(subnetMaskPrefix, 10, "%d", prefixLen);
++}
+ #endif //ABZQ_CUSTOMIZATION
+ 
++
++
++
+ int login_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+ int login_main(int argc UNUSED_PARAM, char **argv)
+ {
+@@ -963,6 +990,59 @@ int login_main(int argc UNUSED_PARAM, ch
+ 	/*bb_setpgrp();*/
+ 
+ 	openlog(applet_name, LOG_PID | LOG_CONS, LOG_AUTH);
++#if defined(ABZQ_CUSTOMIZATION)
++        int addrType = 0;
++        addrType = ipType(addr);
++    
++        if (addrType == AF_INET)
++        { 
++            //v4 checking
++            /*Remote Ip WAN/LAN Ip check */
++            //Get host IP
++            objIndex_t objIid;
++            rdm_IpIface_t *ipObj = NULL;
++            rdm_IpIfaceV4Addr_t *ipv4Obj = NULL;
++            char lanip[32] = {0};
++            char subnetMask[32] = {0};
++            char prefix[10]={0};
++    
++            /*LANIP*/
++            IID_INIT(objIid);
++            while( zcfgFeObjStructGetNext(RDM_OID_IP_IFACE, &objIid, (void **)&ipObj) == ZCFG_SUCCESS) {
++                if(strcmp(ipObj->X_ZYXEL_IfName, "br0") ==0) {
++                    free(ipObj);
++                    break;
++                }
++                free(ipObj);
++            }
++    
++            bool checkPrivilege = false;
++            objIndex_t v4AddrIid;
++            v4AddrIid.level = 2;
++    
++            IID_INIT(v4AddrIid);
++            while( zcfgFeObjStructGetNext(RDM_OID_IP_IFACE_V4_ADDR, &v4AddrIid, (void **)&ipv4Obj)== ZCFG_SUCCESS){
++                if (objIid.idx[0] == v4AddrIid.idx[0]){ //check br0(LAN) group
++                    strncpy(lanip, 15,ipv4Obj->IPAddress);
++                    strncpy(subnetMask, 15,ipv4Obj->SubnetMask);
++                    getSubnetPrefix4(subnetMask, prefix);
++                    if ((checkCidrBlock(lanip, prefix, addr)) == 1){
++                        strncpy(remoAddr_Type, 3,"LAN");
++                    }
++                    else{
++                        strncpy(remoAddr_Type, 3,"WAN");
++                    }
++                }
++                free(ipv4Obj);
++            }
++        }
++        else if (addrType == AF_INET6){
++        //not support V6 for WIND Italy
++        }
++        else{
++        //skip check unknow IP type
++        }
++#endif
+ 
+ 	while (1) {
+ 		/* flush away any type-ahead (as getty does) */
+@@ -1287,7 +1367,11 @@ int login_main(int argc UNUSED_PARAM, ch
+ 		}
+ #endif
+ 		if (!strncmp("p",short_tty,1))
++#if defined(ABZQ_CUSTOMIZATION)
++       		syslog(LOG_INFO, "Account: Enter an invalid password for User '%s' from %s host %s by telnetd.",username,remoAddr_Type,addr);
++#else
+ 			syslog(LOG_INFO, "Account: Enter an invalid password for User '%s' from the host %s by telnetd.",username,addr);
++#endif
+ 		if (++count == 3) {
+ 			syslog(LOG_WARNING, "invalid password for '%s'%s",
+ 						username, fromhost);
+@@ -1363,7 +1447,13 @@ int login_main(int argc UNUSED_PARAM, ch
+ 		sprintf(cmd,"echo %s %s telnetd>/tmp/pts%c",username,addr,*(short_tty +strlen(short_tty)-1));
+ 		system(cmd);
+ #endif
++#if defined(ABZQ_CUSTOMIZATION)
++        syslog(LOG_INFO, "Account: User '%s' login from %s host %s by telnetd.", username, remoAddr_Type, addr);
++        
++        zySetLoginInfo (username, remoAddr_Type, addr, "telnetd");
++#else
+ 		syslog(LOG_INFO, "Account: User '%s' login from the host %s by telnetd.", username, addr);
++#endif
+ 	}
+ 	if (ENABLE_FEATURE_CLEAN_UP)
+ 		free(fromhost);

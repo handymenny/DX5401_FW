@@ -1,0 +1,22 @@
+Index: ebtables-v2.0.8-2/Makefile
+===================================================================
+--- ebtables-v2.0.8-2.orig/Makefile	2021-06-07 22:07:51.106635000 +0800
++++ ebtables-v2.0.8-2/Makefile	2021-06-07 22:08:27.966635000 +0800
+@@ -21,6 +21,8 @@
+ SYSROOT:=/opt/trendchip/mipsel-linux-glibc2.22-4.6.3/usr/mipsel-buildroot-linux-gnu/sysroot
+ else ifeq ($(CONFIG_TC_SDK_VERSION),"7.3.267.1")
+ SYSROOT:=/opt/trendchip/buildroot-gcc493_glibc222_arm32_32bServer/usr/arm-buildroot-linux-gnueabi/sysroot
++else ifeq ($(CONFIG_TC_SDK_VERSION),"7.3.267.750")
++SYSROOT:=/opt/trendchip/buildroot-gcc493_glibc222_arm32_32bServer/usr/arm-buildroot-linux-gnueabi/sysroot
+ else
+ SYSROOT:=/opt/trendchip/mipsel-linux-uclibc-4.6.3-kernel3.18/usr/mipsel-buildroot-linux-uclibc/sysroot
+ endif
+@@ -58,6 +60,8 @@
+ CFLAGS += -DCONFIG_TC_SDK_7_3_267_0
+ else ifeq ($(CONFIG_TC_SDK_VERSION),"7.3.267.1")
+ CFLAGS += -DCONFIG_TC_SDK_7_3_267_1
++else ifeq ($(CONFIG_TC_SDK_VERSION),"7.3.267.750")
++CFLAGS += -DCONFIG_TC_SDK_7_3_267_750
+ endif
+ 
+ include extensions/Makefile

@@ -1,0 +1,389 @@
+Index: linux-4.1.52/Kconfig.zyxel
+===================================================================
+--- linux-4.1.52.orig/Kconfig.zyxel
++++ linux-4.1.52/Kconfig.zyxel
+@@ -38,4 +38,7 @@ config ZYXEL_PPTPD_RELAY
+         bool "ZyXEL feature - PPTP relay for PPPOA"
+ 
+ config ZYXEL_L2TP_SUPPORT
+-        bool "Support L2TP VPN"
+\ No newline at end of file
++        bool "Support L2TP VPN"
++
++config ZYXEL_BAD_BLOCK_UNMARK
++       bool "Support unmakr flash bad block"
+\ No newline at end of file
+Index: linux-4.1.52/drivers/mtd/mtdchar.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/mtdchar.c
++++ linux-4.1.52/drivers/mtd/mtdchar.c
+@@ -984,6 +984,18 @@ static int mtdchar_ioctl(struct file *fi
+ 		break;
+ 	}
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++	case MEMSETGOODBLOCK:
++	{
++		loff_t offs;
++
++		if (copy_from_user(&offs, argp, sizeof(loff_t)))
++			return -EFAULT;
++		return mtd_block_unmarkbad(mtd, offs);
++		break;
++	}
++#endif
++
+ 	default:
+ 		ret = -ENOTTY;
+ 	}
+Index: linux-4.1.52/drivers/mtd/mtdcore.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/mtdcore.c
++++ linux-4.1.52/drivers/mtd/mtdcore.c
+@@ -1099,6 +1099,20 @@ int mtd_block_markbad(struct mtd_info *m
+ }
+ EXPORT_SYMBOL_GPL(mtd_block_markbad);
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++int mtd_block_unmarkbad(struct mtd_info *mtd, loff_t ofs)
++{
++	if (!mtd->_block_unmarkbad)
++		return -EOPNOTSUPP;
++	if (ofs < 0 || ofs >= mtd->size)
++		return -EINVAL;
++	if (!(mtd->flags & MTD_WRITEABLE))
++		return -EROFS;
++	return mtd->_block_unmarkbad(mtd, ofs);
++}
++EXPORT_SYMBOL_GPL(mtd_block_unmarkbad);
++#endif
++
+ /*
+  * default_mtd_writev - the default writev method
+  * @mtd: mtd device description object pointer
+Index: linux-4.1.52/drivers/mtd/mtdpart.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/mtdpart.c
++++ linux-4.1.52/drivers/mtd/mtdpart.c
+@@ -317,6 +317,20 @@ static int part_block_markbad(struct mtd
+ 	return res;
+ }
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++static int part_block_unmarkbad(struct mtd_info *mtd, loff_t ofs)
++{
++	struct mtd_part *part = PART(mtd);
++	int res;
++
++	ofs += part->offset;
++	res = part->master->_block_unmarkbad(part->master, ofs);
++	if (!res)
++		mtd->ecc_stats.badblocks--;
++	return res;
++}
++#endif
++
+ static inline void free_partition(struct mtd_part *p)
+ {
+ 	kfree(p->mtd.name);
+@@ -442,6 +456,10 @@ static struct mtd_part *allocate_partiti
+ 		slave->mtd._block_isbad = part_block_isbad;
+ 	if (master->_block_markbad)
+ 		slave->mtd._block_markbad = part_block_markbad;
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++	if (master->_block_unmarkbad)
++		slave->mtd._block_unmarkbad = part_block_unmarkbad;
++#endif
+ 	slave->mtd._erase = part_erase;
+ 	slave->master = master;
+ 	slave->offset = part->offset;
+Index: linux-4.1.52/drivers/mtd/nand/nand_base.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/nand/nand_base.c
++++ linux-4.1.52/drivers/mtd/nand/nand_base.c
+@@ -415,6 +415,46 @@ static int nand_default_block_markbad(st
+ 	return ret;
+ }
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++/**
++ * nand_default_block_unmarkbad - [DEFAULT] unmark a block bad via bad block marker
++ * @mtd: MTD device structure
++ * @ofs: offset from device start
++ *
++ * This is the default implementation, which can be overridden by a hardware
++ * specific driver. It provides the details for writing a bad block marker to a
++ * block.
++ */
++static int nand_default_block_unmarkbad(struct mtd_info *mtd, loff_t ofs)
++{
++	struct nand_chip *chip = mtd->priv;
++	struct mtd_oob_ops ops;
++	uint8_t buf[1024] = {0};
++	int ret = 0, res, i = 0;
++
++	memset(&ops, 0, sizeof(ops));
++	ops.oobbuf = buf;
++	memset(ops.oobbuf, 0xff, mtd->oobsize);
++	ops.ooboffs = 0;
++	ops.len = mtd->oobsize;
++	ops.mode = MTD_OPS_PLACE_OOB;
++
++	/* Write to first/last page(s) if necessary */
++	if (chip->bbt_options & NAND_BBT_SCANLASTPAGE)
++		ofs += mtd->erasesize - mtd->writesize;
++	do {
++		res = nand_do_write_oob(mtd, ofs, &ops);
++		if (!ret)
++			ret = res;
++
++		i++;
++		ofs += mtd->writesize;
++	} while ((chip->bbt_options & NAND_BBT_SCAN2NDPAGE) && i < 2);
++
++	return ret;
++}
++#endif
++
+ /**
+  * nand_block_markbad_lowlevel - mark a block bad
+  * @mtd: MTD device structure
+@@ -466,6 +506,63 @@ static int nand_block_markbad_lowlevel(s
+ 	return ret;
+ }
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++static int unmarkbadblock = 0;
++
++/**
++ * nand_block_unmarkbad_lowlevel - unmark a block bad
++ * @mtd: MTD device structure
++ * @ofs: offset from device start
++ *
++ * This function performs the generic NAND bad block unmarking steps (i.e., bad
++ * block table(s) and/or marker(s)). We only allow the hardware driver to
++ * specify how to write bad block unmarkers to OOB (chip->block_unmarkbad).
++ *
++ * We try operations in the following order:
++ *  (1) erase the affected block, to allow OOB marker to be written cleanly
++ *  (2) write bad block marker to OOB area of affected block (unless flag
++ *      NAND_BBT_NO_OOB_BBM is present)
++ *  (3) update the BBT
++ * Note that we retain the first error encountered in (2) or (3), finish the
++ * procedures, and dump the error in the end.
++*/
++static int nand_block_unmarkbad_lowlevel(struct mtd_info *mtd, loff_t ofs)
++{
++	struct nand_chip *chip = mtd->priv;
++	int res, ret = 0;
++
++	if (!(chip->bbt_options & NAND_BBT_NO_OOB_BBM)) {
++		struct erase_info einfo;
++
++		/* Attempt erase before marking OOB */
++		memset(&einfo, 0, sizeof(einfo));
++		einfo.mtd = mtd;
++		einfo.addr = ofs;
++		einfo.len = 1ULL << chip->phys_erase_shift;
++		unmarkbadblock = 1;
++		nand_erase_nand(mtd, &einfo, 1);
++		unmarkbadblock = 0;
++
++		/* Write bad block marker to OOB */
++		nand_get_device(mtd, FL_WRITING);
++		ret = chip->block_unmarkbad(mtd, ofs);
++		nand_release_device(mtd);
++	}
++
++	/* Unmark block bad in BBT */
++	if (chip->bbt) {
++		res = nand_unmarkbad_bbt(mtd, ofs);
++		if (!ret)
++			ret = res;
++	}
++
++	if (!ret)
++		mtd->ecc_stats.badblocks--;
++
++	return ret;
++}
++#endif
++
+ /**
+  * nand_check_wp - [GENERIC] check if the chip is write protected
+  * @mtd: MTD device structure
+@@ -2786,6 +2883,9 @@ int nand_erase_nand(struct mtd_info *mtd
+ 
+ 	while (len) {
+ 		/* Check if we have a bad block, we do not erase bad blocks! */
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++		if (unmarkbadblock == 0)
++#endif
+ 		if (nand_block_checkbad(mtd, ((loff_t) page) <<
+ 					chip->page_shift, 0, allowbbt)) {
+ 			pr_warn("%s: attempt to erase a bad block at page 0x%08x\n",
+@@ -2897,6 +2997,31 @@ static int nand_block_markbad(struct mtd
+ 	return nand_block_markbad_lowlevel(mtd, ofs);
+ }
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++/**
++ * nand_block_unmarkbad - [MTD Interface] Unmark block at the given offset as good
++ * @mtd: MTD device structure
++ * @ofs: offset relative to mtd start
++ */
++static int nand_block_unmarkbad(struct mtd_info *mtd, loff_t ofs)
++{
++	int ret;
++
++	ret = nand_block_isbad(mtd, ofs);
++
++	if (ret) {
++		/* If it was bad already, to unmark it as good */
++		ret = nand_block_unmarkbad_lowlevel(mtd, ofs);
++		if (ret == 0)
++			return 0; /* unmark bad block success */
++		else
++			return ret;
++	}
++
++	return 0;
++}
++#endif
++
+ /**
+  * nand_onfi_set_features- [REPLACEABLE] set features for ONFI nand
+  * @mtd: MTD device structure
+@@ -3018,6 +3143,10 @@ static void nand_set_defaults(struct nan
+ 		chip->block_bad = nand_block_bad;
+ 	if (!chip->block_markbad)
+ 		chip->block_markbad = nand_default_block_markbad;
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++	if (!chip->block_unmarkbad)
++		chip->block_unmarkbad = nand_default_block_unmarkbad;
++#endif
+ 	if (!chip->write_buf || chip->write_buf == nand_write_buf)
+ 		chip->write_buf = busw ? nand_write_buf16 : nand_write_buf;
+ 	if (!chip->write_byte || chip->write_byte == nand_write_byte)
+@@ -4243,6 +4372,9 @@ int nand_scan_tail(struct mtd_info *mtd)
+ 	mtd->_block_isreserved = nand_block_isreserved;
+ 	mtd->_block_isbad = nand_block_isbad;
+ 	mtd->_block_markbad = nand_block_markbad;
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++	mtd->_block_unmarkbad = nand_block_unmarkbad;
++#endif
+ 	mtd->writebufsize = mtd->writesize;
+ 
+ 	/* propagate ecc info to mtd_info */
+Index: linux-4.1.52/drivers/mtd/nand/nand_bbt.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/nand/nand_bbt.c
++++ linux-4.1.52/drivers/mtd/nand/nand_bbt.c
+@@ -95,6 +95,15 @@ static inline void bbt_mark_entry(struct
+ 	chip->bbt[block >> BBT_ENTRY_SHIFT] |= msk;
+ }
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++static inline void bbt_unmark_entry(struct nand_chip *chip, int block,
++		uint8_t mark)
++{
++	uint8_t msk = (~mark & BBT_ENTRY_MASK) << ((block & BBT_ENTRY_MASK) * 2);
++	chip->bbt[block >> BBT_ENTRY_SHIFT] &= ~msk;
++}
++#endif
++
+ static int check_pattern_no_oob(uint8_t *buf, struct nand_bbt_descr *td)
+ {
+ 	if (memcmp(buf, td->pattern, td->len))
+@@ -1372,4 +1381,28 @@ int nand_markbad_bbt(struct mtd_info *mt
+ 	return ret;
+ }
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++/**
++ * nand_unmarkbad_bbt - [NAND Interface] Unmark a block bad in the BBT
++ * @mtd: MTD device structure
++ * @offs: offset of the bad block
++ */
++int nand_unmarkbad_bbt(struct mtd_info *mtd, loff_t offs)
++{
++	struct nand_chip *this = mtd->priv;
++	int block, ret = 0;
++
++	block = (int)(offs >> this->bbt_erase_shift);
++
++	/* Unmark bad block in memory */
++	bbt_unmark_entry(this, block, BBT_BLOCK_GOOD);
++
++	/* Update flash-based bad block table */
++	if (this->bbt_options & NAND_BBT_USE_FLASH)
++		ret = nand_update_bbt(mtd, offs);
++
++	return ret;
++}
++#endif
++
+ EXPORT_SYMBOL(nand_scan_bbt);
+Index: linux-4.1.52/include/linux/mtd/mtd.h
+===================================================================
+--- linux-4.1.52.orig/include/linux/mtd/mtd.h
++++ linux-4.1.52/include/linux/mtd/mtd.h
+@@ -225,6 +225,9 @@ struct mtd_info {
+ 	int (*_block_isreserved) (struct mtd_info *mtd, loff_t ofs);
+ 	int (*_block_isbad) (struct mtd_info *mtd, loff_t ofs);
+ 	int (*_block_markbad) (struct mtd_info *mtd, loff_t ofs);
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++	int (*_block_unmarkbad) (struct mtd_info *mtd, loff_t ofs);
++#endif
+ 	int (*_suspend) (struct mtd_info *mtd);
+ 	void (*_resume) (struct mtd_info *mtd);
+ 	void (*_reboot) (struct mtd_info *mtd);
+@@ -307,6 +310,9 @@ int mtd_is_locked(struct mtd_info *mtd,
+ int mtd_block_isreserved(struct mtd_info *mtd, loff_t ofs);
+ int mtd_block_isbad(struct mtd_info *mtd, loff_t ofs);
+ int mtd_block_markbad(struct mtd_info *mtd, loff_t ofs);
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++int mtd_block_unmarkbad(struct mtd_info *mtd, loff_t ofs);
++#endif
+ 
+ static inline int mtd_suspend(struct mtd_info *mtd)
+ {
+Index: linux-4.1.52/include/linux/mtd/nand.h
+===================================================================
+--- linux-4.1.52.orig/include/linux/mtd/nand.h
++++ linux-4.1.52/include/linux/mtd/nand.h
+@@ -666,6 +666,9 @@ struct nand_chip {
+ 	void (*select_chip)(struct mtd_info *mtd, int chip);
+ 	int (*block_bad)(struct mtd_info *mtd, loff_t ofs, int getchip);
+ 	int (*block_markbad)(struct mtd_info *mtd, loff_t ofs);
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++	int (*block_unmarkbad)(struct mtd_info *mtd, loff_t ofs);
++#endif
+ 	void (*cmd_ctrl)(struct mtd_info *mtd, int dat, unsigned int ctrl);
+ 	int (*init_size)(struct mtd_info *mtd, struct nand_chip *this,
+ 			u8 *id_data);
+@@ -865,6 +868,9 @@ extern struct nand_manufacturers nand_ma
+ extern int nand_scan_bbt(struct mtd_info *mtd, struct nand_bbt_descr *bd);
+ extern int nand_default_bbt(struct mtd_info *mtd);
+ extern int nand_markbad_bbt(struct mtd_info *mtd, loff_t offs);
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++extern int nand_unmarkbad_bbt(struct mtd_info *mtd, loff_t offs);
++#endif
+ extern int nand_isreserved_bbt(struct mtd_info *mtd, loff_t offs);
+ extern int nand_isbad_bbt(struct mtd_info *mtd, loff_t offs, int allowbbt);
+ extern int nand_erase_nand(struct mtd_info *mtd, struct erase_info *instr,
+Index: linux-4.1.52/include/uapi/mtd/mtd-abi.h
+===================================================================
+--- linux-4.1.52.orig/include/uapi/mtd/mtd-abi.h
++++ linux-4.1.52/include/uapi/mtd/mtd-abi.h
+@@ -206,6 +206,10 @@ struct otp_info {
+  * without OOB, e.g., NOR flash.
+  */
+ #define MEMWRITE		_IOWR('M', 24, struct mtd_write_req)
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_UNMARK)
++/* Unmark an bad block as good */
++#define MEMSETGOODBLOCK		_IOW('M', 25, __kernel_loff_t)
++#endif
+ 
+ /*
+  * Obsolete legacy interface. Keep it in order not to break userspace

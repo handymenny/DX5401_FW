@@ -1,0 +1,20 @@
+Index: linux-4.1.52/drivers/mtd/nand/brcmnand/brcmnand.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/nand/brcmnand/brcmnand.c
++++ linux-4.1.52/drivers/mtd/nand/brcmnand/brcmnand.c
+@@ -1778,7 +1778,15 @@ static int brcmnand_read_by_pio(struct m
+ 					mtd->oobsize / trans,
+ 					host->hwcfg.sector_size_1k);
+ 
++#if defined(CONFIG_BCM_KF_MTD_BCMNAND)
++		/* we need to make sure that during a page read, if a subpage has correctable errors followed
++		by a subpage with uncorrectable errors, the page read will return the proper status of uncorrectable
++		by not allowing the uncorrectable error check to be circumvented with a correctable status */
++
++		if (ret != -EBADMSG) {
++#else
+ 		if (!ret) {
++#endif
+ 			*err_addr = brcmnand_read_reg(ctrl,
+ 					BRCMNAND_UNCORR_ADDR) |
+ 				((u64)(brcmnand_read_reg(ctrl,

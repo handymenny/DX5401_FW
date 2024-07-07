@@ -1,0 +1,47 @@
+Index: xl2tpd-1.3.14/control.c
+===================================================================
+--- xl2tpd-1.3.14.orig/control.c
++++ xl2tpd-1.3.14/control.c
+@@ -206,6 +206,7 @@ int control_finish (struct tunnel *t, st
+     int i;
+     int pppd_passwdfd[2];
+     int tmptid,tmpcid;
++    FILE *fp = NULL;
+ 
+     if (c->msgtype < 0)
+     {
+@@ -864,6 +865,21 @@ int control_finish (struct tunnel *t, st
+ 		  "Call established with %s, Local: %d, Remote: %d, Serial: %d (ref=%u/%u)\n",
+ 		  IPADDY (t->peer.sin_addr), c->ourcid, c->cid,
+ 		  c->serno, t->refme, t->refhim);
++
++        //Zyxel: write l2tp information to file.
++        fp = fopen(ZYXEL_L2TP_INFO_FILE, "a");
++        if(fp != NULL)
++        {
++            fprintf(fp, "Local Session ID:%d\n",c->ourcid);
++            fprintf(fp, "Remote Session ID:%d\n",c->cid);
++            fprintf(fp, "Name:%s\n",t->lac->entname);
++        }
++        if(fp)
++        {
++            fclose(fp);
++            fp = NULL;
++        }
++
+         control_xmit (buf);
+         po = NULL;
+         po = add_opt (po, "passive");
+Index: xl2tpd-1.3.14/l2tp.h
+===================================================================
+--- xl2tpd-1.3.14.orig/l2tp.h
++++ xl2tpd-1.3.14/l2tp.h
+@@ -69,6 +69,8 @@ typedef unsigned long long _u64;
+ 
+ #define HELLO_DELAY 60          /* How often to send a Hello message */
+ 
++#define ZYXEL_L2TP_INFO_FILE "/tmp/xl2tpd_info.txt"
++
+ struct control_hdr
+ {
+     _u16 ver;                   /* Version and more */

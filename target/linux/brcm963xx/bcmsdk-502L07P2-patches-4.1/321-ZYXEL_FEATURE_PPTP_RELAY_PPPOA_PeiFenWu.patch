@@ -1,0 +1,76 @@
+Index: linux-4.1.52/Kconfig.zyxel
+===================================================================
+--- linux-4.1.52.orig/Kconfig.zyxel	2020-10-08 14:22:06.015266240 +0800
++++ linux-4.1.52/Kconfig.zyxel	2020-10-08 14:30:13.871891689 +0800
+@@ -26,3 +26,6 @@
+ 
+ config ZYXEL_DEC_AND_GZIP_CORE
+         bool "ZyXEL feature - kernel coredump file saving after boot"
++
++config ZYXEL_PPTPD_RELAY
++        bool "ZyXEL feature - PPTP relay for PPPOA"
+Index: linux-4.1.52/drivers/net/ppp/ppp_generic.c
+===================================================================
+--- linux-4.1.52.orig/drivers/net/ppp/ppp_generic.c	2020-10-08 14:22:05.387266254 +0800
++++ linux-4.1.52/drivers/net/ppp/ppp_generic.c	2020-10-08 14:31:10.636527553 +0800
+@@ -159,6 +159,9 @@
+ #endif /* CONFIG_PPP_FILTER */
+ 	struct net	*ppp_net;	/* the net we belong to */
+ 	struct ppp_link_stats stats64;	/* 64 bit network stats */
++#ifdef CONFIG_ZYXEL_PPTPD_RELAY
++	int		pptprelay;		/* for pptprelay */
++#endif
+ };
+ 
+ /*
+@@ -703,6 +706,9 @@
+                 {
+                     netdev_path_dump(ppp->dev);
+                 }
++#ifdef CONFIG_ZYXEL_PPTPD_RELAY
++                ppp->pptprelay = 0;
++#endif
+ 
+ 		break;
+ #endif
+@@ -746,6 +752,16 @@
+ 		ppp->debug = val;
+ 		err = 0;
+ 		break;
++#ifdef CONFIG_ZYXEL_PPTPD_RELAY
++	case PPPIOCSPPTPRELAY:
++		if (get_user(val, p))
++			break;
++		printk("[%s][%d] PPPIOCSPPTPRELAY\n",__FUNCTION__,__LINE__);
++		ppp->pptprelay = val;
++		printk("[%s][%d] ppp->pptprelay =[%d]\n",__FUNCTION__,__LINE__,ppp->pptprelay);
++		err = 0;
++		break;
++#endif
+ 
+ 	case PPPIOCGDEBUG:
+ 		if (put_user(ppp->debug, p))
+@@ -2045,7 +2061,11 @@
+ 	ppp->stats64.rx_bytes += skb->len - 2;
+ 
+ 	npi = proto_to_npindex(proto);
++#ifdef CONFIG_ZYXEL_PPTPD_RELAY
++	if (npi < 0 || ppp->pptprelay) {
++#else
+ 	if (npi < 0) {
++#endif
+ 		/* control or unknown frame - pass it to pppd */
+ 		skb_queue_tail(&ppp->file.rq, skb);
+ 		/* limit queue length by dropping old frames */
+Index: linux-4.1.52/include/uapi/linux/ppp-ioctl.h
+===================================================================
+--- linux-4.1.52.orig/include/uapi/linux/ppp-ioctl.h	2020-10-08 14:22:04.039266283 +0800
++++ linux-4.1.52/include/uapi/linux/ppp-ioctl.h	2020-10-08 14:32:31.980378666 +0800
+@@ -119,6 +119,7 @@
+ #define PPPIOCGL2TPSTATS _IOR('t', 54, struct pppol2tp_ioc_stats)
+ #if defined(CONFIG_BCM_KF_PPP)
+ #define	PPPIOCSREALDEV	_IOW('t', 53, ppp_real_dev_name) /* set real device name */
++#define	PPPIOCSPPTPRELAY	_IOW('t', 66, int)	/* set/enable pptp relay */
+ #endif
+ 
+ #define SIOCGPPPSTATS   (SIOCDEVPRIVATE + 0)

@@ -1,0 +1,23 @@
+Index: libpcap-1.1.1/pcap-linux.c
+===================================================================
+--- libpcap-1.1.1.orig/pcap-linux.c
++++ libpcap-1.1.1/pcap-linux.c
+@@ -1420,10 +1420,17 @@ pcap_read_packet(pcap_t *handle, pcap_ha
+ 		 * filter support, and it's a bit more complicated.
+ 		 * It would save some instructions per packet, however.)
+ 		 */
++#ifdef ZYXEL_HOMEPLUG_DEVICE_DISCOVER
++		if((from.sll_protocol != ntohs(0x88e1))) {
++			if (handle->md.ifindex != -1 &&
++				from.sll_ifindex != handle->md.ifindex)
++				return 0;
++		}
++#else
+ 		if (handle->md.ifindex != -1 &&
+ 		    from.sll_ifindex != handle->md.ifindex)
+ 			return 0;
+-
++#endif
+ 		/*
+ 		 * Do checks based on packet direction.
+ 		 * We can only do this if we're using PF_PACKET; the

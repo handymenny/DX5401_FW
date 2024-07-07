@@ -1,0 +1,58 @@
+Index: econet-trx-7.3.245.300/tools/trx/Makefile
+===================================================================
+--- econet-trx-7.3.245.300.orig/tools/trx/Makefile
++++ econet-trx-7.3.245.300/tools/trx/Makefile
+@@ -11,6 +11,10 @@ endif
+ ifeq ($(TCSUPPORT_LITTLE_ENDIAN), 1)
+ CFLAGS += -DTCSUPPORT_LITTLE_ENDIAN
+ endif
++
++ifeq ($(CONFIG_TT_HGW), 1)
++CFLAGS += -DTT_HGW
++endif
+ all: trx
+ 
+ .c.o:
+Index: econet-trx-7.3.245.300/tools/trx/trx.c
+===================================================================
+--- econet-trx-7.3.245.300.orig/tools/trx/trx.c
++++ econet-trx-7.3.245.300/tools/trx/trx.c
+@@ -265,14 +265,38 @@ int main(int argc, char **argv)
+                 memcpy((char *)p->modelId, optarg, MODEL_ID_LEN);
+                 break;
+             case 'S':
++#ifdef TT_HGW
++                if (strlen(optarg) >= SW_VERSION_LEN){
++                    printf("\n*** WARNING *** Input gg internal SW Version %s is oversized. Only %d bytes will be stored.\n", optarg, SW_VERSION_LEN - 1);
++					char swInt[SW_VERSION_LEN]={0},bufInt[SW_VERSION_LEN]={0};
++					sscanf(optarg, "%[^_]_%[^ ]", swInt,bufInt);
++					strncpy((char *)p->swVersionInt, swInt, SW_VERSION_LEN - 1);
++				}
++				else{
++					strncpy((char *)p->swVersionInt, optarg, SW_VERSION_LEN - 1);
++				}
++#else
+                 if (strlen(optarg) >= SW_VERSION_LEN)
+                     printf("\n*** WARNING *** Input internal SW Version is oversized. Only %d bytes will be stored.\n", SW_VERSION_LEN - 1);
+                 strncpy((char *)p->swVersionInt, optarg, SW_VERSION_LEN - 1);
++#endif
+                 break;
+             case 's':
++#ifdef TT_HGW
++                if (strlen(optarg) >= SW_VERSION_LEN){
++                    printf("\n*** WARNING *** Input gg external SW Version is oversized. Only %d bytes will be stored.\n", SW_VERSION_LEN - 1);			
++					char bufExt[SW_VERSION_LEN]={0},swExt[SW_VERSION_LEN]={0};
++					sscanf(optarg, "%[^_]_%[^ ]", bufExt, swExt);
++					strncpy((char *)p->swVersionExt, swExt, SW_VERSION_LEN - 1);
++				}
++				else{
++					strncpy((char *)p->swVersionExt, optarg, SW_VERSION_LEN - 1);
++				}	
++#else
+                 if (strlen(optarg) >= SW_VERSION_LEN)
+                     printf("\n*** WARNING *** Input external SW Version is oversized. Only %d bytes will be stored.\n", SW_VERSION_LEN - 1);
+                 strncpy((char *)p->swVersionExt, optarg, SW_VERSION_LEN - 1);
++#endif
+                 break;
+ #endif
+             case 'p':

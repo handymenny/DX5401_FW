@@ -1,0 +1,31 @@
+Index: clinkc/include/cybergarage/http/chttp.h
+===================================================================
+--- clinkc.orig/include/cybergarage/http/chttp.h
++++ clinkc/include/cybergarage/http/chttp.h
+@@ -364,6 +364,10 @@ typedef struct _CgHttpRequest {
+ 	BOOL needChgPasswd;
+ 	BOOL showSkipBtn; /* show skip button in change password page if password is automatically generated */
+ 	BOOL needQuickStart;
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++    char accessMode[4];
++    char srvName[8];
++#endif
+ 	BOOL quickStartEnabled;
+ #endif
+ 	void *authList;
+Index: clinkc/src/cybergarage/http/chttp_request.c
+===================================================================
+--- clinkc.orig/src/cybergarage/http/chttp_request.c
++++ clinkc/src/cybergarage/http/chttp_request.c
+@@ -165,6 +165,11 @@ void cg_http_request_clear(CgHttpRequest
+ 	if(httpReq->needChgPasswd) {httpReq->needChgPasswd = FALSE;}
+ 	if(httpReq->loginUserName) {memset(httpReq->loginUserName, '\0', sizeof(httpReq->loginUserName));}
+ 	if(httpReq->loginLevel) {memset(httpReq->loginLevel, '\0', sizeof(httpReq->loginLevel));}
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++    if(httpReq->accessMode) {memset(httpReq->accessMode, '\0', sizeof(httpReq->accessMode));}
++    if(httpReq->srvName) {memset(httpReq->srvName, '\0', sizeof(httpReq->srvName));}
++#endif
++
+ #endif
+ 	if(httpReq->form._GET){ cg_http_vallist_delete(httpReq->form._GET); httpReq->form._GET = NULL;}
+ 	if(httpReq->form._POST){ cg_http_vallist_delete(httpReq->form._POST); httpReq->form._POST = NULL;}

@@ -1,0 +1,89 @@
+Index: owamp-4.4.4/I2util/pfstore/pfstore.c
+===================================================================
+--- owamp-4.4.4.orig/I2util/pfstore/pfstore.c
++++ owamp-4.4.4/I2util/pfstore/pfstore.c
+@@ -73,12 +73,14 @@ usage(
+ 
+ static int      do_create = 0;
+ static int      do_delete = 0;
++static int      do_editkey = 0;
+ static char     *pffname;
+ static char     *idquery = NULL;
+ static char     *idname = NULL;
+ static char     *pf_bytes = NULL;
+ static size_t   pf_len = 0;
+ 
++
+ int
+ main(
+ 		int	argc,
+@@ -86,7 +88,11 @@ main(
+     )
+ {
+ 	char		*progname;
++#if 1
++	static char *copts = "hf:knd";
++#else
+ 	static char	*copts = "hf:nd";
++#endif
+ 	int		ch;
+ 	int		lockfd;
+ 	char		lockfname[PATH_MAX];
+@@ -119,6 +125,9 @@ main(
+ 				exit(errno);
+ 			}
+ 			break;
++		case 'k':
++			do_editkey++;
++			break;
+ 		case 'n':
+ 			do_create++;
+ 			break;
+@@ -141,6 +150,19 @@ main(
+ 		exit(1);
+ 	}
+ 
++	/*+++ add key gen*/
++	if (do_editkey && argc == 2) {
++		idquery = strdup(argv[0]);
++		passphrase = strdup(argv[1]);
++		if (idquery == NULL || passphrase == NULL) {
++			fprintf(stderr, "%s:%s:%d: malloc(): %s\n", progname,__FILE__,__LINE__,
++					strerror(errno));
++			exit(errno);
++		}
++		goto passphrase_done;;
++	}
++	/*---*/
++
+ 	if(argc != 1){
+ 		usage(progname,NULL);
+ 		exit(1);
+@@ -155,6 +177,7 @@ main(
+ 		exit(errno);
+ 	}
+ 
++passphrase_done:
+ 	fromfp = fopen(pffname,"r+");
+ 	if(do_create && (fromfp != NULL)){
+ 		fprintf(stderr,"%s: -n option specified: %s exists\n\n",
+@@ -162,6 +185,7 @@ main(
+ 		usage(progname,NULL);
+ 		exit(1);
+ 	}
++	
+ 	if(!do_create && !fromfp){
+ 		fprintf(stderr,"%s: Can't open \'%s\': %s\nSee -n option?\n\n",
+ 				progname,pffname,strerror(errno));
+@@ -231,7 +255,11 @@ main(
+ 		exit(1);
+ 	}
+ 
++#if 1
++	if (!do_delete && !passphrase) {
++#else
+ 	if(!do_delete){
++#endif
+ 		char		prompt[2048];
+ 
+ 		rc = snprintf(prompt,sizeof(prompt),

@@ -1,0 +1,31 @@
+Index: miniupnpd-1.6.20110730/netfilter/iptcrdr.c
+===================================================================
+--- miniupnpd-1.6.20110730.orig/netfilter/iptcrdr.c	2020-12-29 16:53:36.954142127 +0800
++++ miniupnpd-1.6.20110730/netfilter/iptcrdr.c	2020-12-29 17:05:33.616868837 +0800
+@@ -164,8 +164,8 @@
+ 	dalfp = fopen("/tmp/miniupnpDescr", "w+");
+ 	for(q = rdr_desc_list; q; q = q->next)
+ 	{
+-		//printf("166 %s %d %d\n",q->str,q->proto,q->eport);
+-		fprintf(dalfp,"%s %d %d\n",q->str,q->proto,q->eport);
++		//printf("167 %s %d %d\n",q->str,q->proto,q->eport);
++		fprintf(dalfp,"%d(zyxel)%d(zyxel)%s\n",q->proto,q->eport,q->str);
+ 	}
+ 	fclose(dalfp);	
+ }
+@@ -231,6 +231,7 @@
+ 	if(r >= 0){
+ 		add_redirect_desc(eport, proto, desc, timestamp);
+ 		update_Description();
++		//printf("%d %s\n", __LINE__, __func__);
+ 	}
+ 	return r;
+ }
+@@ -599,6 +600,7 @@
+ 	}
+ 	del_redirect_desc(eport, proto);
+ 	update_Description();
++	//printf("%d %s\n", __LINE__, __func__);
+ 	return r;
+ }
+ 

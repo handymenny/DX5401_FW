@@ -1,0 +1,29 @@
+Index: ntpclient-2007/ntpclient.c
+===================================================================
+--- ntpclient-2007.orig/ntpclient.c
++++ ntpclient-2007/ntpclient.c
+@@ -810,6 +810,7 @@ int main(int argc, char *argv[]) {
+ 	char *tmp;
+ 	int ntp_idx = 0, ntp_first_sync = 0;
+ 	static int first_time = 1; /* Keep track if it's the first time enabled ntpclient */
++	bool ntp_first_sync_enable_flag = false; //Flag for checking if the function -n is enabled or disabled, jack
+ 	ntpc.ntp_server_count = 0;
+ 	ntpc.diag_test = 0;
+ 	memset(ntpc.ntp_server, 0, sizeof(NTP_SERVER)*NTP_MAX);
+@@ -893,6 +894,7 @@ int main(int argc, char *argv[]) {
+ 				break;
+ #ifdef ZyXEL_PATCH
+ 			case 'n':
++				ntp_first_sync_enable_flag = true;
+ 				ntp_first_sync = atoi(optarg);
+ 				break;
+ 			case 'm':
+@@ -1048,7 +1050,7 @@ int main(int argc, char *argv[]) {
+ 		}
+ 		close(usd);
+ #if ZyXEL_PATCH
+-		if(first_time) {
++		if(first_time && ntp_first_sync_enable_flag) { //Add Checking if the function -n is enabled, Jack
+ 			first_time = 0;
+ 			sleep(ntp_first_sync); /* Sleep 300 seconds for the first time synchronization */
+ 		}

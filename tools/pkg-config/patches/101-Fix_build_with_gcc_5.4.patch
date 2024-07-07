@@ -1,0 +1,13 @@
+Index: pkg-config-0.25/glib-1.2.10/glib.h
+===================================================================
+--- pkg-config-0.25.orig/glib-1.2.10/glib.h
++++ pkg-config-0.25/glib-1.2.10/glib.h
+@@ -204,7 +204,7 @@ extern "C" {
+ #ifndef G_INLINE_FUNC
+ #  ifdef __GNUC__
+ #    ifdef __OPTIMIZE__
+-#      define G_INLINE_FUNC extern inline
++#      define G_INLINE_FUNC static inline
+ #    else
+ #      undef G_CAN_INLINE
+ #      define G_INLINE_FUNC extern

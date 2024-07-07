@@ -1,0 +1,171 @@
+Index: dnsmasq-2.67/src/dnsmasq.h
+===================================================================
+--- dnsmasq-2.67.orig/src/dnsmasq.h	2022-10-14 01:57:36.209392604 -0700
++++ dnsmasq-2.67/src/dnsmasq.h	2022-10-14 02:19:01.149424096 -0700
+@@ -1042,6 +1042,9 @@
+ void *whine_malloc(size_t size);
+ int sa_len(union mysockaddr *addr);
+ int sockaddr_isequal(union mysockaddr *s1, union mysockaddr *s2);
++#ifdef ZYXEL_PATCH
++int hwaddr_isequal(const unsigned char *a, const unsigned char *b);
++#endif
+ int hostname_isequal(const char *a, const char *b);
+ time_t dnsmasq_time(void);
+ int is_same_net(struct in_addr a, struct in_addr b, struct in_addr mask);
+@@ -1168,7 +1171,11 @@
+ #endif
+ void lease_set_hwaddr(struct dhcp_lease *lease, unsigned char *hwaddr,
+ 		      unsigned char *clid, int hw_len, int hw_type, int clid_len, time_t now, int force);
++#ifdef ZYXEL_PATCH
++void lease_set_hostname(struct dhcp_lease *lease, char *name, int auth, char *domain, char *config_domain, const unsigned char *hwaddr);
++#else
+ void lease_set_hostname(struct dhcp_lease *lease, char *name, int auth, char *domain, char *config_domain);
++#endif
+ void lease_set_expires(struct dhcp_lease *lease, unsigned int len, time_t now);
+ void lease_set_interface(struct dhcp_lease *lease, int interface, time_t now);
+ struct dhcp_lease *lease_find_by_client(unsigned char *hwaddr, int hw_len, int hw_type,  
+Index: dnsmasq-2.67/src/lease.c
+===================================================================
+--- dnsmasq-2.67.orig/src/lease.c	2022-10-14 01:57:36.093392602 -0700
++++ dnsmasq-2.67/src/lease.c	2022-10-14 02:24:51.557432684 -0700
+@@ -209,7 +209,11 @@
+ 			     hw_len, hw_type, clid_len, now, 0);
+ 	    
+ 	    if (strcmp(daemon->dhcp_buff, "*") !=  0)
++#ifdef ZYXEL_PATCH
++	      lease_set_hostname(lease, daemon->dhcp_buff, 0, get_domain(lease->addr), NULL, (unsigned char *)daemon->dhcp_buff2);
++#else
+ 	      lease_set_hostname(lease, daemon->dhcp_buff, 0, get_domain(lease->addr), NULL);
++#endif
+ #ifdef ZYXEL_PATCH
+ 		if(parse_count == 4 && strcmp(daemon->dhcp_buff3, "*") != 0){
+ 			lease_set_vendor(lease, daemon->dhcp_buff3, strlen(daemon->dhcp_buff3)); 
+@@ -236,7 +240,11 @@
+ 		lease_set_hwaddr(lease, NULL, (unsigned char *)daemon->packet, 0, 0, clid_len, now, 0);
+ 		lease_set_iaid(lease, iaid);
+ 		if (strcmp(daemon->dhcp_buff, "*") !=  0)
++#ifdef ZYXEL_PATCH
++		  lease_set_hostname(lease, daemon->dhcp_buff, 0, get_domain6((struct in6_addr *)lease->hwaddr), NULL, NULL);
++#else
+ 		  lease_set_hostname(lease, daemon->dhcp_buff, 0, get_domain6((struct in6_addr *)lease->hwaddr), NULL);
++#endif
+ #ifdef ZYXEL_PATCH
+ 		if(parse_count == 4 && strcmp(daemon->dhcp_buff3, "*") != 0){
+ 			lease_set_vendor(lease, daemon->dhcp_buff3, strlen(daemon->dhcp_buff3)); 
+@@ -318,9 +326,17 @@
+ 				   lease->hwaddr, lease->hwaddr_len, lease->hwaddr_type, NULL)) && 
+ 	     (config->flags & CONFIG_NAME) &&
+ 	     (!(config->flags & CONFIG_ADDR) || config->addr.s_addr == lease->addr.s_addr))
++#ifdef ZYXEL_PATCH
++      lease_set_hostname(lease, config->hostname, 1, get_domain(lease->addr), NULL, config->hwaddr->hwaddr);
++#else
+       lease_set_hostname(lease, config->hostname, 1, get_domain(lease->addr), NULL);
++#endif
+     else if ((name = host_from_dns(lease->addr)))
++#ifdef ZYXEL_PATCH
++      lease_set_hostname(lease, name, 1, get_domain(lease->addr), NULL, lease->hwaddr); /* updates auth flag only */
++#else
+       lease_set_hostname(lease, name, 1, get_domain(lease->addr), NULL); /* updates auth flag only */
++#endif
+ }
+  
+ static void ourprintf(int *errp, char *format, ...)
+@@ -1064,7 +1080,11 @@
+   if (config_domain && (!domain || !hostname_isequal(domain, config_domain)))
+     my_syslog(MS_DHCP | LOG_WARNING, _("Ignoring domain %s for DHCP host name %s"), config_domain, name);
+   
++#ifdef ZYXEL_PATCH
++  if (lease->hostname && name && hostname_isequal(lease->hostname, name) && hwaddr_isequal(lease->hwaddr, hwaddr))
++#else
+   if (lease->hostname && name && hostname_isequal(lease->hostname, name))
++#endif
+     {
+       if (auth)
+ 	lease->flags |= LEASE_AUTH_NAME;
+@@ -1105,7 +1125,11 @@
+ 	    }
+ 	  else
+ 	    {
+-	      if (!new_name || !lease_tmp->hostname || !hostname_isequal(lease_tmp->hostname, new_name) )
++	      if (!new_name || !lease_tmp->hostname || !hostname_isequal(lease_tmp->hostname, new_name) 
++#ifdef ZYXEL_PATCH
++            || !hwaddr_isequal(lease_tmp->hwaddr, hwaddr)
++#endif
++	      	)
+ 		continue; 
+ 	    }
+ 
+Index: dnsmasq-2.67/src/rfc2131.c
+===================================================================
+--- dnsmasq-2.67.orig/src/rfc2131.c	2022-10-14 01:57:36.213392605 -0700
++++ dnsmasq-2.67/src/rfc2131.c	2022-10-14 02:22:19.993428969 -0700
+@@ -756,7 +756,11 @@
+ 		
+ 	      lease_set_hwaddr(lease, mess->chaddr, NULL, mess->hlen, mess->htype, 0, now, 1);
+ 	      if (hostname)
++#ifdef ZYXEL_PATCH
++		lease_set_hostname(lease, hostname, 1, get_domain(lease->addr), domain, mess->chaddr); 
++#else
+ 		lease_set_hostname(lease, hostname, 1, get_domain(lease->addr), domain); 
++#endif
+ #ifdef ZYXEL_PATCH
+ 			if(vendor_class_len)
+ 				lease_set_vendor(lease, vendor_class_ptr, vendor_class_len); 
+@@ -1575,7 +1579,11 @@
+ 	    }
+ 
+ 	  if (hostname)
++#ifdef ZYXEL_PATCH
++	    lease_set_hostname(lease, hostname, hostname_auth, get_domain(lease->addr), domain, mess->chaddr);
++#else
+ 	    lease_set_hostname(lease, hostname, hostname_auth, get_domain(lease->addr), domain);
++#endif
+ #ifdef ZYXEL_PATCH
+ 		if(vendor_class_len)
+ 			lease_set_vendor(lease, vendor_class_ptr, vendor_class_len); 
+Index: dnsmasq-2.67/src/rfc3315.c
+===================================================================
+--- dnsmasq-2.67.orig/src/rfc3315.c	2022-10-14 01:57:36.133392603 -0700
++++ dnsmasq-2.67/src/rfc3315.c	2022-10-14 02:23:13.573430282 -0700
+@@ -1004,7 +1004,11 @@
+ 			char *addr_domain = get_domain6(req_addr);
+ 			if (!state->send_domain)
+ 			  state->send_domain = addr_domain;
++#ifdef ZYXEL_PATCH
++      lease_set_hostname(lease, state->hostname, state->hostname_auth, addr_domain, state->domain, state->mac); 
++#else
+ 			lease_set_hostname(lease, state->hostname, state->hostname_auth, addr_domain, state->domain); 
++#endif
+ 			message = state->hostname;
+ 		      }
+ 		    
+@@ -1751,7 +1755,11 @@
+ 	  char *addr_domain = get_domain6(addr);
+ 	  if (!state->send_domain)
+ 	    state->send_domain = addr_domain;
++#ifdef ZYXEL_PATCH
++    lease_set_hostname(lease, state->hostname, state->hostname_auth, addr_domain, state->domain, state->mac); 
++#else
+ 	  lease_set_hostname(lease, state->hostname, state->hostname_auth, addr_domain, state->domain);
++#endif
+ 	}
+       
+ #ifdef HAVE_SCRIPT
+Index: dnsmasq-2.67/src/util.c
+===================================================================
+--- dnsmasq-2.67.orig/src/util.c	2022-10-14 01:57:36.133392603 -0700
++++ dnsmasq-2.67/src/util.c	2022-10-14 02:25:30.721433643 -0700
+@@ -288,6 +288,13 @@
+ #endif
+ }
+ 
++#ifdef ZYXEL_PATCH
++int hwaddr_isequal(const unsigned char *a, const unsigned char *b)
++{
++  return !memcmp(a, b, 6);
++}
++#endif
++
+ /* don't use strcasecmp and friends here - they may be messed up by LOCALE */
+ int hostname_isequal(const char *a, const char *b)
+ {

@@ -1,0 +1,170 @@
+Index: linux-4.1.52/include/net/netfilter/nf_conntrack.h
+===================================================================
+--- linux-4.1.52.orig/include/net/netfilter/nf_conntrack.h	2020-08-24 07:34:09.647794181 +0000
++++ linux-4.1.52/include/net/netfilter/nf_conntrack.h	2020-08-24 07:34:09.687794181 +0000
+@@ -389,6 +389,11 @@
+ #ifdef CONFIG_ZYXEL_NF_SESSION_RSV
+ extern unsigned int nf_session_reserve;
+ #endif
++#ifdef CONFIG_ZYXEL_NF_GUEST_AP_SESSION_CTL
++extern unsigned int nf_guest_ap_session_ctl_max;
++extern unsigned int nf_guest_ap_subnet;
++extern unsigned int nf_guest_ap_subnet_mask;
++#endif
+ extern unsigned int nf_conntrack_hash_rnd;
+ void init_nf_conntrack_hash_rnd(void);
+ 
+Index: linux-4.1.52/Kconfig.zyxel
+===================================================================
+--- linux-4.1.52.orig/Kconfig.zyxel	2020-08-24 07:34:09.671794181 +0000
++++ linux-4.1.52/Kconfig.zyxel	2020-08-24 07:34:09.687794181 +0000
+@@ -2,6 +2,10 @@
+ # For ZYXEL Kernel Compile Flags.
+ #
+ 
++config ZYXEL_NF_GUEST_AP_SESSION_CTL
++        bool "ZyXEL feature - netfilter guest ap host session control"
++        default n
++
+ config ZYXEL_NF_SESSION_RSV
+         bool "ZyXEL feature - netfilter session reserve"
+ 
+Index: linux-4.1.52/net/netfilter/nf_conntrack_core.c
+===================================================================
+--- linux-4.1.52.orig/net/netfilter/nf_conntrack_core.c	2020-08-24 07:34:09.647794181 +0000
++++ linux-4.1.52/net/netfilter/nf_conntrack_core.c	2020-08-24 07:34:09.687794181 +0000
+@@ -142,6 +142,20 @@
+ unsigned int nf_conntrack_hash_rnd __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_conntrack_hash_rnd);
+ 
++#ifdef CONFIG_ZYXEL_NF_GUEST_AP_SESSION_CTL
++unsigned int nf_guest_ap_session_ctl_max __read_mostly; /* Location in /proc/sys/net/netfilter/nf_guest_ap_session_ctl_max */
++EXPORT_SYMBOL_GPL(nf_guest_ap_session_ctl_max);
++unsigned int nf_guest_ap_subnet __read_mostly; /* Location in /proc/sys/net/netfilter/nf_guest_ap_subnet */
++EXPORT_SYMBOL_GPL(nf_guest_ap_subnet);
++unsigned int nf_guest_ap_subnet_mask __read_mostly; /* Location in /proc/sys/net/netfilter/nf_guest_ap_subnet_mask */
++EXPORT_SYMBOL_GPL(nf_guest_ap_subnet_mask);
++
++/* Check the address is guest ap host or not */
++static inline bool ipv4_is_guest_ap_host(__be32 addr)
++{
++	return ((addr & htonl(nf_guest_ap_subnet_mask << 8)) == htonl(nf_guest_ap_subnet << 8));
++}
++#endif
+ #ifdef CONFIG_ZYXEL_NF_SESSION_RSV
+ unsigned int nf_session_reserve __read_mostly; /* Location in /proc/sys/net/netfilter/nf_session_reserve */
+ EXPORT_SYMBOL_GPL(nf_session_reserve);
+@@ -1430,6 +1444,33 @@
+ 		rcu_read_lock();
+ 		hlist_nulls_for_each_entry_rcu(h_max, n, &net->ct.session_control_table[hash_max], hnnode){
+ 			if(check_ip.ip == h_max->u3.ip){
++
++#if defined(CONFIG_ZYXEL_NF_SESSION_CTL) && defined(CONFIG_ZYXEL_NF_GUEST_AP_SESSION_CTL)
++				/* Max session per Guest AP host */
++				if (ipv4_is_guest_ap_host(check_ip.ip))
++				{
++					if (h_max->sess_Cnt >= nf_guest_ap_session_ctl_max) {
++#if defined(CONFIG_BCM_KF_NETFILTER)
++						if (!regardless_drop(net, skb)) {
++#else
++						unsigned int hash1 = hash_conntrack(net, zone, orig);
++						if (!early_drop(net, hash1)) {
++#endif
++							atomic_dec(&net->ct.count);
++							net_warn_ratelimited("nf_conntrack: %u.%u.%u.%u exceeds the maximum number of session per Guest AP host.\n", NIPQUAD(orig->src.u3.ip));
++							/*
++							if (net_ratelimit()) {
++								printk(KERN_WARNING "NAT WARNING: %u.%u.%u.%u exceeds the max. number of session per Guest AP host!\n"
++									,NIPQUAD(orig->src.u3.ip)); // Modified nat log for system log
++							}
++							*/
++							rcu_read_unlock();
++							return ERR_PTR(-ENOMEM);
++						}
++					}
++				}
++#endif
++
+ 				/* MAX Session Per Host */
+ 				if(h_max->sess_Cnt >= nf_session_ctl_max){
+ #if defined(CONFIG_BCM_KF_NETFILTER)
+@@ -2482,6 +2523,15 @@
+ #ifdef CONFIG_ZYXEL_NF_SESSION_RSV
+ 	nf_session_reserve = 1;
+ #endif
++#ifdef CONFIG_ZYXEL_NF_GUEST_AP_SESSION_CTL
++	nf_guest_ap_session_ctl_max = 1024;
++	// work around
++	// nf_guest_ap_subnet maxlen is sizeof(unsigned int),
++	// but the maximum value is 0x7FFFFFFF.
++	// We only keep first three bytes of address here.
++	nf_guest_ap_subnet = 0xC0A802;       // 192.168.2
++	nf_guest_ap_subnet_mask = 0xFFFFFF;  // 255.255.255
++#endif
+ 
+ 	for (i = 0; i < CONNTRACK_LOCKS; i++)
+ 		spin_lock_init(&nf_conntrack_locks[i]);
+Index: linux-4.1.52/net/netfilter/nf_conntrack_standalone.c
+===================================================================
+--- linux-4.1.52.orig/net/netfilter/nf_conntrack_standalone.c	2020-08-24 07:34:09.647794181 +0000
++++ linux-4.1.52/net/netfilter/nf_conntrack_standalone.c	2020-08-24 09:30:47.180066169 +0000
+@@ -505,10 +505,28 @@
+ static int sess_ctl_seq_show(struct seq_file *s, void *v)
+ {
+ 	const struct nf_sess_ref_count *hash = v;
+-
++#if defined(CONFIG_ZYXEL_NF_SESSION_CTL) && defined(CONFIG_ZYXEL_NF_GUEST_AP_SESSION_CTL)
++	union nf_inet_addr guest_ap_subnet;
++	union nf_inet_addr guest_ap_subnet_mask;
++
++	guest_ap_subnet.ip = htonl(nf_guest_ap_subnet << 8);
++	guest_ap_subnet_mask.ip = htonl(nf_guest_ap_subnet_mask << 8);
++
++	// Find the guest ap host
++	if ((hash->u3.ip & guest_ap_subnet_mask.ip) == guest_ap_subnet.ip) {
++
++		// Show nf_guest_ap_session_ctl_max as session maximum instead of nf_session_ctl_max
++		if (seq_printf(s," IP:%u.%u.%u.%u  Session num = %5d  Guest max=[%d]  Guest subnet IP:%u.%u.%u.%u  Guest subnet mask:%u.%u.%u.%u\n",
++				NIPQUAD(hash->u3.ip), hash->sess_Cnt, nf_guest_ap_session_ctl_max, \
++				NIPQUAD(guest_ap_subnet.ip), NIPQUAD(guest_ap_subnet_mask.ip)))
++			return -ENOSPC;
++	} else
++#endif
++	{
+ 	if (seq_printf(s," IP:%u.%u.%u.%u  Session num = %5d  Max=[%d]\n",
+ 		       NIPQUAD(hash->u3.ip), hash->sess_Cnt, nf_session_ctl_max))
+ 		return -ENOSPC;
++	}
+ 	return 0;
+ }
+ 
+@@ -760,6 +778,29 @@
+ 		.maxlen		= sizeof(unsigned int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
++	},
++#endif
++#ifdef CONFIG_ZYXEL_NF_GUEST_AP_SESSION_CTL
++	{
++		.procname	= "nf_guest_ap_session_ctl_max",
++		.data		= &nf_guest_ap_session_ctl_max,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{
++		.procname	= "nf_guest_ap_subnet",
++		.data		= &nf_guest_ap_subnet,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{
++		.procname	= "nf_guest_ap_subnet_mask",
++		.data		= &nf_guest_ap_subnet_mask,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
+ 	},
+ #endif
+ 	{

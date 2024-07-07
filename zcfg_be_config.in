@@ -1,0 +1,922 @@
+
+menu "zyxel backend modules"
+
+config ZCFG_BE_MODULE_DEVINFO
+	bool "bedevinfo: Device information backend module"
+		default y 
+		help
+			Device information backend module
+			Backend schema:
+				Device.DeviceInfo
+if DSL_SUPPORT
+menu "DSL backend modules"
+config ZCFG_BE_MODULE_DSL
+    bool "bedsl: DSL backend module"
+        default y if DSL_SUPPORT
+        depends on DSL_SUPPORT
+        help
+            DSL backend module
+			Backend schema:
+				Device.DSL
+
+config ZCFG_BE_MODULE_ATM_LINK
+    bool "beatmlink: ATM link backend module"
+        default y if DSL_SUPPORT
+        depends on DSL_SUPPORT && ZCFG_BE_MODULE_DSL
+        help
+            ATM link backend module
+			Backend schema:
+				Device.ATM
+
+config ZCFG_BE_MODULE_VC_AUTO_HUNT
+    bool "bevcAutoHunt: VC Auto Hunt backend module"
+        default y if ZCFG_BE_MODULE_ATM_LINK
+        depends on ZCFG_BE_MODULE_ATM_LINK
+        help
+            VC Auto Hunt backend module
+			Backend schema:
+				Device.X_ZYXEL_VcAutoHunt
+
+config ZCFG_BE_MODULE_PTM_LINK
+    bool "beptmlink: PTM link backend module"
+        default y if DSL_SUPPORT
+        depends on DSL_SUPPORT && ZCFG_BE_MODULE_DSL
+        help
+            PTM link backend module
+			Backend schema:
+				Device.PTM
+endmenu
+endif
+
+config ZCFG_BE_MODULE_DATA_USAGE
+    bool "bedatausage: Data Usage backend module"
+        default y if ZYXEL_TR69_DATA_USAGE
+		depends on ZYXEL_TR69_DATA_USAGE
+        help
+            Data Usage backend module
+            Backend schema:
+                Device.X_ZYXEL_DataUsage
+
+if XPON_SUPPORT
+menu "Optical(XPON) backend modules"
+	config ZCFG_BE_MODULE_OPTICAL
+		bool "beoptintf: Optical backend module"
+		default y if XPON_SUPPORT
+		help
+			Optical backend module
+			Backend schema:
+				Device.Optical
+
+	config ZCFG_BE_MODULE_ZYXEL_GPON
+		bool "beGpon: Zyxel GPON backend module"
+		default y if XPON_SUPPORT && !TARGET_brcm963xx
+		depends on !TARGET_brcm963xx
+		help
+			Zyxel GPON backend module
+			Backend schema:
+				Device.X_ZYXEL_GPON
+
+	config ZCFG_BE_MODULE_ZYXEL_XPON
+		bool "beXpon: Zyxel XPON backend module"
+		default y if XPON_SUPPORT && !TARGET_brcm963xx
+		depends on !TARGET_brcm963xx
+		help
+			Zyxel XPON backend module
+			Backend schema:
+				Device.X_ZYXEL_GPON.Xpon
+				Device.X_ZYXEL_GPON.LinkCfg
+
+	config ZCFG_BE_MODULE_MOS_USER_CONFIG
+		bool "bemosUserConfig: MOS User Config backend module"
+		default y if PACKAGE_mos
+        depends on PACKAGE_mos
+		help
+			MOS User Config backend module
+			Backend schema:
+				Device.X_ZYXEL_Mos
+				Device.X_ZYXEL_Mos.MosUserConfig
+				Device.X_ZYXEL_Mos.McastOperProf.i
+				Device.X_ZYXEL_Mos.OmciVlanInfo.i
+endmenu
+endif
+
+if PACKAGE_ZyIMS
+menu "Voice backend modules"
+    config ZCFG_BE_MODULE_VOICE
+        bool "bevoicexxxx: Voice backend module"
+        default y if PACKAGE_ZyIMS
+        help
+            Voice backend module
+                bevoiceSrv
+                bevoiceCap
+                bevoiceCapSip
+                bevoiceCapCodec
+                bevoiceCommon
+                bevoiceProf
+                bevoiceProfSip
+                bevoiceProfFaxT38
+                bevoiceProfNumberingPlan
+                bevoiceProfNumberingPlanPrefixInfo
+                bevoiceProfRTP
+                bevoiceProfRTPSRTP
+                bevoiceLine
+                bevoiceLineSip
+                bevoiceLineProc
+                bevoiceLineCallingFeatures
+                bevoiceLineCodecList
+                bevoiceLineStats
+                bevoiceLineRinger
+                bevoiceLineRingerDescription
+                bevoicePhyIntf
+                bevoiceFxsCid
+                bevoiceSpeedDialBookList
+                bevoiceCallPolicyBook
+                bevoiceCallPolicyBookList
+                bevoiceCallStatus
+
+            Backend schema:
+                Device.Services.VoiceService
+
+    config ZCFG_BE_MODULE_ZYXEL_PHONE_DECT
+        bool "bedect: DECT Phone backend module"
+        default y if BUILD_ZYXEL_PHONE_DECT_SUPPORT
+        depends on BUILD_ZYXEL_PHONE_DECT_SUPPORT
+        help
+            DECT Phone backend module
+            Backend schema:
+                Device.Services.VoiceService.i.X_ZYXEL_DECT
+endmenu
+endif
+
+menu "WiFi backend modules"
+	config ZCFG_BE_MODULE_WIFI
+		bool "bewifixxx: WiFi Common backend module"
+		default y if PACKAGE_zywifid
+		help
+			Wifi common backend modules
+				bewifi
+				bewifi_radio
+				bewifi_ssid
+				bewifi_ap
+
+			Backend schema:
+				Device.WiFi
+				Device.WiFi.Radio.i
+				Device.WiFi.SSID.i
+				Device.WiFi.AccessPoint.i
+				Device.WiFi.NeighboringWiFiDiagnostic
+
+    config ZCFG_BE_MODULE_END_POINT
+	    bool "bewifi_ep: WiFi End Point backend module"
+        default y if ZYXEL_OPAL_EXTENDER
+        depends on ZYXEL_OPAL_EXTENDER && ZCFG_BE_MODULE_WIFI
+        help
+            WiFi End Point backend module
+            Backend schema:
+                Device.WiFi.EndPoint.i
+                Device.WiFi.EndPoint.i.Stats
+                Device.WiFi.EndPoint.i.Security
+                Device.WiFi.EndPoint.i.Profile.i
+                Device.WiFi.EndPoint.i.Profile.i.Securit
+                Device.WiFi.EndPoint.i.WPS
+
+    config ZCFG_BE_MODULE_WLAN_SCHEDULER
+	    bool "bewlan_scheduler: WLAN Scheduler backend module"
+        default y if ZYXEL_WLAN_SCHEDULER
+        depends on ZYXEL_WLAN_SCHEDULER && ZCFG_BE_MODULE_WIFI
+        help
+            WLAN Scheduler backend module
+            Backend schema:
+			    Device.WiFi.X_ZYXEL_WLAN_Scheduler.i
+			    Device.X_ZYXEL_WlanSchedulerAccess
+
+    config ZCFG_BE_MODULE_ZYXEL_AP_STEERING
+        bool "bewifi_apsteer: AP Steering backend module"
+        default y if ZYXEL_AP_STEERING
+        depends on ZYXEL_AP_STEERING && ZCFG_BE_MODULE_WIFI
+        help
+            AP Steering backend module
+            Backend schema:
+                Device.WiFi.X_ZYXEL_ApSteering
+
+    config ZCFG_BE_MODULE_ZYXEL_EASYMESH
+        bool "bewifi_easymesh: Zyxel Easy Mesh backend module"
+        default y if ZYXEL_EASYMESH
+        depends on ZYXEL_EASYMESH && ZCFG_BE_MODULE_WIFI
+        help
+            Zyxel Easy Mesh backend module
+            Backend schema:
+                Device.X_ZYXEL_EXT.EasyMesh
+                Device.WiFi.MultiAP
+
+    config ZCFG_BE_MODULE_ZYXEL_ONESSID
+        bool "bewifi_onessid: Zyxel One SSID backend module"
+        default y if ZYXEL_ONESSID
+        depends on ZYXEL_ONESSID && ZCFG_BE_MODULE_WIFI
+        help
+            Zyxel One SSID backend module
+            Backend schema:
+                Device.WiFi.X_ZYXEL_OneSSID
+
+    config ZCFG_BE_MODULE_WIFI_REPEATER
+        bool "bewifi_repeater: Wifi Repeater backend module"
+        default y if ZYXEL_OPAL_EXTENDER
+        depends on ZYXEL_OPAL_EXTENDER && ZCFG_BE_MODULE_WIFI
+        help
+            Wifi Repeater backend module
+            Backend schema:
+                Device.WiFi.X_ZYXEL_Repeater
+
+    config ZCFG_BE_MODULE_WPS_BTN_PRESS
+	    bool "bewpsbuttonpress: WPS Button Press backend module"
+        default y
+        depends on ZCFG_BE_MODULE_WIFI
+	    help
+		    WPS Button Press backend module
+		    Backend schema:
+			    Device.X_ZYXEL_EXT.WpsButtonPress
+endmenu
+
+menu "NAT backend modules"
+    config ZCFG_BE_MODULE_NAT_PORT_CTRL
+	    bool "benat_pcp: NAT Port Control backend module"
+        default y if ZYXEL_PCP
+        depends on ZYXEL_PCP
+        help
+            NAT Port Control backend module
+            Backend schema:
+			    Device.NAT.X_ZYXEL_PCP.i
+endmenu
+
+menu "QoS backend modules"
+    config ZCFG_BE_MODULE_QOS
+        bool "beqosxxxx: QoS backend module"
+        default y
+        help
+            QoS backend module
+                beqos
+                beqosQueue
+                beqosClass
+                beqosShaper
+                beqosPolicer
+
+            Backend schema:
+                Device.QoS
+endmenu
+
+if ZYXEL_GRE
+menu "GRE Tunnel backend modules"
+
+config ZCFG_BE_MODULE_GRE_TUNNEL
+    bool "begreTunnel: GRE Tunnel backend module"
+    default y if ZYXEL_GRE
+    help
+        GRE Tunnel backend module
+        Backend schema:
+            Device.GRE
+            Device.GRE.Tunnel.i
+            Device.GRE.Tunnel.i.Stats
+
+config ZCFG_BE_MODULE_GRE_TUNNEL_IFACE
+    bool "begreTunnelIface: GRE Tunnel Interface backend module"
+    default y if ZYXEL_GRE
+    help
+        GRE Tunnel backend Interface module
+        Backend schema:
+            Device.GRE.Tunnel.i.Interface.i
+            Device.GRE.Tunnel.i.Interface.i.Stats
+
+endmenu
+endif
+
+menu "USB backend modules"
+config ZCFG_BE_MODULE_USB
+    bool "beusbxxxx: USB backend module"
+    default y if PACKAGE_kmod-usb-core
+	depends on PACKAGE_kmod-usb-core
+    help
+        USB backend module
+            beusbhost
+            beusbintf
+            beusbport
+
+        Backend schema:
+            Device.USB
+            Device.USB.Interface.i
+            Device.USB.Interface.i.Stats
+            Device.USB.Port.i
+            Device.USB.USBHosts
+
+endmenu
+
+
+config ZCFG_BE_MODULE_DLNA
+	bool "bedlna: DLNA backend module"
+    default y
+	help
+		DLNA backend module
+		Backend schema:
+			Device.DLNA
+
+config ZCFG_BE_MODULE_ZYXEL_VLAN_GROUP
+	bool "bevlangroup: Zyxel VLAN Group backend module"
+    default y if ZYXEL_VLAN_GROUP
+    depends on ZYXEL_VLAN_GROUP
+	help
+		Zyxel VLAN Group backend module
+		Backend schema:
+			Device.X_ZYXEL_VlanGroup.i
+
+config ZCFG_BE_MODULE_ZYXEL_IPP_CONFIG
+	bool "beipp: IPP Config backend module"
+	default y if ZyXEL_IPP_PRINTSERVER || PACKAGE_p910nd
+    depends on ZyXEL_IPP_PRINTSERVER || PACKAGE_p910nd
+	help
+		IPP Config backend module
+		Backend schema:
+			Device.X_ZYXEL_Ipp_Cfg
+
+config ZCFG_BE_MODULE_TFTP_SERVER_NAME
+	bool "beTFTPServerName: TFTP server name backend module"
+	default y
+	help
+		TFTP server name backend module
+		Backend schema:
+			Device.X_ZYXEL_TFTP_SERVER_NAME
+
+config ZCFG_BE_MODULE_SPEED_TEST
+	bool "bespeedtest: Speed test backend module"
+    default y if PACKAGE_SpeedTest
+    depends on PACKAGE_SpeedTest
+	help
+		Speed test backend module
+		Backend schema:
+			Device.SpeedTestInfo
+
+config ZCFG_BE_MODULE_SAMBA
+	bool "besamba: Samba backend module"
+	default y if PACKAGE_samba || PACKAGE_kmod-fs-ksmbd
+	depends on PACKAGE_samba || PACKAGE_kmod-fs-ksmbd
+	help
+		Samba backend module
+		Backend schema:
+			Device.X_ZYXEL_SAMBA
+
+
+config ZCFG_BE_MODULE_BRIDGE_VLAN_COUNTER
+    bool "bebridgeVlanCounter: Bridge Vlan Counter backend module"
+    default y if BRIDGE_VLAN_COUNTER
+    depends on BRIDGE_VLAN_COUNTER
+    help
+        Bridge Vlan Counter backend module
+        Backend schema:
+            Device.Bridging.X_ZYXEL_BridgeVlanCounter.i
+
+config ZCFG_BE_MODULE_ZYXEL_LOOPGUARD
+    bool "beloopguard: Loop Guard backend module"
+    default y if PACKAGE_zyloopguard
+	depends on PACKAGE_zyloopguard
+    help
+        Loop Guard backend module
+        Backend schema:
+            Device.X_ZYXEL_LOOP_GUARD
+
+config ZCFG_BE_MODULE_RADV_INTFSET_OPT
+    bool "beradvdOpt: RouterAdvertisement Interface Setting Option backend module"
+    default y if ZYXEL_RADVD_OPT
+	depends on ZYXEL_RADVD_OPT
+    help
+        RouterAdvertisement Interface Setting Option backend module
+        Backend schema:
+			Device.RouterAdvertisement.InterfaceSetting.i.Option.i
+
+config ZCFG_BE_MODULE_GATEWAY_INFO
+    bool "begwinfo: Gateway Information backend module"
+    default y if ZYXEL_OPAL_EXTENDER
+	depends on ZYXEL_OPAL_EXTENDER
+    help
+        Gateway Information backend module
+        Backend schema:
+            Device.GatewayInfo
+
+config ZCFG_BE_MODULE_DNS_RELAY
+    bool "bednsRelay: DNS Relay backend module"
+    default y if ZYXEL_DNS_RELAY
+    depends on ZYXEL_DNS_RELAY
+    help
+        DNS Relay backend module
+        Backend schema:
+			Device.DNS.Relay
+
+config ZCFG_BE_MODULE_NEIGHBOR_DISCOVERY_INTFSET
+    bool "beneigh: IPv6 Neighbor Discovery Interface Setting backend module"
+    default y if ZYXEL_NEIGHBOR_DISCOVERY
+	depends on ZYXEL_NEIGHBOR_DISCOVERY
+    help
+        IPv6 Neighbor Discovery Interface Setting backend module
+        Backend schema:
+			Device.NeighborDiscovery.InterfaceSetting.i
+
+config ZCFG_BE_MODULE_UPNP
+    bool "beupnp: UPnP backend module"
+    default y if PACKAGE_zupnp || PACKAGE_miniupnpd
+	depends on PACKAGE_zupnp || PACKAGE_miniupnpd
+    help
+        UPnP backend module
+        Backend schema:
+            Device.UPnP
+
+config ZCFG_BE_MODULE_STB_VENDOR_ID
+	bool "beSTBVendorID: STB Vendor ID backend module"
+    default y
+    help
+        STB Vendor ID backend module
+        Backend schema:
+            Device.X_ZYXEL_STB_VENDOR_ID
+
+config ZCFG_BE_MODULE_WWAN_BACKUP
+	bool "bewwanbackup: WWAN Backup backend module"
+    default y if PACKAGE_wwan
+    depends on PACKAGE_wwan
+    help
+        WWAN Backup backend module
+        Backend schema:
+            Device.X_ZYXEL_WWAN_BACKUP
+
+config ZCFG_BE_MODULE_ZYXEL_ONECONNECT
+    bool "beoneconnect: Oneconnect backend module"
+    default y if ZYXEL_ONECONNECT
+    depends on ZYXEL_ONECONNECT
+    help
+        Zyxel Oneconnect backend module
+        Backend schema:
+            Device.X_ZYXEL_OneConnect
+            Device.X_ZYXEL_OneConnect_Internet_Access_Filter
+            Device.X_ZYXEL_OneConnect_Internet_Access_Filter.Rule.i
+
+config ZCFG_BE_MODULE_ZYXEL_ONECONNECT_PARENTAL_CTRL
+    bool "beoneconnectPCRule: Oneconnect Parental Control backend module"
+    default y if ZYXEL_ONECONNECT
+    depends on ZYXEL_ONECONNECT && !ZYXEL_HOME_CYBER_SECURITY
+    help
+        Zyxel Oneconnect Parental Control backend module
+        Backend schema:
+            Device.X_ZYXEL_OneConnect_Parental_Control
+            Device.X_ZYXEL_OneConnect_Parental_Control.Rule.i
+
+config ZCFG_BE_MODULE_ZYXEL_POWER_MANAGEMENT
+    bool "bePwrMgmt: Power Management backend module"
+    default y if ZYXEL_POWER_MANAGEMENT
+    depends on ZYXEL_POWER_MANAGEMENT
+    help
+        Power Management backend module
+        Backend schema:
+            Device.X_ZYXEL_Power_Management
+            Device.X_ZYXEL_Power_Management.PowerSchedule.i
+
+config ZCFG_BE_MODULE_ZYXEL_SFP_POWER_MGMT
+    bool "besfpMgmt: SFP power management backend module"
+    default y if ZYXEL_SFP_POWER_MGMT
+    depends on ZYXEL_SFP_POWER_MGMT
+    help
+        SFP power management backend module
+        Backend schema:
+            Device.X_ZYXEL_SFP_Management
+
+config ZCFG_BE_MODULE_PROXIMITY_SENSOR
+    bool "beproximitysensor: Proximity Sensor backend module"
+    default y if PROXIMITY_SENSOR_SUPPORT
+    depends on PROXIMITY_SENSOR_SUPPORT
+    help
+        Proximity Sensor backend module
+        Backend schema:
+            Device.X_ZYXEL_PROXIMITY_SENSOR
+
+config ZCFG_BE_MODULE_ZYXEL_CELLWAN
+    bool "becellintf: Cellular WAN backend module"
+    default y if ZYXEL_CELLWAN_SUPPORT
+    depends on ZYXEL_CELLWAN_SUPPORT
+    help
+        Cellular WAN backend module
+        Backend schema:
+            Device.Cellular
+
+config ZCFG_BE_MODULE_ZYXEL_LIFEMOTE
+    bool "beLifemote: Lifemote backend module"
+    default y if ZYXEL_SUPPORT_LIFEMOTE || X_ZYXEL_SUPPORT_LIFEMOTE
+    depends on ZYXEL_SUPPORT_LIFEMOTE || X_ZYXEL_SUPPORT_LIFEMOTE
+    help
+        Lifemote backend module
+        Backend schema:
+            Device.X_ZYXEL_LifeMoteAgent
+
+config ZCFG_BE_MODULE_OI_CUSTOMIZATION
+    bool "beoiwizard: OI Customization backend module"
+    default y if OI_CUSTOMIZATION
+    depends on OI_CUSTOMIZATION
+    help
+        OI Customization backend module
+        Backend schema:
+            Device.X_ZYXEL_OiWizard
+
+config ZCFG_BE_MODULE_ZYXEL_PPTP_SUPPORT
+    bool "bepptp: PPTP backend module"
+    default y if KERNEL_ZYXEL_PPTP_SUPPORT
+    depends on KERNEL_ZYXEL_PPTP_SUPPORT
+    help
+        PPTP backend module
+        Backend schema:
+            Device.X_ZYXEL_EXT.X_ZYXEL_PPTP_Config
+
+config ZCFG_BE_MODULE_GPON_INFO
+    bool "begponinfo: GPON Info backend module"
+    default y if ZYXEL_SFP_MODULE_SUPPORT
+    depends on ZYXEL_SFP_MODULE_SUPPORT
+    help
+        GPON Info backend module
+        Backend schema:
+            Device.X_ZYXEL_GPON_Info
+
+config ZCFG_BE_MODULE_IPK_PACKAGE
+    bool "beipk: IPK Package backend module"
+    default y if PACKAGE_ipk-pkg
+    depends on PACKAGE_ipk-pkg
+    help
+        IPK Package backend module
+        Backend schema:
+            Device.Services.X_ZYXEL_Package.i
+
+config ZCFG_BE_MODULE_ZYXEL_BANDWIDTH_IMPROVEMENT
+    bool "bebandwidthimprovement: Bandwidth Improvement backend module"
+    default y if ZYXEL_BANDWIDTH_IMPROVEMENT
+    depends on ZYXEL_BANDWIDTH_IMPROVEMENT && ZCFG_BE_MODULE_WWAN_BACKUP
+    help
+        Bandwidth Improvement backend module
+        Backend schema:
+            Device.X_ZYXEL_WWAN_BACKUP.BandWidthImprovement
+
+config ZCFG_BE_MODULE_ZLOG_USE_DEBUG
+    bool "bezlog: ZLOG Use Debug backend module"
+    default y if ZLOG_USE_DEBUG
+    depends on ZLOG_USE_DEBUG
+    help
+        ZLOG Use Debug backend module
+        Backend schema:
+            Device.X_ZYXEL_Zlog_Setting
+            Device.X_ZYXEL_Zlog_Setting.ZlogCategory.i
+
+config ZCFG_BE_MODULE_ZYXEL_URL_FILTER
+    bool "beurl_filter: URL filter backend module"
+    default y if ZYXEL_URL_FILTER
+    depends on ZYXEL_URL_FILTER
+    help
+        URL filter backend module
+        Backend schema:
+            Device.X_ZYXEL_URLFilter.i
+            Device.X_ZYXEL_URLFilter.i.WhiteList.i
+            Device.X_ZYXEL_URLFilter.i.BlackList.i
+
+config ZCFG_BE_MODULE_CYBER_SECURITY
+    bool "behome_cyber_security: Home Cyber Security backend module"
+    default y if ZYXEL_HOME_CYBER_SECURITY
+    depends on ZYXEL_HOME_CYBER_SECURITY
+    help
+        Home Cyber Security backend module
+        Backend schema:
+            Device.X_ZYXEL_HomeCyberSecurity
+
+config ZCFG_BE_MODULE_ZYXEL_LICENSE
+    bool "bezylicense: Zyxel License backend module"
+    default y if ZYXEL_HOME_CYBER_SECURITY_FSECURE
+    depends on ZYXEL_HOME_CYBER_SECURITY_FSECURE
+    help
+        Zyxel License backend module
+        Backend schema:
+            Device.X_ZYXEL_License
+
+config ZCFG_BE_MODULE_ZYXEL_FSECURE
+    bool "befsecure: fsecure backend module"
+    default y if ZYXEL_HOME_CYBER_SECURITY_FSECURE_COMMON
+    depends on ZYXEL_HOME_CYBER_SECURITY_FSECURE_COMMON
+    help
+        fsecure backend module
+        Backend schema:
+            Device.X_ZYXEL_FSecure
+
+config ZCFG_BE_MODULE_ZYXEL_MODSW_ZYEE
+    bool "bezyee: Zyxel MODSW ZYEE backend module"
+    default y if ZYXEL_MODSW_ZYEE
+    depends on ZYXEL_MODSW_ZYEE
+    help
+        Zyxel MODSW ZYEE backend module
+        Backend schema:
+            Device.SoftwareModules
+            Device.SoftwareModules.X_ZYXEL_ExecEnvConfigure
+            Device.SoftwareModules.ExecEnv.i
+            Device.SoftwareModules.DeploymentUnit.i
+            Device.SoftwareModules.ExecutionUnit.i
+            Device.SoftwareModules.ExecutionUnit.i.Extensions
+
+config ZCFG_BE_MODULE_IPSEC_VPN
+    bool "beIPSecVPN: IPSec VPN backend module"
+    default y if ZYXEL_IPSEC_VPN
+    depends on ZYXEL_IPSEC_VPN
+    help
+        IPSec VPN backend module
+        Backend schema:
+            Device.IPsec.Profile.i
+
+config ZCFG_BE_MODULE_VPN_CLIENT
+    bool "bevpnClient: VPN Client backend module"
+    default y if ZYXEL_VPN_CLIENT
+    depends on ZYXEL_VPN_CLIENT
+    help
+        VPN Client backend module
+        Backend schema:
+            Device.X_ZYXEL_EXT.X_ZYXEL_VPN.X_ZYXEL_VPNClient_Config.i
+
+config ZCFG_BE_MODULE_XMPP
+    bool "bexmpp: Xmpp backend module"
+    default y if ZYXEL_TR69_XMPP_CONNECTION_REQUEST
+    depends on ZYXEL_TR69_XMPP_CONNECTION_REQUEST
+    help
+        Xmpp backend module
+        Backend schema:
+            Device.XMPP
+            Device.XMPP.Connection.i
+
+config ZCFG_BE_MODULE_ZYXEL_OPERATION_MODE
+    bool "beoperationmode: Operation Mode backend module"
+    default y if ZYXEL_ECONET_OPERATION_MODE
+    depends on ZYXEL_ECONET_OPERATION_MODE
+    help
+        Operation Mode backend module
+        Backend schema:
+            Device.X_ZYXEL_OperationMode
+
+config ZCFG_BE_MODULE_MULTIPLE_CONFIG
+    bool "bemultipleConfig: Multiple Config backend module"
+    default y if ABUU_CUSTOMIZATION_MULTIPLE_CONFIG
+    depends on ABUU_CUSTOMIZATION_MULTIPLE_CONFIG
+    help
+        Multiple Config backend module
+        Backend schema:
+            Device.X_ZYXEL_EXT.MultipleConfig
+
+config ZCFG_BE_MODULE_DSL_TROUBLE_SHOOTING
+    bool "bedslDiagd: DSL Diagnostic backend module"
+    default y if ABUU_CUSTOMIZATION_DSL_TROUBLE_SHOOTING
+    depends on ABUU_CUSTOMIZATION_DSL_TROUBLE_SHOOTING
+    help
+        DSL Diagnostic backend module
+        Backend schema:
+            Device.X_ZYXEL_EXT.DSL_Diagd
+
+config ZCFG_BE_MODULE_ZYXEL_REBOOT_SCHEDULE
+    bool "berebootSchedule: Reboot Schedule backend module"
+    default y if ZYXEL_REBOOT_SCHEDULE
+    depends on ZYXEL_REBOOT_SCHEDULE
+    help
+        Reboot Schedule backend module
+        Backend schema:
+            Device.X_ZYXEL_EXT.RebootSchedule
+
+config ZCFG_BE_MODULE_ZYXEL_NAND_DUMP
+    bool "benanddump: Nand Dump backend module"
+    default y if ABWW_CHECK_BAD_BLOCK
+    depends on ABWW_CHECK_BAD_BLOCK
+    help
+        Nand Dump backend module
+        Backend schema:
+            Device.X_ZYXEL_Nanddump
+
+config ZCFG_BE_MODULE_ZYXEL_MULTI_WAN
+    bool "bemultiWan: Multiple WAN backend module"
+    default y if ZYXEL_MULTI_WAN
+    depends on ZYXEL_MULTI_WAN
+    help
+        Multiple WAN backend module
+        Backend schema:
+            Device.X_ZYXEL_MultiWan
+            Device.X_ZYXEL_MultiWan.Interface.i
+
+config ZCFG_BE_MODULE_SNMP
+    bool "besnmp: SNMP backend module"
+    default y if PACKAGE_net-snmp
+    depends on PACKAGE_net-snmp
+    help
+        SNMP backend module
+        Backend schema:
+            Device.X_ZYXEL_SNMP
+            Device.X_ZYXEL_SNMP.TrapAddr.i
+
+config ZCFG_BE_MODULE_TR369
+    bool "betr369: TR369 backend module"
+    default y if PACKAGE_obuspa
+    depends on PACKAGE_obuspa
+    help
+        TR369 backend module
+        Backend schema:
+            Device.LocalAgent
+    
+config ZCFG_BE_MODULE_MQTT
+    bool "bemqtt: MQTT backend module"
+    default y if PACKAGE_obuspa && PACKAGE_libmosquitto
+    depends on PACKAGE_obuspa && PACKAGE_libmosquitto
+    help
+        MQTT backend module
+        Backend schema:
+            Device.MQTT
+
+config ZCFG_BE_MODULE_STOMP
+    bool "bestomp: STOMP backend module"
+    default y if PACKAGE_obuspa
+    depends on PACKAGE_obuspa
+    help
+        STOMP backend module
+        Backend schema:
+            Device.STOMP
+ 
+
+config ZCFG_BE_MODULE_SMART_CARD
+	bool "besmart_card_reader: Smart Card Reader backend module (unsupported)"
+    default n
+    help
+        Smart Card Reader backend module
+        Backend schema:
+            Device.SmartCardReaders
+
+config ZCFG_BE_MODULE_BULK_DATA
+	bool "bebulk_data: Bulk Data backend module (unsupported)"
+    default n
+    help
+        Bulk Data backend module
+        Backend schema:
+            Device.BulkData
+
+config ZCFG_BE_MODULE_HPNA
+	bool "behpna: HPNA(HomePNA) backend module (unsupported)"
+    default n
+    help
+        HPNA(HomePNA) backend module
+        Backend schema:
+            Device.HPNA
+
+config ZCFG_BE_MODULE_HOMEPLUG
+	bool "behomeplug: Home Plug backend module (unsupported)"
+	default n
+	help
+		Home Plug backend module
+		Backend schema:
+			Device.Homeplug
+
+config ZCFG_BE_MODULE_MOCA
+    bool "bemoca: MoCA backend module (unsupported)"
+    default n
+    help
+        MoCA backend module
+        Backend schema:
+            Device.MoCA
+
+config ZCFG_BE_MODULE_PERIODIC_STATISTICS
+    bool "beperiodic_statistics: Periodic Statistics backend module (unsupported)"
+    default n
+    help
+        Periodic Statistics backend module
+        Backend schema:
+            Device.PeriodicStatistics
+
+config ZCFG_BE_MODULE_FAULT_MGMT
+    bool "befaultMgmt: Fault Management backend module (unsupported)"
+    default n
+    help
+        Fault Management backend module
+        Backend schema:
+            Device.FaultMgmt
+
+config ZCFG_BE_MODULE_FAP
+    bool "befap: FAP backend module (unsupported)"
+    default n
+    help
+        FAP backend module
+        Backend schema:
+            Device.FAP
+
+
+config ZCFG_BE_MODULE_TWAMP
+    bool "betwamp: TWAMP backend module"
+    default y if PACKAGE_OWAMP
+    help
+        TWAMP backend module
+        Backend schema:
+            Device.X_ZYXEL_EXT.TWAMPReflector
+
+
+if TT_CUSTOMIZATION
+menu "TT CUSTOMIZATION backend modules"
+
+config ZCFG_BE_MODULE_PKT_CAPTURE
+    bool "bepacketcapture: Packet Capture backend module"
+    default y if TT_PACKETCAPTURE
+    help
+        Packet Capture backend module
+        Backend schema:
+            Device.X_TTNET.PacketCapture
+
+config ZCFG_BE_MODULE_ZYXEL_QUANTWIFI
+    bool "bequantwifi: QUANT Wifi backend module"
+    default y if ZYXEL_SUPPORT_QUANTWIFI
+    help
+        QUANT Wifi backend module
+        Backend schema:
+            Device.X_TTNET.Configuration.QuantWifiAgent
+endmenu
+endif
+
+menu "zyxel backend extension"
+
+config ZCFG_BE_5G_EXTENSION
+    bool "Enable zyxel 5G backend extension"
+        default n
+        help
+            zyxel 5G extension
+
+
+config ZCFG_BE_DEBUG_EXTENSION
+    bool "Enable zyxel debug backend extension"
+        default y
+        help
+            1. Include console redirect to net
+            2. Include gw ping fail check
+
+if ZCFG_BE_DEBUG_EXTENSION
+
+menu "backend modules for debug extension"
+    config ZCFG_BE_MODULE_DEBUG_ZLOG_WITH_ZCONSOLE
+        bool "bezlog backend module for supporting zconsole redirect"
+            depends on ZCFG_BE_MODULE_ZLOG_USE_DEBUG
+            default y if PACKAGE_zconsole_monitor
+            help
+                1. zlog backend module extension
+                2. will include console redirect to net
+                Backend schema:
+                    Device.X_ZYXEL_Zlog_Setting.ZconsoleLogRedirect
+
+    config ZCFG_BE_MODULE_DEBUG_ZCONSOLE_PRERUN_CMD
+        bool "Enable zconsole pre-run command"
+            default n
+            depends on ZCFG_BE_MODULE_DEBUG_ZLOG_WITH_ZCONSOLE
+
+    config ZCFG_BE_MODULE_DEBUG_GW_PING_FAIL_LOG
+        bool "beschedule backend module for supporting ping fail log upload"
+            depends on ZYXEL_OPAL_EXTENDER || ZYXEL_MTK_OPERATION_MODE || ZYXEL_ECONET_OPERATION_MODE
+            default y if ZYXEL_OPAL_EXTENDER || ZYXEL_MTK_OPERATION_MODE || ZYXEL_ECONET_OPERATION_MODE
+            help
+                1. schedule backend module extension
+                2. will include gw ping fail check
+                Backend schema:
+                    Device.X_ZYXEL_Schedule.i.X_ZYXEL_PingGwCheck
+endmenu
+
+endif
+
+config ZCFG_BE_SAMPLE_EXTENSION
+    bool "Enable zyxel sample backend extension"
+        default n
+        help
+            only for sample used
+
+if ZCFG_BE_SAMPLE_EXTENSION
+
+menu "backend modules for sample extension"
+    config ZCFG_BE_MODULE_SAMPLE_ONECONNECT
+        bool "Oneconnect backend module for overwriting original beoneconnect"
+            depends on ZCFG_BE_MODULE_ZYXEL_ONECONNECT
+            help
+                Oneconnect overwriting backend module
+                Backend schema:
+
+
+    config ZCFG_BE_MODULE_SAMPLE_ZYXEL_TEST
+        bool "New Zyxel sample extension test backend module for sample feature"
+            default n
+            help
+                Zyxel sample extension test backend module
+                Backend schema:
+
+	config ZCFG_BE_LIB_SAMPLE_COMMON_LIB
+		bool "libzcfg_be_common for overwriting original libzcfg_be_common"
+			help
+				libzcfg_be_common overwriting
+
+endmenu
+
+endif
+
+
+endmenu
+
+
+endmenu
+
+

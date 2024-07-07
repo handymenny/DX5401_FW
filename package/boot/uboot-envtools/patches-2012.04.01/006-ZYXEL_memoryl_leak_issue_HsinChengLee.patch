@@ -1,0 +1,218 @@
+Index: uboot-envtools-2012.04.01/fw_env.c
+===================================================================
+--- uboot-envtools-2012.04.01.orig/fw_env.c	2021-11-30 13:30:22.090505431 +0800
++++ uboot-envtools-2012.04.01/fw_env.c	2021-11-30 13:30:22.094505431 +0800
+@@ -36,7 +36,7 @@
+ #include <unistd.h>
+ #include <zlib.h>
+ #include <stdint.h>
+-
++#include <pthread.h>
+ #ifdef MTD_OLD
+ # include <stdint.h>
+ # include <linux/mtd/mtd.h>
+@@ -54,6 +54,8 @@
+ 	typeof(y) _min2 = (y);			\
+ 	(void) (&_min1 == &_min2);		\
+ 	_min1 < _min2 ? _min1 : _min2; })
++	
++pthread_mutex_t zyxel_mutex = PTHREAD_MUTEX_INITIALIZER;
+ 
+ struct envdev_s {
+ 	char devname[16];		/* Device name */
+@@ -246,13 +248,17 @@
+  * Search the environment for a variable.
+  * Return the value, if found, or NULL, if not found.
+  */
++  
+ char *fw_getenv (char *name)
+ {
+ 	char *env, *nxt;
+-
++	
++    pthread_mutex_lock( &zyxel_mutex); //__ZYXEL__,hclee : to protect fw_getenv
+ 	if (fw_env_open())
++	{   
++	    pthread_mutex_unlock( &zyxel_mutex);
+ 		return NULL;
+-
++    }
+ 	for (env = environment.data; *env; env = nxt + 1) {
+ 		char *val;
+ 
+@@ -260,14 +266,22 @@
+ 			if (nxt >= &environment.data[ENV_SIZE]) {
+ 				fprintf (stderr, "## Error: "
+ 					"environment not terminated\n");
++				
++				pthread_mutex_unlock( &zyxel_mutex);
+ 				return NULL;
+ 			}
+ 		}
+ 		val = envmatch (name, env);
+ 		if (!val)
+ 			continue;
++			
++		fw_env_close();
++		pthread_mutex_unlock( &zyxel_mutex); 
+ 		return val;
+ 	}
++	
++	fw_env_close();
++	pthread_mutex_unlock( &zyxel_mutex); 
+ 	return NULL;
+ }
+ 
+@@ -340,11 +354,11 @@
+ 			rc = -1;
+ 		}
+ 	}
+-
++    fw_env_close();
+ 	return rc;
+ }
+ 
+-int fw_env_close(void)
++int fw_env_flush(void)
+ {
+ 	/*
+ 	 * Update CRC
+@@ -468,11 +482,11 @@
+  */
+ int fw_setenv(int argc, char *argv[])
+ {
+-	int i, len;
++	int i, len, ret;
+ 	char *name;
+ 	char *value = NULL;
+ 	char *tmpval = NULL;
+-
++    
+ 	if (argc < 2) {
+ 		errno = EINVAL;
+ 		return -1;
+@@ -513,8 +527,9 @@
+ 
+ 	if (value)
+ 		free(value);
+-
+-	return fw_env_close();
++	ret=fw_env_flush();
++    fw_env_close();
++	return ret;
+ }
+ 
+ /*
+@@ -629,8 +644,8 @@
+ 	if (strcmp(fname, "-") != 0)
+ 		fclose(fp);
+ 
+-	ret |= fw_env_close();
+-
++	ret |= fw_env_flush();
++    fw_env_close();
+ 	return ret;
+ 
+ }
+@@ -1079,11 +1094,11 @@
+ {
+ 	int crc0, crc0_ok;
+ 	unsigned char flag0;
+-	void *addr0;
++	void *addr0=NULL;
+ 
+ 	int crc1, crc1_ok;
+ 	unsigned char flag1;
+-	void *addr1;
++	void *addr1=NULL;
+ 
+ 	struct env_image_single *single;
+ 	struct env_image_redundant *redundant;
+@@ -1096,7 +1111,7 @@
+ 		fprintf (stderr,
+ 			"Not enough memory for environment (%ld bytes)\n",
+ 			CONFIG_ENV_SIZE);
+-		return -1;
++		goto open_cleanup;	
+ 	}
+ 
+ 	/* read environment from FLASH to local buffer */
+@@ -1116,7 +1131,7 @@
+ 
+ 	dev_current = 0;
+ 	if (flash_io (O_RDONLY))
+-		return -1;
++		goto open_cleanup;
+ 
+ 	crc0 = uboot_crc32 (0, (uint8_t *) environment.data, ENV_SIZE);
+ 	crc0_ok = (crc0 == *environment.crc);
+@@ -1135,7 +1150,7 @@
+ 			fprintf (stderr,
+ 				"Not enough memory for environment (%ld bytes)\n",
+ 				CONFIG_ENV_SIZE);
+-			return -1;
++			goto open_cleanup;
+ 		}
+ 		redundant = addr1;
+ 
+@@ -1145,7 +1160,7 @@
+ 		 */
+ 		environment.image = addr1;
+ 		if (flash_io (O_RDONLY))
+-			return -1;
++			goto open_cleanup;
+ 
+ 		/* Check flag scheme compatibility */
+ 		if (DEVTYPE(dev_current) == MTD_NORFLASH &&
+@@ -1159,7 +1174,7 @@
+ 			environment.flag_scheme = FLAG_BOOLEAN;
+ 		} else {
+ 			fprintf (stderr, "Incompatible flash types!\n");
+-			return -1;
++			goto open_cleanup;
+ 		}
+ 
+ 		crc1 = uboot_crc32 (0, (uint8_t *) redundant->data, ENV_SIZE);
+@@ -1229,8 +1244,31 @@
+ 		}
+ 	}
+ 	return 0;
++	
++open_cleanup:
++	
++	if(addr0)
++		free(addr0);
++	if(addr1)
++		free(addr1);
++	return -1;
+ }
+ 
++int fw_env_close(void)
++{   
++	
++	
++	if (environment.image){  
++	    
++		free(environment.image);
++		
++		return 0;
++	}
++	environment.image = NULL;
++	
++	return 0;
++	}
++
+ 
+ static int parse_config ()
+ {
+Index: uboot-envtools-2012.04.01/fw_env.h
+===================================================================
+--- uboot-envtools-2012.04.01.orig/fw_env.h	2021-11-30 13:30:22.090505431 +0800
++++ uboot-envtools-2012.04.01/fw_env.h	2021-11-30 13:32:49.847660812 +0800
+@@ -71,5 +71,5 @@
+ extern int fw_env_open(void);
+ extern int fw_env_write(char *name, char *value);
+ extern int fw_env_close(void);
+-
++extern int fw_env_flush(void);
+ extern unsigned	long  crc32	 (unsigned long, const unsigned char *, unsigned);

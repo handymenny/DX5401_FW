@@ -1,0 +1,42 @@
+diff -urN busybox-1_20_1.org/loginutils/login.c busybox-1_20_1/loginutils/login.c
+--- busybox-1_20_1.org/loginutils/login.c	2020-10-07 00:26:06.096058800 +0800
++++ busybox-1_20_1/loginutils/login.c	2020-10-07 14:04:29.448235513 +0800
+@@ -717,6 +717,11 @@
+ 	int idle_times = 0;
+ 	zcfgEidInit(ZCFG_EID_TELNETD, NULL);
+ #endif
++#ifdef ABUU_CUSTOMIZATION
++	bool autoDisableHighUser = false;
++	objIndex_t logCfgIid;
++	rdm_ZyLogCfg_t *logCfgObj = NULL;
++#endif
+ 	IF_SELINUX(security_context_t user_sid = NULL;)
+ #if ENABLE_PAM
+ 	int pamret;
+@@ -1072,6 +1077,13 @@
+ 			reset_authorize_fail_cnt(cur_user_idx);
+ 
+ 			if (authGpPrivilege){
++#ifdef ABUU_CUSTOMIZATION
++				IID_INIT(logCfgIid);
++				if(zcfgFeObjStructGet(RDM_OID_ZY_LOG_CFG, &logCfgIid, (void **) &logCfgObj) == ZCFG_SUCCESS){
++					autoDisableHighUser = logCfgObj->AutoDisableHighUser;
++					zcfgFeObjStructFree(logCfgObj);
++				}
++#endif
+ 				objIndex_t logAccountObjIid;
+ 				rdm_ZyLogCfgGpAccount_t *accountObj = NULL;
+ 				IID_INIT(logAccountObjIid);
+@@ -1114,6 +1126,12 @@
+ 						free(logGpObj);
+ 						return EXIT_FAILURE;
+ 					}
++#ifdef ABUU_CUSTOMIZATION
++					else if(autoDisableHighUser == true && !strcmp("root", username)){
++						free(logGpObj);
++						goto auth_failed;
++					}
++#endif
+ #ifdef ZYXEL_REMOTE_ACCOUNT_ACCESS_PRIVILEGE
+ 					free(accountObj);
+ #endif

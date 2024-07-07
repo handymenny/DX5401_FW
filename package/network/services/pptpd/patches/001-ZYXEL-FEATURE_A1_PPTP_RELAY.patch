@@ -1,0 +1,782 @@
+Index: pptpd-1.4.0/defaults.h
+===================================================================
+--- pptpd-1.4.0.orig/defaults.h	2013-10-23 12:52:32.000000000 +0800
++++ pptpd-1.4.0/defaults.h	2020-06-29 14:20:10.448343317 +0800
+@@ -72,5 +72,12 @@
+ #define PPP_BINARY_KEYWORD              "ppp"
+ #define LOGWTMP_KEYWORD                 "logwtmp"
+ #define DELEGATE_KEYWORD                "delegate"
++#ifdef ZYXEL_PPTPD_RELAY
++#define DEVNAME_KEYWORD                "devname"
++#define PPPNAME_KEYWORD                "pppname"
++#define LLC_KEYWORD                "llc-encaps"
++#define VC_KEYWORD                "vc-encaps"
++#define PVC_KEYWORD                "pvcname"
++#endif
+ 
+ #endif  /* !_PPTPD_DEFAULTS_H */
+Index: pptpd-1.4.0/pptpctrl.c
+===================================================================
+--- pptpd-1.4.0.orig/pptpctrl.c	2013-10-23 12:53:19.000000000 +0800
++++ pptpd-1.4.0/pptpctrl.c	2020-06-29 14:20:10.456343317 +0800
+@@ -38,6 +38,14 @@
+ #include <libutil.h>
+ #endif
+ #endif
++#ifdef ZYXEL_PPTPD_RELAY
++#include <linux/if_ppp.h>
++#include <linux/atmdev.h>
++#include <linux/atmppp.h>
++#include <limits.h>
++#include <sys/sysinfo.h>
++#define pptp_uptime_file  "/var/run/pptp_uptime_file"
++#endif
+ 
+ #ifdef __UCLIBC__
+ #define socklen_t int
+@@ -106,7 +114,281 @@
+                 strlcpy(X, argv[arg++], sizeof(X)); \
+         else \
+                 *X = '\0'
++#ifdef ZYXEL_PPTPD_RELAY
++typedef char    ppp_dev_name[IFNAMSIZ];
++#define PPPIOCSREALDEV  _IOW('t', 53, ppp_dev_name) /* set real device name */
++#define	PPPIOCSPPTPRELAY	_IOW('t', 66, int)	/* set/enable pptp relay */
++#define ATM_BACKEND_PPP_BCM      5  /* PPPoA uses Broadcom bcmxtmrt driver */
++#define ATM_BACKEND_PPP_BCM_CLOSE_DEV  7  /* PPPoA close device */
++static int llc_encaps;
++static int vc_encaps;
++static char *pppname;
++static char *devame;
++static char *pvcname;
++int chindex;		/* channel index (new style driver) */
++int	req_unit = -1;		/* requested interface unit */
++int ppp_dev_fd = -1;		/* fd for /dev/ppp (new style driver) */
++int ifunit;			/* Interface unit number */
++int fd_pppoa=0;    /* fd for pppoa */
++#define FIELD0    4        /* ppp device number ppp0, ppp1, the third digit (max 16) */
++#define FIELD1    8        /* if 0, default mode, 1 vlan mux, 2 msc */
++#define FIELD2    19       /* if FILED1 is 0, add no extension, 1 add vlan id, 2 add conId for msc */
++#define PPPOA_MRU 1500
++#define pppoatm_overhead() (llc_encaps ? 6 : 2)
++
++/* text2atm flags */
++#define T2A_PVC		  1	/* address is PVC */
++#define T2A_SVC		  2	/* address is SVC */
++#define T2A_UNSPEC	  4	/* allow unspecified parts in PVC address */
++#define T2A_WILDCARD	  8	/* allow wildcards in PVC or SVC address */
++#define T2A_NNI		 16	/* allow NNI VPI range (PVC) */
++#define T2A_NAME	 32	/* allow name resolution */
++#define T2A_REMOTE	 64	/* OBSOLETE */
++#define T2A_LOCAL	128	/* don't use ANS */
++#define TRY_OTHER -2
++#define FATAL	  -1 /* must be -1 */
++static struct sockaddr_atmpvc pvcaddr;
++/*
++ * modify_flags - set and clear flag bits controlling the kernel
++ * PPP driver.
++ */
++ static int try_pvc(const char *text,struct sockaddr_atmpvc *addr,int flags)
++{
++    int part[3];
++    int i;
++
++    part[0] = part[1] = part[2] = 0;
++    i = 0;
++    while (1) {
++	if (!*text) return FATAL; /* empty or ends with a dot */
++	if (i == 3) return TRY_OTHER; /* too long */
++	if (isdigit(*text)) {
++	    if (*text == '0' && isdigit(text[1])) return TRY_OTHER;
++		/* no leading zeroes */
++	    do {
++		if (part[i] > INT_MAX/10) return TRY_OTHER;/* number too big */
++		part[i] = part[i]*10+*text++-'0';
++	    }
++	    while (isdigit(*text));
++	    i++;
++	    if (!*text) break;
++	    if (*text++ != '.') return TRY_OTHER; /* non-PVC character */
++	    continue;
++	}
++	if (*text == '*') {
++	    if (!(flags & T2A_WILDCARD)) return FATAL; /* not allowed */
++	    part[i++] = ATM_ITF_ANY; /* all *_ANY have the same value */
++	}
++	else {
++	    if (*text != '?') return TRY_OTHER; /* invalid character */
++	    if (!(flags & T2A_UNSPEC)) return FATAL; /* not allowed */
++	    part[i++] = ATM_VPI_UNSPEC; /* all *_UNSPEC have the same
++					   value */
++	}
++	if (!*++text) break;
++	if (*text++ != '.') return FATAL; /* dot required */
++    }
++    if (i < 2) return TRY_OTHER; /* no dots */
++    if (i == 2) {
++	part[2] = part[1];
++	part[1] = part[0];
++	part[0] = 0; /* default interface */
++    }
++    if (part[0] > SHRT_MAX || part[2] > ATM_MAX_VCI)
++	return TRY_OTHER; /* too big */
++    if (part[1] > (flags & T2A_NNI ? ATM_MAX_VPI_NNI : ATM_MAX_VPI))
++	return TRY_OTHER; /* too big */
++    if (part[0] == ATM_VPI_UNSPEC) return FATAL; /* bad */
++    addr->sap_family = AF_ATMPVC;
++    addr->sap_addr.itf = part[0];
++    addr->sap_addr.vpi = part[1];
++    addr->sap_addr.vci = part[2];
++    return 0;
++}
++
++ int text2atm(const char *text,struct sockaddr *addr,int length,int flags)
++{
++    int result;
++
++    if (!*text) return -1;
++    if (!(flags & (T2A_PVC | T2A_SVC))) flags |= T2A_PVC | T2A_SVC;
++    if (length < sizeof(struct sockaddr_atmpvc)) return -1;
++    if (flags & T2A_PVC) {
++	result = try_pvc(text,(struct sockaddr_atmpvc *) addr,flags);
++	if (result != TRY_OTHER) return result;
++    }
++}
++
++static int modify_flags(int fd, int clear_bits, int set_bits)
++{
++	int flags;
++
++	if (ioctl(fd, PPPIOCGFLAGS, &flags) == -1)
++		goto err;
++	flags = (flags & ~clear_bits) | set_bits;
++	if (ioctl(fd, PPPIOCSFLAGS, &flags) == -1)
++		goto err;
++
++	return 0;
++
++ err:
++	if (errno != EIO)
++		syslog(LOG_ERR, "Failed to set PPP kernel option flags: %m");
++	return -1;
++}		
++int open_ppp_loopback(void)
++{
++	unsigned num[3]={0, 0, 0};
++	char req_name[7] = {0};
++	int flags, x = -1;
++	int enablerelay = 1;
++
++	
++	strcpy(req_name, pppname);
++	num[0] = atoi(&req_name[5]);
++	num[1] = 3;
++	req_unit =  num[0]<<(FIELD1+FIELD2) | num[1]<<FIELD2 | num[2];
++	if (ppp_dev_fd >= 0) {
++		syslog(LOG_ERR, "already had /dev/ppp open?");
++		close(ppp_dev_fd);
++	}
++	ppp_dev_fd = open("/dev/ppp", O_RDWR);
++	if (ppp_dev_fd < 0){
++		 syslog(LOG_ERR, "Couldn't open /dev/ppp: %m");
++		 return x;
++	}
++	flags = fcntl(ppp_dev_fd, F_GETFL);
++	if (flags == -1
++	    || fcntl(ppp_dev_fd, F_SETFL, flags | O_NONBLOCK) == -1)
++		syslog(LOG_ERR, "Couldn't set /dev/ppp to nonblock: %m");
++
++	ifunit = req_unit;
++	x = ioctl(ppp_dev_fd, PPPIOCNEWUNIT, &ifunit);
++	if (x < 0 && req_unit >= 0 && errno == EEXIST) {
++		syslog(LOG_ERR, "Couldn't allocate PPP unit %d as it is already in use", req_unit);
++		ifunit = -1;
++		x = ioctl(ppp_dev_fd, PPPIOCNEWUNIT, &ifunit);
++	}
++	if (x < 0) {
++		syslog(LOG_ERR, "Couldn't create new ppp unit: %m");
++	}else{
++		x = ioctl(ppp_dev_fd, PPPIOCSREALDEV, devame);
++		if (x < 0) {
++			syslog(LOG_ERR, "Couldn't set ppp real device (%s): %m", devame);
++		}
++	}
++	#if 1
++       x = ioctl(ppp_dev_fd, PPPIOCSPPTPRELAY, &enablerelay);
++		if (x < 0) {
++			syslog(LOG_ERR, "Couldn't enable relay %m");
++		}
++	#endif
++	modify_flags(ppp_dev_fd, 0, SC_LOOP_TRAFFIC);
++	
++	return ppp_dev_fd;
++}
++static void set_line_discipline_pppoatm(int fd)
++{
++	struct atm_backend_ppp be;
++	be.backend_num = ATM_BACKEND_PPP_BCM;
+ 
++	if (!llc_encaps){
++		be.encaps = PPPOATM_ENCAPS_VC;
++	}else if (!vc_encaps){
++		be.encaps = PPPOATM_ENCAPS_LLC;
++	}else
++		be.encaps = PPPOATM_ENCAPS_AUTODETECT;
++	
++	if (ioctl(fd, ATM_SETBACKEND, &be) < 0)
++		syslog(LOG_ERR, "ioctl(ATM_SETBACKEND)set_line_discipline_pppoatm: %m");
++
++}
++int open_device_pppoatm(void)
++{
++	int fd;
++	struct atm_qos qos;
++	struct sockaddr_atmpvc addr;
++	int i = 0;
++	char *pvc = NULL;
++	memset(&addr, 0, sizeof addr);
++	fd = socket(AF_ATMPVC, SOCK_DGRAM, 0);
++	if (fd < 0)
++		syslog(LOG_ERR,"failed to create socket: %m");
++
++	/*set Qos ?*/
++	memset(&qos, 0, sizeof qos);
++	qos.txtp.traffic_class = qos.rxtp.traffic_class = ATM_UBR;
++	qos.txtp.max_sdu = PPPOA_MRU+ pppoatm_overhead();
++	qos.rxtp.max_sdu = PPPOA_MRU + pppoatm_overhead();
++	qos.aal = ATM_AAL5;
++	if (setsockopt(fd, SOL_ATM, SO_ATMQOS, &qos, sizeof(qos)) < 0)
++		syslog(LOG_ERR, "setsockopt(SO_ATMQOS): %m");
++	
++    /*get vpi vci info*/
++	pvc = strstr(pvcname, ".");
++    if (text2atm(pvc + 1, (struct sockaddr *) &addr, sizeof(addr),
++            T2A_PVC | T2A_NAME) < 0) {
++                return 0;
++	}
++	memcpy(&pvcaddr, &addr, sizeof pvcaddr);
++	if (connect(fd, (struct sockaddr *) &pvcaddr,sizeof(struct sockaddr_atmpvc)))
++		syslog(LOG_ERR, "connect(%s): %m", devame);
++	
++	 /*register channel*/
++	set_line_discipline_pppoatm(fd);
++	return fd;
++}
++int generic_establish_ppp (int fd)
++{
++	int ppp_fd = -1;		/* fd which is set to PPP discipline */
++	int flags; 
++	if (ioctl(fd, PPPIOCGCHAN, &chindex) == -1) {
++	    syslog(LOG_ERR, "Couldn't get channel number: %m");
++	    goto err;
++	}
++	
++	syslog(LOG_ERR, "using channel %d", chindex);
++	fd = open("/dev/ppp", O_RDWR);
++	if (fd < 0) {
++	    syslog(LOG_ERR, "Couldn't reopen /dev/ppp: %m");
++	    goto err;
++	}
++	(void) fcntl(fd, F_SETFD, FD_CLOEXEC);
++	if (ioctl(fd, PPPIOCATTCHAN, &chindex) < 0) {
++	    syslog(LOG_ERR, "Couldn't attach to channel %d: %m", chindex);
++	    goto err_close;
++	}
++	flags = fcntl(fd, F_GETFL);
++	if (flags == -1 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
++	    syslog(LOG_ERR, "Couldn't set /dev/ppp (channel) to nonblock: %m");
++
++	ppp_fd = fd;
++	
++	if (ioctl(fd, PPPIOCCONNECT, &ifunit) < 0) {
++		syslog(LOG_ERR, "Couldn't attach to PPP unit %d: %m", ifunit);
++		goto err_close;
++    }
++	// add this part to test on 0605
++	modify_flags(ppp_dev_fd,SC_LOOP_TRAFFIC, 0);
++	return ppp_fd;
++ err_close:
++    close(fd);
++ err:
++    return -1;
++}
++	
++static void close_device_pppoatm(void)
++{
++   if (fd_pppoa > 0) {
++      struct atm_backend_ppp be;
++      be.backend_num = ATM_BACKEND_PPP_BCM_CLOSE_DEV;
++      if (ioctl(fd_pppoa, ATM_SETBACKEND, &be) < 0)
++         syslog(LOG_ERR, "ioctl(ATM_SETBACKEND):(close_device_pppoatm) %m");
++      close(fd_pppoa);
++      fd_pppoa= -1;
++   }
++}
++#endif
+ int main(int argc, char **argv)
+ {
+         char pppLocal[16];              /* local IP to pass to pppd */
+@@ -117,6 +399,11 @@
+         int flags;
+         struct in_addr inetaddrs[2];
+         char *pppaddrs[2] = { pppLocal, pppRemote };
++#ifdef ZYXEL_PPTPD_RELAY
++		struct sysinfo start_up;
++		struct sysinfo end_up;
++		char cmd[128] = {0};
++#endif
+ 
+         gargc = argc;
+         gargv = argv;
+@@ -145,6 +432,13 @@
+         GETARG_VALUE(pppRemote);
+         if (arg < argc) GETARG_INT(unique_call_id);
+         if (arg < argc) GETARG_STRING(ppp_binary);
++#ifdef ZYXEL_PPTPD_RELAY
++        if (arg < argc) GETARG_STRING(pppname);
++        if (arg < argc) GETARG_STRING(devame);
++        if (arg < argc) GETARG_STRING(pvcname);
++        if (arg < argc) GETARG_INT(llc_encaps);
++        if (arg < argc) GETARG_INT(vc_encaps);
++#endif
+         if (arg < argc) GETARG_INT(pptp_logwtmp);
+ 
+ #ifdef VRF
+@@ -204,14 +498,38 @@
+         sigpipe_assign(SIGTERM);
+         NOTE_VALUE(PAC, call_id_pair, htons(-1));
+         NOTE_VALUE(PNS, call_id_pair, htons(-1));
+-
++#ifdef ZYXEL_PPTPD_RELAY
++		sysinfo(&start_up);
++        syslog(LOG_INFO, "CTRL: Client %s control connection started at uptime-%ld", inet_ntoa(addr.sin_addr),start_up.uptime);
++		//pptp_uptime_file
++		snprintf(cmd, sizeof(cmd), "echo %ld > %s",start_up.uptime,pptp_uptime_file);
++		system(cmd);
++		memset(cmd, 0, sizeof(cmd));
++		snprintf(cmd, sizeof(cmd), "zycli ledctl INET_G on");
++		system(cmd);
++#else
+         syslog(LOG_INFO, "CTRL: Client %s control connection started", inet_ntoa(addr.sin_addr));
++#endif
++
+         pptp_handle_ctrl_connection(pppaddrs, inetaddrs);
++#ifdef ZYXEL_PPTPD_RELAY
++		sysinfo(&end_up);
++        syslog(LOG_INFO, "CTRL: Client %s control connection finished, connection time is %ld s", inet_ntoa(addr.sin_addr),(end_up.uptime - start_up.uptime));
++		memset(cmd, 0, sizeof(cmd));
++		snprintf(cmd, sizeof(cmd), "rm -rf %s",pptp_uptime_file);
++		system(cmd);
++		memset(cmd, 0, sizeof(cmd));
++		snprintf(cmd, sizeof(cmd), "zycli ledctl INET_G off");
++		system(cmd);
++#else
+         syslog(LOG_DEBUG, "CTRL: Reaping child PPP[%i]", pppfork);
+         if (pppfork > 0)
+                 waitpid(pppfork, NULL, 0);
+         syslog(LOG_INFO, "CTRL: Client %s control connection finished", inet_ntoa(addr.sin_addr));
+ 
++#endif
++
++
+         bail(0);                /* NORETURN */
+         return 1;               /* make gcc happy */
+ }
+@@ -265,8 +583,19 @@
+                 FD_ZERO(&fds);
+                 FD_SET(sig_fd, &fds);
+                 FD_SET(clientSocket, &fds);
++#ifdef ZYXEL_PPTPD_RELAY
++                if (pty_fd != -1){
++                        FD_SET(pty_fd, &fds);
++                        FD_SET(ppp_dev_fd, &fds);
++
++                if (!init && pty_fd != -1 && FD_ISSET(pty_fd, &fds)){
++                        init = 1;
++                }
++                }
++#else
+                 if (pty_fd != -1)
+                         FD_SET(pty_fd, &fds);
++#endif
+                 if (gre_fd != -1 && init)
+                         FD_SET(gre_fd, &fds);
+ 
+@@ -306,12 +635,13 @@
+                         if (sigpipe_read() == SIGTERM)
+                                 bail(SIGTERM);
+                 }
+-
++#ifndef ZYXEL_PPTPD_RELAY
+                 /* detect startup of pppd */
+ #ifndef init
+                 if (!init && pty_fd != -1 && FD_ISSET(pty_fd, &fds))
+                         init = 1;
+ #endif
++#endif
+ 
+                 /* handle actual packets */
+ 
+@@ -320,6 +650,12 @@
+                         syslog(LOG_ERR, "CTRL: PTY read or GRE write failed (pty,gre)=(%d,%d)", pty_fd, gre_fd);
+                         break;
+                 }
++#ifdef ZYXEL_PPTPD_RELAY
++                if (ppp_dev_fd != -1 && FD_ISSET(ppp_dev_fd, &fds) && decaps_hdlc(ppp_dev_fd, encaps_gre, gre_fd) < 0) {
++                        syslog(LOG_ERR, "CTRL: PTY read or GRE write failed (pty,gre)=(%d,%d)", ppp_dev_fd, gre_fd);
++                        break;
++                }
++#endif
+                 /* send from GRE off to pty */
+                 if (gre_fd != -1 && FD_ISSET(gre_fd, &fds) && decaps_gre(gre_fd, encaps_hdlc, pty_fd) < 0) {
+                         if (gre_fd == 6 && pty_fd == 5) {
+@@ -393,7 +729,11 @@
+                                       ntohs(rply_packet->call_id_peer),
+                                       ntohs(rply_packet->call_id));
+                                 /* start the call, by launching pppd */
++#ifdef ZYXEL_PPTPD_RELAY
++                                syslog(LOG_INFO, "CTRL: Starting call (build ppp channel, opening GRE)");
++#else
+                                 syslog(LOG_INFO, "CTRL: Starting call (launching pppd, opening GRE)");
++#endif
+                                 pty_fd = startCall(pppaddrs, inetaddrs);
+                                 if (pty_fd > maxfd) maxfd = pty_fd;
+                                 if ((gre_fd = pptp_gre_init(call_id_pair, pty_fd, inetaddrs)) > maxfd)
+@@ -454,6 +794,9 @@
+         NOTE_VALUE(PNS, call_id_pair, htons(-1));
+         close(clientSocket);
+ leave_clear_call:
++#ifdef ZYXEL_PPTPD_RELAY
++        close_device_pppoatm();
++#endif
+         /* leave clientSocket and call_id_pair alone for bail() */
+         if (gre_fd != -1)
+                 close(gre_fd);
+@@ -461,6 +804,13 @@
+         if (pty_fd != -1)
+                 close(pty_fd);
+         pty_fd = -1;
++#ifdef ZYXEL_PPTPD_RELAY
++        if (ppp_dev_fd != -1)
++                close(ppp_dev_fd);
++        ppp_dev_fd = -1;
++#endif
++
++
+         return;
+ #ifdef init
+ #undef init
+@@ -478,6 +828,9 @@
+  */
+ static void bail(int sigraised)
+ {
++#ifdef ZYXEL_PPTPD_RELAY
++		char cmd[128] = {0};
++#endif
+         if (sigraised)
+                 syslog(LOG_INFO, "CTRL: Exiting on signal %d", sigraised);
+ 
+@@ -542,11 +895,15 @@
+         skip:
+                 close(clientSocket);
+         }
+-
++#ifdef ZYXEL_PPTPD_RELAY
++        close_device_pppoatm();
++		snprintf(cmd, sizeof(cmd), "rm -rf %s",pptp_uptime_file);
++		system(cmd);
++#endif
+         if (pptpctrl_debug)
+                 syslog(LOG_DEBUG, "CTRL: Exiting now");
+ }
+-
++#ifndef ZYXEL_PPTPD_RELAY
+ /*
+  * startCall
+  *
+@@ -656,6 +1013,16 @@
+         close(tty_fd);
+         return pty_fd;
+ }
++#else
++static int startCall(char **pppaddrs, struct in_addr *inetaddrs)
++{
++	int fd_loop = -1;
++	fd_loop = open_ppp_loopback(); //ppp_dev_fd == fd_loop
++	fd_pppoa = open_device_pppoatm(); // devfd ==fd
++	
++    return generic_establish_ppp(fd_pppoa);
++}
++#endif
+ 
+ /*
+  * launch_pppd
+@@ -761,11 +1128,13 @@
+         /* If a speed has been specified, use it
+          * if not, use "smart" default (defaults.h)
+          */
++#ifndef ZYXEL_PPTPD_RELAY
+         if (*speed) {
+                 pppd_argv[an++] = speed;
+         } else {
+                 pppd_argv[an++] = PPP_SPEED_DEFAULT;
+         }
++#endif
+ 
+         if (pptpctrl_debug) {
+                 if (*pppaddrs[0])
+Index: pptpd-1.4.0/pptpd.c
+===================================================================
+--- pptpd-1.4.0.orig/pptpd.c	2013-10-23 12:53:29.000000000 +0800
++++ pptpd-1.4.0/pptpd.c	2020-06-29 14:20:10.464343317 +0800
+@@ -62,6 +62,13 @@
+ int pptp_noipparam = 0;
+ int pptp_logwtmp = 0;
+ int pptp_delegate = 0;
++#ifdef ZYXEL_PPTPD_RELAY
++int llc_encaps = 0;
++int vc_encaps = 0;
++char *pppname = NULL;
++char *devame = NULL;
++char *pvcname = NULL;
++#endif
+ 
+ int pptp_stimeout = STIMEOUT_DEFAULT;
+ 
+@@ -310,7 +317,23 @@
+         }
+ 
+         slot_init(pptp_connections);
+-
++#ifdef ZYXEL_PPTPD_RELAY
++        if (!llc_encaps && read_config_file(configFile, LLC_KEYWORD, tmp) > 0) {
++                llc_encaps = 1;
++        }
++        if (!vc_encaps && read_config_file(configFile, VC_KEYWORD, tmp) > 0) {
++                vc_encaps = 1;
++        }
++        if (!pppname && read_config_file(configFile, PPPNAME_KEYWORD, tmp) > 0) {
++                pppname = strdup(tmp);
++        }
++        if (!devame  && read_config_file(configFile, DEVNAME_KEYWORD, tmp) > 0) {
++                devame  = strdup(tmp);
++        }
++        if (!pvcname  && read_config_file(configFile, PVC_KEYWORD, tmp) > 0) {
++                pvcname  = strdup(tmp);
++        }
++#endif		
+         if (!pptp_debug && read_config_file(configFile, DEBUG_KEYWORD, tmp) > 0)
+                 pptp_debug = TRUE;
+ 
+Index: pptpd-1.4.0/pptpgre.c
+===================================================================
+--- pptpd-1.4.0.orig/pptpgre.c	2013-10-23 12:53:41.000000000 +0800
++++ pptpd-1.4.0/pptpgre.c	2020-06-29 14:28:32.440347276 +0800
+@@ -45,7 +45,10 @@
+ #ifndef HAVE_STRERROR
+ #include "compat.h"
+ #endif
+-
++#ifdef ZYXEL_PPTPD_RELAY
++extern int ppp_dev_fd;
++#define PPP_CCPFRAG	0x80fb	/* CCP at link level (below MP bundle) */
++#endif
+ #define PACKET_MAX 8196
+ 
+ typedef int (*callback_t)(int cl, void *pack, unsigned int len);
+@@ -171,6 +174,26 @@
+                 len = 0;
+                 escape = 0;
+         }
++#ifdef ZYXEL_PPTPD_RELAY
++#if 0
++//debug
++		 syslog(LOG_ERR, "[%s][%d]pre=[0x%x]\n",__FUNCTION__,__LINE__,((buffer[0] << 8) + buffer[1]));
++		 syslog(LOG_ERR, "[%s][%d]protocl=[0x%x]\n",__FUNCTION__,__LINE__,((buffer[2] << 8) + buffer[3]));
++		 if( access("/misc/mandy",F_OK) == 0 ){
++		    for (it = 0; it < status; ++it) {
++		        if (it % 16 == 0)
++		            syslog(LOG_ERR, "\n");
++		        syslog(LOG_ERR, "0x%02X, ", buffer[it]);
++		    }
++		 }
++#endif
++        /* So now we have a packet of length 'len' in 'copy' */
++        if ((status = cb(cl, buffer, status)) < 0) {
++                syslog(LOG_ERR, "GRE: xmit failed from decaps_hdlc: %s", strerror(errno));
++                err = 1;
++                return status;  /* return error */
++        }
++#else
+ 
+         while (1) {
+                 /* Infinite loop, we return when we're out of data */
+@@ -246,6 +269,7 @@
+                 len = 0;
+                 escape = 0;
+         }
++#endif
+ }
+ 
+ #define seq_greater(A,B) ((A)>(B) || \
+@@ -267,6 +291,30 @@
+ int encaps_hdlc(int fd, void *pack, unsigned len)
+ {
+         unsigned char *source = (unsigned char *) pack;
++#ifdef ZYXEL_PPTPD_RELAY
++        int proto;
++        int it = 0;
++	//syslog(LOG_ERR, "[%s][%d]\n",__FUNCTION__,__LINE__);
++	//syslog(LOG_ERR, "[%s][%d]pre=[0x%x]len=[%d]\n",__FUNCTION__,__LINE__,((source[0] << 8) + source[1]),len);
++        source += 2;
++        len -= 2;
++        proto = (source[0] << 8) + source[1];
++        //syslog(LOG_ERR, "[%s][%d]proto=[0x%x]len=[%d]\n",__FUNCTION__,__LINE__,proto,len);
++        if (ppp_dev_fd >= 0 && !(proto >= 0xc000 || proto == PPP_CCPFRAG))
++        fd = ppp_dev_fd;
++#if 0
++//debug
++	if( access("/misc/mandy",F_OK) == 0 ){
++		for (it = 0; it < len; ++it) {
++		    if (it % 16 == 0)
++		       syslog(LOG_ERR, "\n");
++		        syslog(LOG_ERR, "0x%02X, ", source[it]);
++		}
++        }
++#endif
++ /* now write this packet */
++        return write(fd, source, len);
++#else
+         /* largest expansion possible - double all + double fcs + 2 flags */
+         static unsigned char dest[2 * PACKET_MAX + 6];
+         unsigned pos = 1, i;
+@@ -301,6 +349,7 @@
+ 
+         /* now write this packet */
+         return write(fd, dest, pos);
++#endif
+ }
+ 
+ #undef ADD_CHAR
+@@ -326,9 +375,11 @@
+                                        "GRE: timeout waiting for %d packets", 
+                                        head->seq - gre.seq_recv - 1);        
+                 }
++#ifndef ZYXEL_PPTPD_RELAY
+                 if (pptpctrl_debug)
+-                        syslog(LOG_DEBUG, "GRE: accepting #%d from queue", 
++                       syslog(LOG_DEBUG, "GRE: accepting #%d from queue", 
+                                head->seq);
++#endif
+                 gre.seq_recv = head->seq;
+                 status = callback(cl, head->packet, head->packlen);
+                 pqueue_del(head);
+@@ -414,9 +465,8 @@
+                  * on wrap we may allow an out of order packet to pass
+                  */
+                 if (seq == gre.seq_recv + 1 || seq == 1) {
+-                        if (pptpctrl_debug)
+-                                syslog(LOG_DEBUG, "GRE: accepting packet #%d", 
+-                                       seq);
++                       // if (pptpctrl_debug)
++                               // syslog(LOG_DEBUG, "GRE: accepting packet #%d",seq);
+                         stats.rx_accepted++;
+                         gre.seq_recv = seq;
+                         return cb(cl, buffer + ip_len + headersize, payload_len);
+@@ -428,10 +478,12 @@
+                         return 0;       /* discard duplicate packets */
+                 } else {
+                         stats.rx_buffered++;
++#ifndef ZYXEL_PPTPD_RELAY
+                         if (pptpctrl_debug)
+                                 syslog(LOG_DEBUG,
+                                        "GRE: buffering packet #%d (expecting #%d, lost or reordered)",
+                                        seq, gre.seq_recv + 1);
++#endif
+                         pqueue_add(seq, buffer + ip_len + headersize, payload_len);
+                         return 0;       /* discard out-of-order packets */
+                 }
+Index: pptpd-1.4.0/pptpmanager.c
+===================================================================
+--- pptpd-1.4.0.orig/pptpmanager.c	2013-10-23 12:53:49.000000000 +0800
++++ pptpd-1.4.0/pptpmanager.c	2020-06-29 14:20:10.472343317 +0800
+@@ -63,7 +63,13 @@
+ extern int pptp_noipparam;
+ extern int pptp_logwtmp;
+ extern int pptp_delegate;
+-
++#ifdef ZYXEL_PPTPD_RELAY
++extern int llc_encaps;
++extern int vc_encaps;
++extern char *pppname;
++extern char *devame;
++extern char *pvcname;
++#endif
+ /* option for timeout on starting ctrl connection */
+ extern int pptp_stimeout;
+ 
+@@ -468,6 +474,10 @@
+         char pppdoptfile_argv[2];
+         char speedgiven_argv[2];
+         extern char **environ;
++#ifdef ZYXEL_PPTPD_RELAY
++        char ctrl_vc_encaps[2];
++        char ctrl_llc_encaps[2];
++#endif
+ 
+         char callid_argv[16];
+ 
+@@ -532,7 +542,18 @@
+ 
+         /* pass path to ppp binary */
+         ctrl_argv[pptpctrl_argc++] = ppp_binary;
+-
++#ifdef ZYXEL_PPTPD_RELAY     
++        ctrl_argv[pptpctrl_argc++] = pppname;
++        ctrl_argv[pptpctrl_argc++] = devame;
++        ctrl_argv[pptpctrl_argc++] = pvcname;
++        NUM2ARRAY(ctrl_llc_encaps, llc_encaps ? 1 : 0);
++        ctrl_llc_encaps[1] = '\0';
++        ctrl_argv[pptpctrl_argc++] = ctrl_llc_encaps;
++		
++        NUM2ARRAY(ctrl_vc_encaps, vc_encaps ? 1 : 0);
++        ctrl_vc_encaps[1] = '\0';
++        ctrl_argv[pptpctrl_argc++] = ctrl_vc_encaps;
++#endif
+         /* pass logwtmp flag */
+         ctrl_argv[pptpctrl_argc++] = pptp_logwtmp ? "1" : "0";
+ 
+Index: pptpd-1.4.0/ctrlpacket.c
+===================================================================
+--- pptpd-1.4.0.orig/ctrlpacket.c	2013-10-23 12:52:22.000000000 +0800
++++ pptpd-1.4.0/ctrlpacket.c	2020-06-29 14:20:10.476343317 +0800
+@@ -142,11 +142,13 @@
+                 return -1;
+ 
+         } else {
++#ifndef ZYXEL_PPTPD_RELAY
+                 /* debugging */
+                 if (pptpctrl_debug) {
+                         syslog(LOG_DEBUG, "CTRL: I wrote %lu bytes to the client.", (unsigned long) packet_size);
+                         syslog(LOG_DEBUG, "CTRL: Sent packet to client");
+                 }
++#endif
+                 return bytes_written;
+         }
+ }
+Index: pptpd-1.4.0/pptpdefs.h
+===================================================================
+--- pptpd-1.4.0.orig/pptpdefs.h	2013-10-23 12:53:35.000000000 +0800
++++ pptpd-1.4.0/pptpdefs.h	2020-06-29 14:20:10.484343317 +0800
+@@ -70,7 +70,11 @@
+ #define IDLE_WAIT                       60
+ 
+ /* how long should we wait for an echo reply? (seconds) */
++#ifdef ZYXEL_PPTPD_RELAY
++#define MAX_ECHO_WAIT                   3
++#else
+ #define MAX_ECHO_WAIT                   60
++#endif
+ 
+ #define RESERVED                        0x0000
+ 

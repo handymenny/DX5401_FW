@@ -1,0 +1,125 @@
+Index: mtd-utils-2.0.2/include/mtd/mtd-abi.h
+===================================================================
+--- mtd-utils-2.0.2.orig/include/mtd/mtd-abi.h
++++ mtd-utils-2.0.2/include/mtd/mtd-abi.h
+@@ -201,6 +201,10 @@ struct otp_info {
+  * modes (see "struct mtd_write_req")
+  */
+ #define MEMWRITE		_IOWR('M', 24, struct mtd_write_req)
++#if defined(ZYXEL_BAD_BLOCK_UNMARK)
++/* Unmark an bad block as good */
++#define MEMSETGOODBLOCK		_IOW('M', 25, __kernel_loff_t)
++#endif
+ 
+ /*
+  * Obsolete legacy interface. Keep it in order not to break userspace
+Index: mtd-utils-2.0.2/lib/libmtd.c
+===================================================================
+--- mtd-utils-2.0.2.orig/lib/libmtd.c
++++ mtd-utils-2.0.2/lib/libmtd.c
+@@ -1073,6 +1073,29 @@ int mtd_mark_bad(const struct mtd_dev_in
+ 	return 0;
+ }
+ 
++#if defined(ZYXEL_BAD_BLOCK_UNMARK)
++int mtd_unmark_bad(const struct mtd_dev_info *mtd, int fd, int eb)
++{
++	int ret;
++	loff_t seek;
++
++	if (!mtd->bb_allowed) {
++		errno = EINVAL;
++		return -1;
++	}
++
++	ret = mtd_valid_erase_block(mtd, eb);
++	if (ret)
++		return ret;
++
++	seek = (loff_t)eb * mtd->eb_size;
++	ret = ioctl(fd, MEMSETGOODBLOCK, &seek);
++	if (ret == -1)
++		return mtd_ioctl_error(mtd, eb, "MEMSETGOODBLOCK");
++	return 0;
++}
++#endif
++
+ int mtd_read(const struct mtd_dev_info *mtd, int fd, int eb, int offs,
+ 	     void *buf, int len)
+ {
+Index: mtd-utils-2.0.2/nand-utils/nandwrite.c
+===================================================================
+--- mtd-utils-2.0.2.orig/nand-utils/nandwrite.c
++++ mtd-utils-2.0.2/nand-utils/nandwrite.c
+@@ -63,6 +63,9 @@ static void display_help(int status)
+ "      --input-skip=length Skip |length| bytes of the input file\n"
+ "      --input-size=length Only read |length| bytes of the input file\n"
+ "  -q, --quiet             Don't display progress messages\n"
++#if defined(ZYXEL_BAD_BLOCK_UNMARK)
++"  -u, --unmarkbad         Unmark bad blocks\n"
++#endif
+ "  -h, --help              Display this help and exit\n"
+ "  -V, --version           Output version information and exit\n"
+ 	);
+@@ -100,6 +103,9 @@ static bool		noskipbad = false;
+ static bool		pad = false;
+ static bool		skip_bad_blocks_to_start = false;
+ static int		blockalign = 1; /* default to using actual block size */
++#if defined(ZYXEL_BAD_BLOCK_UNMARK)
++static bool		unmarkbad = false;
++#endif
+ 
+ static void process_options(int argc, char * const argv[])
+ {
+@@ -107,7 +113,11 @@ static void process_options(int argc, ch
+ 
+ 	for (;;) {
+ 		int option_index = 0;
++#if defined(ZYXEL_BAD_BLOCK_UNMARK)
++		static const char short_options[] = "hb:mnNoOpqus:akV";
++#else
+ 		static const char short_options[] = "hb:mnNoOpqs:akV";
++#endif
+ 		static const struct option long_options[] = {
+ 			/* Order of these args with val==0 matters; see option_index. */
+ 			{"version", no_argument, 0, 'V'},
+@@ -126,6 +136,9 @@ static void process_options(int argc, ch
+ 			{"start", required_argument, 0, 's'},
+ 			{"autoplace", no_argument, 0, 'a'},
+ 			{"skip-all-ffs", no_argument, 0, 'k'},
++#if defined(ZYXEL_BAD_BLOCK_UNMARK)
++			{"unmarkbad", no_argument, 0, 'u'},
++#endif
+ 			{0, 0, 0, 0},
+ 		};
+ 
+@@ -188,6 +201,11 @@ static void process_options(int argc, ch
+ 		case 'h':
+ 			display_help(EXIT_SUCCESS);
+ 			break;
++#if defined(ZYXEL_BAD_BLOCK_UNMARK)
++		case 'u': /* --unmarkbad block */
++			unmarkbad = true;
++			break;
++#endif
+ 		case '?':
+ 			error++;
+ 			break;
+@@ -327,6 +345,17 @@ int main(int argc, char * const argv[])
+ 		}
+ 	}
+ 
++#if defined(ZYXEL_BAD_BLOCK_UNMARK)
++	if (unmarkbad) {
++		if (mtd_unmark_bad(&mtd, fd, mtdoffset / mtd.eb_size)) {
++			sys_errmsg("%s: MTD Unmark bad block failure", mtd_device);
++		}
++		else
++			failed = false;
++		goto closeall;
++	}
++#endif
++
+ 	/* Determine if we are reading from standard input or from a file. */
+ 	if (strcmp(img, standard_input) == 0)
+ 		ifd = STDIN_FILENO;

@@ -1,0 +1,26 @@
+Index: wide-dhcpv6-20080615/dhcp6c.c
+===================================================================
+--- wide-dhcpv6-20080615.orig/dhcp6c.c
++++ wide-dhcpv6-20080615/dhcp6c.c
+@@ -265,14 +265,21 @@ dprintf(LOG_ERR, FNAME, "bp2 ");
+ 		dprintf(LOG_ERR, FNAME, "failed to parse configuration file");
+ 		exit(1);
+ 	}
++#ifndef ZYXEL_DHCPV6C_LAUNCH_WITH_SCRIPT
+ dprintf(LOG_ERR, FNAME, "bp3 ");
+ 	if (foreground == 0 && infreq_mode == 0) {
+ 		if (daemon(0, 0) < 0)
+ 			err(1, "daemon");
+ 	}
++#endif
+ dprintf(LOG_ERR, FNAME, "bp4 ");
++#ifdef ZYXEL_DHCPV6C_LAUNCH_WITH_SCRIPT
++    /* save the script's PID */
++    pid = getppid();
++#else
+ 	/* dump current PID */
+ 	pid = getpid();
++#endif
+ 	if ((pidfp = fopen(pid_file, "w")) != NULL) {
+ 		fprintf(pidfp, "%d\n", pid);
+ 		fclose(pidfp);

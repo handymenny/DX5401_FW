@@ -1,0 +1,36 @@
+Index: wide-dhcpv6-20080615/dhcp6c.c
+===================================================================
+--- wide-dhcpv6-20080615.orig/dhcp6c.c
++++ wide-dhcpv6-20080615/dhcp6c.c
+@@ -955,6 +955,9 @@ client6_timo(arg)
+ 		dprintf(LOG_INFO, FNAME, "no responses were received");
+ 		dhcp6_remove_event(ev);
+ 
++        /* ZYXEL, once dhcp6c re-transmit MRC times, directly restart to re-initialize instead of nothing */
++        dhcp6_restart();
++
+ 		if (state == DHCP6S_RELEASE)
+ 			check_exit();
+ 
+@@ -3446,4 +3449,21 @@ void dhcp6_lifetime_timeout()
+ 	json_object_put(dhcp6cJsonMsg);
+ }
+ 
++void dhcp6_restart()
++{
++    struct json_object *dhcp6cJsonMsg = NULL;
++    char *msg = NULL;
++    int msgLen = 0;
++    dhcp6cJsonMsg = json_object_new_object();
++
++    snprintf(dhcp6cMsg.pidfile, sizeof(dhcp6cMsg.pidfile), pid_file);
++    json_object_object_add(dhcp6cJsonMsg, "pidfile", json_object_new_string(dhcp6cMsg.pidfile));
++    json_object_object_add(dhcp6cJsonMsg, "restart", json_object_new_boolean(true));
++    msg = json_object_to_json_string(dhcp6cJsonMsg);
++    msgLen = strlen(msg) + 1;
++    dhcp6MsgSend(ZCFG_MSG_DHCP6C_STATE_CHANGED, msgLen, msg);
++    json_object_put(dhcp6cJsonMsg);
++}
++
++
+ /*end*/

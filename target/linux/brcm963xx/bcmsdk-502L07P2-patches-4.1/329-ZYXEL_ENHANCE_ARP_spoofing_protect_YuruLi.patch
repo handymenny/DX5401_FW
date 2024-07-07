@@ -1,0 +1,71 @@
+Index: linux-4.1.52/net/core/neighbour.c
+===================================================================
+--- linux-4.1.52.orig/net/core/neighbour.c	2020-11-06 08:31:48.684422585 +0800
++++ linux-4.1.52/net/core/neighbour.c	2020-11-06 13:16:30.089222018 +0800
+@@ -1084,6 +1084,9 @@
+ 	int notify = 0;
+ 	struct net_device *dev;
+ 	int update_isrouter = 0;
++#ifdef CONFIG_ARP_PROTECT
++	int t;
++#endif
+ 
+ 	write_lock_bh(&neigh->lock);
+ 
+@@ -1145,6 +1148,22 @@
+ 			update_isrouter = 0;
+ 			if ((flags & NEIGH_UPDATE_F_WEAK_OVERRIDE) &&
+ 			    (old & NUD_CONNECTED)) {
++#ifdef CONFIG_ARP_PROTECT
++				if(neigh->tbl->family == AF_INET){
++					printk("ARP_PROTECT warning\n");
++					printk("    cached MAC  : ");
++					for (t = 0; t < dev->addr_len; t++){
++						printk(":%02X",lladdr[t]);
++					}
++					printk("\n");
++					printk("    proposed MAC: ");
++					for (t = 0; t < dev->addr_len; t++){
++						printk(":%02X",neigh->ha[t]);
++					}
++					printk("\n");
++					printk("    action taken: Update ignored, old MAC still valid\n");
++				}
++#endif
+ 				lladdr = neigh->ha;
+ 				new = NUD_STALE;
+ 			} else
+@@ -1279,8 +1298,11 @@
+ 	struct neighbour *neigh = __neigh_lookup(tbl, saddr, dev,
+ 						 lladdr || !dev->addr_len);
+ 	if (neigh)
+-		neigh_update(neigh, lladdr, NUD_STALE,
+-			     NEIGH_UPDATE_F_OVERRIDE);
++#ifdef CONFIG_ARP_PROTECT
++		neigh_update(neigh, lladdr, NUD_STALE, NEIGH_UPDATE_F_WEAK_OVERRIDE);
++#else
++		neigh_update(neigh, lladdr, NUD_STALE, NEIGH_UPDATE_F_OVERRIDE);
++#endif
+ 	return neigh;
+ }
+ EXPORT_SYMBOL(neigh_event_ns);
+Index: linux-4.1.52/net/ipv4/Kconfig
+===================================================================
+--- linux-4.1.52.orig/net/ipv4/Kconfig	2020-11-06 13:20:06.632822457 +0800
++++ linux-4.1.52/net/ipv4/Kconfig	2020-11-06 13:20:42.904580286 +0800
+@@ -259,6 +259,15 @@
+ 	  gated-5). This routing protocol is not used widely, so say N unless
+ 	  you want to play with it.
+ 
++config ARP_PROTECT
++	bool "IP: ARP Spoofing Protection (EXPERIMENTAL)"
++	help
++	  Provides basic protection against ARP spoofing attacks.
++
++	  If you say Y here, you will get an additional configuration
++	  parameter "arp_protect" to select behaviour when updates
++	  to the local arp cache are requested:
++
+ config SYN_COOKIES
+ 	bool "IP: TCP syncookie support"
+ 	---help---

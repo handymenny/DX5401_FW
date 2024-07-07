@@ -1,0 +1,94 @@
+Index: udhcp-0.9.8/options.c
+===================================================================
+--- udhcp-0.9.8.orig/options.c
++++ udhcp-0.9.8/options.c
+@@ -84,7 +84,11 @@ int option_lengths[] = {
+ 
+ #if 1 /* ZyXEL DHCP option support (porting from BRCM and MSTC), John */
+ int optLen = 1; /* 1 byte for DHCP_END */
++#ifdef CONFIG_ZYXEL_WAN_OPTION_12
++unsigned char sent_config_options[OPTION12_MAX_LEN + OPTION60_MAX_LEN + OPTION61_MAX_LEN + OPTION125_MAX_LEN];
++#else
+ unsigned char sent_config_options[OPTION60_MAX_LEN + OPTION61_MAX_LEN + OPTION125_MAX_LEN];
++#endif
+ int last_option_index = sizeof(options)/sizeof(struct dhcp_option) - 1;
+ #endif
+ 
+@@ -297,6 +301,24 @@ void hexStringToOption(char *hexStr, cha
+ 	}
+ }
+ 
++void charStrToHexStr(char* input, char* output, int outputSize)
++{
++    int loop;
++    int i;
++
++    i=0;
++    loop=0;
++
++    while(input[loop] != '\0')
++    {
++        snprintf((char*)(output+i), outputSize,"%02X", input[loop]);
++        loop+=1;
++        i+=2;
++    }
++    //insert NULL at the end of the output string
++    output[i++] = '\0';
++}
++
+ int read_config_options(const char* intfName, int IsVlanHuntEnable)
+ {
+ 	rdm_Dhcpv4ReqOpt_t *reqOptObj = NULL;
+@@ -311,6 +333,13 @@ int read_config_options(const char* intf
+ 	zcfgRet_t ret = ZCFG_SUCCESS;
+ 	char hexOpt[256];
+     int idx=-1;
++#ifdef CONFIG_ZYXEL_WAN_OPTION_12
++	rdm_SystemInfo_t *sysInfoObj = NULL;
++	objIndex_t sysIndex;
++	char hostnameHexStr[256]={0};
++	char tmpHexStr[256]={0};
++	int hostnameLen = 0;
++#endif
+ 
+ 	//find ip.interface via interface name
+ 	IID_INIT(ipIfaceIid);
+@@ -381,7 +410,22 @@ int read_config_options(const char* intf
+ 	}
+ 
+ 	sent_config_options[0] = DHCP_END;
+-	
++
++#ifdef CONFIG_ZYXEL_WAN_OPTION_12
++	IID_INIT(sysIndex);
++	if(zcfgFeObjStructGet(RDM_OID_SYSTEM_INFO, &sysIndex, (void **)&sysInfoObj) == ZCFG_SUCCESS){
++		if(strcmp(sysInfoObj->HostName, "")){
++			hostnameLen = strlen(sysInfoObj->HostName);
++			charStrToHexStr(sysInfoObj->HostName, hostnameHexStr, 256);
++			snprintf(tmpHexStr, 256, "%02x%02x%s", 12, hostnameLen, hostnameHexStr);
++			hexStringToOption(tmpHexStr, hexOpt);
++			add_option_string(sent_config_options, (unsigned char *)hexOpt);
++			optLen += hexOpt[1] + 2;
++		}
++		zcfgFeObjStructFree(sysInfoObj);
++	}
++#endif
++
+ 	IID_INIT(optIid);
+ 
+ 	while((ret = zcfgFeSubInStructGetNext(RDM_OID_DHCPV4_SENT_OPT, &dhcpIid, &optIid, (void **)&sentOptObj)) == ZCFG_SUCCESS){
+Index: udhcp-0.9.8/Makefile
+===================================================================
+--- udhcp-0.9.8.orig/Makefile
++++ udhcp-0.9.8/Makefile
+@@ -84,6 +84,10 @@ ifneq ($(strip $(CONFIG_ZYXEL_FAKE_IP_16
+ CFLAGS += -DZYXEL_FAKE_IP_169_254_X_X
+ endif
+ 
++ifneq ($(strip $(CONFIG_ZYXEL_WAN_OPTION_12)),)
++CFLAGS += -DCONFIG_ZYXEL_WAN_OPTION_12
++endif
++
+ #Sunrise customization
+ ifneq ($(strip $(SUNRISE_DHCP_FORCE_RENEW)),)
+ CFLAGS += -DSUNRISE_DHCP_FORCE_RENEW

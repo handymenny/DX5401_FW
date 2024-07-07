@@ -1,0 +1,46 @@
+Index: busybox-1_20_1/loginutils/login.c
+===================================================================
+--- busybox-1_20_1.orig/loginutils/login.c
++++ busybox-1_20_1/loginutils/login.c
+@@ -682,6 +682,24 @@ int UserAllow(char *username,char *addr)
+ }
+ #endif	/* _MSTC_, Linda, CPE User Definitions and Rights_END. */
+ 
++#ifdef MSTC_TTNET_MULTI_USER
++void getLockRelatedInfo(int *retry_times, int *lock_period,char *username)
++{
++		objIndex_t logAccountObjIid;
++		rdm_ZyLogCfgGpAccount_t *accountObj = NULL;
++		IID_INIT(logAccountObjIid);
++		while(zcfgFeObjStructGetNext(RDM_OID_ZY_LOG_CFG_GP_ACCOUNT, &logAccountObjIid, (void **) &accountObj) == ZCFG_SUCCESS) {
++				if (!strcmp(accountObj->Username, username)){
++						*retry_times = accountObj->AccountRetryTime;
++						*lock_period = accountObj->AccountLockTime;						
++						free(accountObj);
++						break;
++				}
++				free(accountObj);
++		}
++}
++#endif
++
+ int login_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+ int login_main(int argc UNUSED_PARAM, char **argv)
+ {
+@@ -1024,10 +1042,15 @@ int login_main(int argc UNUSED_PARAM, ch
+ 			system(sysCmd);
+ 		}
+ #endif
+-
++#ifdef MSTC_TTNET_MULTI_USER
++		getLockRelatedInfo(&retry_times,&lock_period,username);
++#endif
+ 		if(chk_account_is_locked(cur_user_idx, &login_fail_cnt, last_login_time, retry_times, lock_period)){
+ 			puts("Account has been blocked temporarily, please try later!");
+ 			syslog(LOG_WARNING, "Account: user '%s' has been locked temporarily, rejected.", username);
++#ifdef MSTC_TTNET_MULTI_USER
++			usleep(200000);// in order to show the above info on console
++#endif
+ 			return EXIT_FAILURE;
+ 		}
+ #endif

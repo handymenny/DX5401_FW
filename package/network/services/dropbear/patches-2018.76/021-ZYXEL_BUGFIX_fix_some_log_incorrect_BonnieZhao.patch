@@ -1,0 +1,44 @@
+Index: dropbear-2018.76/Makefile.in
+===================================================================
+--- dropbear-2018.76.orig/Makefile.in
++++ dropbear-2018.76/Makefile.in
+@@ -125,6 +125,10 @@ ifeq ($(CONFIG_MSTC_TTNET_MULTI_USER),y)
+ 	CFLAGS += -DMSTC_TTNET_MULTI_USER
+ endif
+ 
++ifeq ($(CONFIG_ZYXEL_TT_CUSTOMIZATION),y)
++	CFLAGS += -DZYXEL_TT_CUSTOMIZATION
++endif
++
+ # these are exported so that libtomcrypt's makefile will use them
+ export CC
+ export CFLAGS
+Index: dropbear-2018.76/svr-authpasswd.c
+===================================================================
+--- dropbear-2018.76.orig/svr-authpasswd.c
++++ dropbear-2018.76/svr-authpasswd.c
+@@ -231,7 +231,7 @@ void svr_auth_password(int valid_user) {
+ #endif
+ //SHA512_PASSWD
+ 		/* successful authentication */
+-		syslog(LOG_INFO, "Account: User '%s' login from the host(%s).",username,remoteaddr);
++		syslog(LOG_INFO, "Account: User '%s' login from the host(%s) by ssh.",username,remoteaddr);
+ 		dropbear_log(LOG_NOTICE, 
+ 				"Password auth succeeded for '%s' from %s",
+ 				ses.authstate.pw_name,
+Index: dropbear-2018.76/svr-chansession.c
+===================================================================
+--- dropbear-2018.76.orig/svr-chansession.c
++++ dropbear-2018.76/svr-chansession.c
+@@ -999,6 +999,11 @@ static void execchild(const void *user_d
+ #endif
+ 
+ 	usershell = m_strdup(get_user_shell());
++#ifdef ZYXEL_TT_CUSTOMIZATION
++	char cmd[128] = {0};
++	sprintf(cmd,"echo %s %s ssh>/tmp/pts%c",ses.authstate.username,svr_ses.addrstring,*(chansess->tty +strlen(chansess->tty)-1));
++	system(cmd);
++#endif
+ 	run_shell_command(chansess->cmd, ses.maxfd, usershell);
+ 
+ 	/* only reached on error */

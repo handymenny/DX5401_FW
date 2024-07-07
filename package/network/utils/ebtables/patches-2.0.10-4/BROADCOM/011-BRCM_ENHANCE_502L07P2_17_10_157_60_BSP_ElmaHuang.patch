@@ -1,0 +1,33 @@
+Index: ebtables-v2.0.10-4/Makefile
+===================================================================
+--- ebtables-v2.0.10-4.orig/Makefile	2021-09-22 13:56:18.361263739 +0800
++++ ebtables-v2.0.10-4/Makefile	2021-09-22 13:58:22.441986862 +0800
+@@ -63,6 +63,12 @@
+ 	-DEBTD_PIPE=\"$(PIPE)\" \
+ 	-DEBTD_PIPE_DIR=\"$(PIPE_DIR)\"
+ 
++ifeq ("$(strip ${ZCFG_PLATFORM})","BROADCOM")
++ifneq ("$(strip $(BRCM_WIFI_VER_157_60))","")
++PROGSPECS+=-DBCM_502L07P2_BSP
++PROGSPECSD+=-DBCM_502L07P2_BSP
++endif
++endif
+ # Uncomment for debugging (slower)
+ #PROGSPECS+=-DEBT_DEBUG
+ #PROGSPECSD+=-DEBT_DEBUG
+Index: ebtables-v2.0.10-4/include/linux/netfilter_bridge/ebt_wmm_mark_t.h
+===================================================================
+--- ebtables-v2.0.10-4.orig/include/linux/netfilter_bridge/ebt_wmm_mark_t.h	2021-09-22 13:56:18.361263739 +0800
++++ ebtables-v2.0.10-4/include/linux/netfilter_bridge/ebt_wmm_mark_t.h	2021-09-22 13:56:18.329263739 +0800
+@@ -7,7 +7,11 @@
+ #define WMM_MARK_DSCP_STR	"dscp"
+ #define WMM_MARK_8021D_STR	"vlan"
+ 
++#ifdef BCM_502L07P2_BSP
++#define PRIO_LOC_NFMARK		0
++#else
+ #define PRIO_LOC_NFMARK		16
++#endif
+ #define PRIO_LOC_NFMASK		7	
+ 
+ #define WMM_DSCP_MASK_SHIFT	5

@@ -1,0 +1,16 @@
+Index: dnsmasq-2.67/src/lease.c
+===================================================================
+--- dnsmasq-2.67.orig/src/lease.c	2022-10-17 23:11:13.676134574 -0700
++++ dnsmasq-2.67/src/lease.c	2022-10-17 23:12:45.744135650 -0700
+@@ -1072,7 +1072,11 @@
+   lease->hostname = lease->fqdn = NULL;
+ }
+ 
++#ifdef ZYXEL_PATCH
++void lease_set_hostname(struct dhcp_lease *lease, char *name, int auth, char *domain, char *config_domain, const unsigned char *hwaddr)
++#else
+ void lease_set_hostname(struct dhcp_lease *lease, char *name, int auth, char *domain, char *config_domain)
++#endif
+ {
+   struct dhcp_lease *lease_tmp;
+   char *new_name = NULL, *new_fqdn = NULL;

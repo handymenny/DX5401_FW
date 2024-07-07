@@ -1,0 +1,13 @@
+Index: ecmh-2005.02.09/src/Makefile
+===================================================================
+--- ecmh-2005.02.09.orig/src/Makefile	2021-01-21 10:56:03.393753000 +0800
++++ ecmh-2005.02.09/src/Makefile	2021-01-21 10:57:12.233753000 +0800
+@@ -35,7 +35,7 @@
+ ifeq ($(strip $(TCSUPPORT_3_18_21_KERNEL)),y)
+ CFLAGS += -I$(LINUX_DIR)/user_headers/include/
+ else
+-CFLAGS += -I$(LINUX_DIR)/include/
++CFLAGS += $(MAKE_FLAGS)
+ endif
+ 
+ ifneq ($(TC_CFLAGS), )

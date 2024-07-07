@@ -1,0 +1,12 @@
+Index: linux-4.1.52/net/netfilter/nfnetlink_queue_core.c
+===================================================================
+--- linux-4.1.52.orig/net/netfilter/nfnetlink_queue_core.c	2021-02-26 16:46:18.574570075 +0800
++++ linux-4.1.52/net/netfilter/nfnetlink_queue_core.c	2021-02-26 16:52:42.153761296 +0800
+@@ -228,6 +228,7 @@
+ 	int err;
+ 
+ 	if (verdict == NF_ACCEPT ||
++		verdict == NF_REPEAT ||
+ 	    verdict == NF_STOP) {
+ 		rcu_read_lock();
+ 		ct_update = rcu_dereference(nf_ct_update);

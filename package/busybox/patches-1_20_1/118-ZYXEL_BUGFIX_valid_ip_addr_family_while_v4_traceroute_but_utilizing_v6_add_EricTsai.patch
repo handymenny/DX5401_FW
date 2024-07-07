@@ -1,0 +1,36 @@
+Index: busybox-1_20_1/libbb/xconnect.c
+===================================================================
+--- busybox-1_20_1.orig/libbb/xconnect.c	2020-11-05 10:37:51.718182035 +0800
++++ busybox-1_20_1/libbb/xconnect.c	2020-11-05 11:38:44.586985600 +0800
+@@ -252,12 +252,18 @@
+ 	 * check whether this is a numeric IPv4 */
+ 	IF_FEATURE_IPV6(if(af != AF_INET6)) {
+ 		struct in_addr in4;
++		struct in6_addr in6;
+ 		if (inet_aton(host, &in4) != 0) {
+ 			r = xzalloc(LSA_LEN_SIZE + sizeof(struct sockaddr_in));
+ 			r->len = sizeof(struct sockaddr_in);
+ 			r->u.sa.sa_family = AF_INET;
+ 			r->u.sin.sin_addr = in4;
+ 			goto set_port;
++		}else if(inet_pton(AF_INET6, host, (void *)&in6) == 1){
++			bb_error_msg("bad address '%s'", org_host);
++			if (ai_flags & DIE_ON_ERROR)
++				xfunc_die();
++			return NULL;
+ 		}
+ 	}
+ #if ENABLE_FEATURE_IPV6
+Index: busybox-1_20_1/networking/traceroute.c
+===================================================================
+--- busybox-1_20_1.orig/networking/traceroute.c	2020-11-05 10:37:52.486182013 +0800
++++ busybox-1_20_1/networking/traceroute.c	2020-11-05 11:12:24.828485600 +0800
+@@ -1295,7 +1295,7 @@
+ 	xsetgid(getgid());
+ 	xsetuid(getuid());
+ 
+-	printf("traceroute to %s (%s)", argv[0],
++	printf("%s to %s (%s)", (af == AF_INET6) ? "traceroute6" : "traceroute", argv[0],
+ 			xmalloc_sockaddr2dotted_noport(&dest_lsa->u.sa));
+ 	if (op & OPT_SOURCE)
+ 		printf(" from %s", source);

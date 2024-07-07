@@ -1,0 +1,120 @@
+Index: busybox-1_20_1/init/init.c
+===================================================================
+--- busybox-1_20_1.orig/init/init.c	2021-01-20 13:48:25.541753000 +0800
++++ busybox-1_20_1/init/init.c	2021-01-20 13:48:25.593753000 +0800
+@@ -131,6 +131,15 @@
+ # include <sys/ucontext.h>
+ #endif
+ 
++#if defined(PLATFORM_ECONET)
++#if defined(TCSUPPORT_4_4_KERNEL)
++/* for cpu_set_t usage in ECONET SDK 7.3.267.0, Trevor, 20201201 */
++#if defined __GLIBC__
++#include <sched.h>
++#endif //defined __GLIBC__
++#endif //defined(TCSUPPORT_4_4_KERNEL)
++#endif //defined(PLATFORM_ECONET)
++
+ /* Used only for sanitizing purposes in set_sane_term() below. On systems where
+  * the baud rate is stored in a separate field, we can safely disable them. */
+ #ifndef CBAUD
+@@ -1291,7 +1300,7 @@
+ 	printf("busybox init and set aff\n");
+ 	unsigned i = 0;
+ 	//only use TC1 to application. shnwind 20110318.
+-#ifdef TCSUPPORT_3_18_21_KERNEL
++#if defined( TCSUPPORT_3_18_21_KERNEL) || defined(TCSUPPORT_4_4_KERNEL)
+ 	unsigned long aff = 0x8;
+ #else
+ 	unsigned long aff = 0x2;
+Index: busybox-1_20_1/networking/ping.c
+===================================================================
+--- busybox-1_20_1.orig/networking/ping.c	2021-01-20 13:48:25.517753000 +0800
++++ busybox-1_20_1/networking/ping.c	2021-01-20 13:48:58.997753000 +0800
+@@ -421,6 +421,7 @@
+ #endif
+ 
+ void BUG_ping_globals_too_big(void);
++#ifdef ZCFG_SUPPORT
+ #define INIT_G() do { \
+ 	if (sizeof(G) > COMMON_BUFSIZE) \
+ 		BUG_ping_globals_too_big(); \
+@@ -431,6 +432,19 @@
+ 	jsonfilename = NULL; \
+ } while (0)
+ 
++#else
++
++#define INIT_G() do { \
++	if (sizeof(G) > COMMON_BUFSIZE) \
++		BUG_ping_globals_too_big(); \
++	pingsock = -1; \
++	datalen = DEFDATALEN; \
++	timeout = MAXWAIT; \
++	tmin = UINT_MAX; \
++} while (0)
++
++#endif
++
+ 
+ #define A(bit)		rcvd_tbl[(bit)>>3]	/* identify byte in array */
+ #define B(bit)		(1 << ((bit) & 0x07))	/* identify bit in byte */
+@@ -877,9 +891,11 @@
+ 	sockopt = (datalen * 2) + 7 * 1024; /* giving it a bit of extra room */
+ 	setsockopt(pingsock, SOL_SOCKET, SO_RCVBUF, &sockopt, sizeof(sockopt));
+ 
++#ifdef ZCFG_SUPPORT
+ 	//set skb mark to bind to non-default WAN rounting table
+ 	if(skbmark != 0)
+ 		setsockopt(pingsock, SOL_SOCKET, SO_MARK, &skbmark, sizeof(skbmark));
++#endif
+ 	
+ 	if (opt_ttl != 0) {
+ 		setsockopt(pingsock, IPPROTO_IP, IP_TTL, &opt_ttl, sizeof(opt_ttl));
+@@ -958,9 +974,11 @@
+ 	sockopt = (datalen * 2) + 7 * 1024; /* giving it a bit of extra room */
+ 	setsockopt(pingsock, SOL_SOCKET, SO_RCVBUF, &sockopt, sizeof(sockopt));
+ 
++#ifdef ZCFG_SUPPORT
+ 	//set skb mark to bind to non-default WAN rounting table
+ 	if(skbmark != 0)
+ 		setsockopt(pingsock, SOL_SOCKET, SO_MARK, &skbmark, sizeof(skbmark));
++#endif
+ 
+ 	sockopt = offsetof(struct icmp6_hdr, icmp6_cksum);
+ 	if (offsetof(struct icmp6_hdr, icmp6_cksum) != 2)
+@@ -1243,14 +1261,18 @@
+ static int common_ping_main(int opt, char **argv)
+ {
+ 	char *str_s;
++#ifdef ZCFG_SUPPORT
+ 	char *str_m;
++#endif
+ 	char *hostlist;
+ 
+ 	INIT_G();
+ 
+ 	/* exactly one argument needed; -v and -q don't mix; -c NUM, -t NUM, -w NUM, -W NUM */
+ 	opt_complementary = "=1:q--v:v--q:c+:t+:w+:W+";
++#ifdef ZCFG_SUPPORT
+ 	opt |= getopt32(argv, OPT_STRING, &pingcount, &str_s, &opt_ttl, &deadline, &timeout, &str_I, &jsonfilename, &str_m);
++#endif
+ 	if (opt & OPT_s)
+ 		datalen = xatou16(str_s); // -s
+ 	if (opt & OPT_I) { // -I
+@@ -1261,6 +1283,7 @@
+ 			str_I = NULL; /* don't try to bind to device later */
+ 		}
+ 	}
++#ifdef ZCFG_SUPPORT
+ 	if (opt & OPT_m) { // -m
+ 		skbmark = (uint32_t)atoll(str_m);
+ 	}
+@@ -1270,6 +1293,7 @@
+ 	else{
+ 		sendzcfgmsg = 1;
+ 	}
++#endif
+ 		
+ 	if(timeout == 0){
+ 		timeout = 1;

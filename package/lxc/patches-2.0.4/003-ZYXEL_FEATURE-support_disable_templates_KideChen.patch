@@ -1,0 +1,163 @@
+Index: lxc-2.0.4/configure
+===================================================================
+--- lxc-2.0.4.orig/configure
++++ lxc-2.0.4/configure
+@@ -688,6 +688,8 @@ PYTHONDEV_LIBS
+ PYTHONDEV_CFLAGS
+ ENABLE_EXAMPLES_FALSE
+ ENABLE_EXAMPLES_TRUE
++ENABLE_TEMPLATES_FALSE
++ENABLE_TEMPLATES_TRUE
+ CAP_LIBS
+ ENABLE_CAP_FALSE
+ ENABLE_CAP_TRUE
+@@ -859,6 +861,7 @@ enable_seccomp
+ enable_cgmanager
+ enable_capabilities
+ enable_examples
++enable_templates
+ enable_python
+ enable_mutex_debugging
+ enable_lua
+@@ -1548,6 +1551,7 @@ Optional Features:
+   --enable-cgmanager      enable cgmanager support [default=auto]
+   --enable-capabilities   enable kernel capabilities support [default=auto]
+   --enable-examples       install examples [default=yes]
++  --enable-templates      install templates [default=yes]
+   --enable-python         enable python binding [default=auto]
+   --enable-mutex-debugging
+                           Makes mutexes to report error and provide stack
+@@ -6769,6 +6773,21 @@ else
+   ENABLE_EXAMPLES_FALSE=
+ fi
+ 
++# Configuration templates
++# Check whether --enable-templates was given.
++if test "${enable_templates+set}" = set; then :
++  enableval=$enable_templates;
++else
++  enable_templates=yes
++fi
++
++if test "x$enable_templates" = "xyes"; then
++  ENABLE_TEMPLATES_TRUE=
++  ENABLE_TEMPLATES_FALSE='#'
++else
++  ENABLE_TEMPLATES_TRUE='#'
++  ENABLE_TEMPLATES_FALSE=
++fi
+ 
+ # Python3 module and scripts
+ # Check whether --enable-python was given.
+@@ -9672,6 +9691,10 @@ if test -z "${ENABLE_EXAMPLES_TRUE}" &&
+   as_fn_error $? "conditional \"ENABLE_EXAMPLES\" was never defined.
+ Usually this means the macro was only invoked conditionally." "$LINENO" 5
+ fi
++if test -z "${ENABLE_TEMPLATES_TRUE}" && test -z "${ENABLE_TEMPLATES_FALSE}"; then
++    as_fn_error $? "conditional \"ENABLE_TEMPLATES\" was never defined.
++Usually this means the macro was only invoked conditionally." "$LINENO" 5
++fi
+ if test -z "${ENABLE_PYTHON_TRUE}" && test -z "${ENABLE_PYTHON_FALSE}"; then
+   as_fn_error $? "conditional \"ENABLE_PYTHON\" was never defined.
+ Usually this means the macro was only invoked conditionally." "$LINENO" 5
+@@ -11318,6 +11341,7 @@ Bindings:
+ 
+ Documentation:
+  - examples: $enable_examples
++ - templates: $enable_templates
+  - API documentation: $enable_api_docs
+  - user documentation: $enable_doc
+ 
+Index: lxc-2.0.4/configure.ac
+===================================================================
+--- lxc-2.0.4.orig/configure.ac
++++ lxc-2.0.4/configure.ac
+@@ -350,6 +350,12 @@ AC_ARG_ENABLE([examples],
+ 	[], [enable_examples=yes])
+ AM_CONDITIONAL([ENABLE_EXAMPLES], [test "x$enable_examples" = "xyes"])
+ 
++# Configuration templates
++AC_ARG_ENABLE([templates],
++    [AC_HELP_STRING([--enable-templates], [install templates [default=yes]])],
++    [], [enable_templates=yes])
++AM_CONDITIONAL([ENABLE_TEMPLATES], [test "x$enable_templates" = "xyes"])
++
+ # Python3 module and scripts
+ AC_ARG_ENABLE([python],
+ 	[AC_HELP_STRING([--enable-python], [enable python binding [default=auto]])],
+@@ -885,6 +891,7 @@ Bindings:
+ 
+ Documentation:
+  - examples: $enable_examples
++ - templates: $enable_templates
+  - API documentation: $enable_api_docs
+  - user documentation: $enable_doc
+ 
+Index: lxc-2.0.4/templates/Makefile.am
+===================================================================
+--- lxc-2.0.4.orig/templates/Makefile.am
++++ lxc-2.0.4/templates/Makefile.am
+@@ -1,5 +1,6 @@
+ templatesdir=@LXCTEMPLATEDIR@
+ 
++if ENABLE_TEMPLATES
+ templates_SCRIPTS = \
+ 	lxc-alpine \
+ 	lxc-altlinux \
+@@ -20,3 +21,4 @@ templates_SCRIPTS = \
+ 	lxc-ubuntu \
+ 	lxc-ubuntu-cloud \
+ 	lxc-sparclinux
++endif
+\ No newline at end of file
+Index: lxc-2.0.4/templates/Makefile.in
+===================================================================
+--- lxc-2.0.4.orig/templates/Makefile.in
++++ lxc-2.0.4/templates/Makefile.in
+@@ -330,26 +330,26 @@ top_build_prefix = @top_build_prefix@
+ top_builddir = @top_builddir@
+ top_srcdir = @top_srcdir@
+ templatesdir = @LXCTEMPLATEDIR@
+-templates_SCRIPTS = \
+-	lxc-alpine \
+-	lxc-altlinux \
+-	lxc-archlinux \
+-	lxc-busybox \
+-	lxc-centos \
+-	lxc-cirros \
+-	lxc-debian \
+-	lxc-download \
+-	lxc-fedora \
+-	lxc-gentoo \
+-	lxc-openmandriva \
+-	lxc-opensuse \
+-	lxc-oracle \
+-	lxc-plamo \
+-	lxc-slackware \
+-	lxc-sshd \
+-	lxc-ubuntu \
+-	lxc-ubuntu-cloud \
+-	lxc-sparclinux
++@ENABLE_TEMPLATES_TRUE@templates_SCRIPTS = \
++@ENABLE_TEMPLATES_TRUE@	lxc-alpine \
++@ENABLE_TEMPLATES_TRUE@	lxc-altlinux \
++@ENABLE_TEMPLATES_TRUE@	lxc-archlinux \
++@ENABLE_TEMPLATES_TRUE@	lxc-busybox \
++@ENABLE_TEMPLATES_TRUE@	lxc-centos \
++@ENABLE_TEMPLATES_TRUE@	lxc-cirros \
++@ENABLE_TEMPLATES_TRUE@	lxc-debian \
++@ENABLE_TEMPLATES_TRUE@	lxc-download \
++@ENABLE_TEMPLATES_TRUE@	lxc-fedora \
++@ENABLE_TEMPLATES_TRUE@	lxc-gentoo \
++@ENABLE_TEMPLATES_TRUE@	lxc-openmandriva \
++@ENABLE_TEMPLATES_TRUE@	lxc-opensuse \
++@ENABLE_TEMPLATES_TRUE@	lxc-oracle \
++@ENABLE_TEMPLATES_TRUE@	lxc-plamo \
++@ENABLE_TEMPLATES_TRUE@	lxc-slackware \
++@ENABLE_TEMPLATES_TRUE@	lxc-sshd \
++@ENABLE_TEMPLATES_TRUE@	lxc-ubuntu \
++@ENABLE_TEMPLATES_TRUE@	lxc-ubuntu-cloud \
++@ENABLE_TEMPLATES_TRUE@	lxc-sparclinux
+ 
+ all: all-am
+ 

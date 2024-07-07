@@ -1,0 +1,13 @@
+Index: zebra-0.93a/lib/vty.c
+===================================================================
+--- zebra-0.93a.orig/lib/vty.c	2021-01-14 16:35:59.756177301 +0800
++++ zebra-0.93a/lib/vty.c	2021-01-14 16:37:33.291792622 +0800
+@@ -1581,7 +1581,7 @@
+       /* Vty is not available if password isn't set. */
+       if (host.password == NULL && host.password_encrypt == NULL)
+ 	{
+-	  vty_out (vty, "Vty password is not set.%s", VTY_NEWLINE);
++	  vty_out (vty, "Vty password isn't set.%s", VTY_NEWLINE);
+ 	  vty->status = VTY_CLOSE;
+ 	  vty_close (vty);
+ 	  return NULL;

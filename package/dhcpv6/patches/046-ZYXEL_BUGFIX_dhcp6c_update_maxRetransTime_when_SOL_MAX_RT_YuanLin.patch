@@ -1,0 +1,103 @@
+Index: wide-dhcpv6-20080615/common.c
+===================================================================
+--- wide-dhcpv6-20080615.orig/common.c
++++ wide-dhcpv6-20080615/common.c
+@@ -1763,7 +1763,7 @@ dhcp6_get_options(p, ep, optinfo)
+ 			if (optlen != 4)
+ 				goto malformed;
+ 			memcpy(&val32, cp, sizeof(val32));
+-			val32 = ntohs(val32);
++			val32 = ntohl(val32);
+ 			if(val32<60||val32>86400){
+ 				optinfo->max_rt=(SOL_MAX_RT / 1000);
+ 			}else{
+@@ -3686,6 +3686,32 @@ int dhcp6_get_options_from_rdm(struct dh
+ 	return (0);
+ }
+ 
++u_int32_t
++dhcp6_get_maxRetransTime_from_rdm (char *pidfile)
++{
++	rdm_Dhcpv6Client_t *dhcp6cObj = NULL;
++
++	objIndex_t objIid;
++	zcfgRet_t ret;
++    u_int32_t maxRetransTime;
++
++	IID_INIT(objIid);
++	objIid.level = 1;
++	objIid.idx[0] = 1;
++
++	IID_INIT(objIid);
++	while((ret = zcfgFeObjStructGetNextWithoutUpdate(RDM_OID_DHCPV6_CLIENT, &objIid, (void **)&dhcp6cObj)) == ZCFG_SUCCESS) {
++
++		if(pidfile != NULL && strcmp(pidfile, dhcp6cObj->X_ZYXEL_DhcpcPidFilePath) == 0) {
++            maxRetransTime = dhcp6cObj->X_ZYXEL_MaxRetransTime;
++        }
++
++        zcfgFeObjStructFree(dhcp6cObj);
++	}
++
++	return maxRetransTime;
++}
++
+ #ifdef ZYXEL_DHCPV6C_OPTION
+ u_int32_t
+ dhcp6_get_iaid_from_rdm (int type)
+Index: wide-dhcpv6-20080615/common.h
+===================================================================
+--- wide-dhcpv6-20080615.orig/common.h
++++ wide-dhcpv6-20080615/common.h
+@@ -157,6 +157,7 @@ struct dhcp6c_Msg {
+ 	char ntpserver[128];
+ 	int eidtNtpServer;
+ #endif
++    int maxRetransTime;
+ };
+ 
+ struct dhcp6s_Msg {
+Index: wide-dhcpv6-20080615/dhcp6c.c
+===================================================================
+--- wide-dhcpv6-20080615.orig/dhcp6c.c
++++ wide-dhcpv6-20080615/dhcp6c.c
+@@ -334,6 +334,8 @@ void dhcpMsgToJsonFormat(struct json_obj
+ 		json_object_object_add(dhcp6cMsgBody, "psid", json_object_new_int(dhcp6cMsg.psid));
+ 		json_object_object_add(dhcp6cMsgBody, "isFMR", json_object_new_boolean(dhcp6cMsg.isFMR));
+ 	}
++    if(dhcp6cMsg.maxRetransTime)
++        json_object_object_add(dhcp6cMsgBody, "maxRetransTime", json_object_new_int(dhcp6cMsg.maxRetransTime));
+ }
+ 
+ void
+@@ -942,7 +944,7 @@ client6_timo(arg)
+ 	struct dhcp6_event *ev = (struct dhcp6_event *)arg;
+ 	struct dhcp6_if *ifp;
+ 	int state = ev->state;
+-
++    u_int32_t maxRetransTime = 0;
+ 	ifp = ev->ifp;
+ 	ev->timeouts++;
+ 
+@@ -975,8 +977,12 @@ client6_timo(arg)
+ 				dprintf(LOG_ERR, FNAME, "can't send solicit");
+ 				exit(1); /* XXX */
+ 			}
++
++            maxRetransTime = dhcp6_get_maxRetransTime_from_rdm(pid_file);
+ 		}
+ 		dhcp6_set_timeoparam(ev); /* XXX */
++        if(ev->state == DHCP6S_SOLICIT && maxRetransTime)
++            ev->max_retrans_time = maxRetransTime*1000;
+ 		/* fall through */
+ 	case DHCP6S_REQUEST:
+ 	case DHCP6S_RELEASE:
+@@ -2010,7 +2016,8 @@ dprintf(LOG_ERR, FNAME, "client6_recvadv
+ 	}
+ 	/*SOL_MAX_RT*/
+ 	if(optinfo->max_rt){
+-		ev->max_retrans_time=optinfo->max_rt*1000;
++        dhcp6cMsg.maxRetransTime = optinfo->max_rt;
++	    ev->max_retrans_time=optinfo->max_rt*1000;
+ 	}
+ 	/*
+ 	 * The requesting router MUST ignore any Advertise message that

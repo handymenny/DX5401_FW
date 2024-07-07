@@ -1,0 +1,5559 @@
+#
+# Automatically generated make config: don't edit
+# OpenWrt version: Barrier Breaker (unknown)
+# Mon Aug 28 16:08:04 2023
+#
+CONFIG_MODULES=y
+CONFIG_HAVE_DOT_CONFIG=y
+
+#
+# ZyXEL Project Configuration
+#
+CONFIG_ZYXEL_FIRMWARE_VERSION="V5.17(ABYO.4)C0"
+CONFIG_ZYXEL_FIRMWARE_VERSION_EXT=""
+CONFIG_ZYXEL_FIRMWARE_ID="ABYO"
+CONFIG_ZYXEL_GUI_PATCH_DIR="ZyXEL_Generic"
+
+#
+# Build system options
+#
+CONFIG_ZYXEL_OPENWRT_14=y
+CONFIG_IGNORE_OPENWRT_GEN_FILES=y
+CONFIG_CUSTOM_KCONFIG_PREFIX="bcmsdk-502L07P2-arm-ABYO-"
+CONFIG_CUSTOM_KPATCH_PREFIX="bcmsdk-502L07P2-"
+
+#
+# Default MRD information
+#
+CONFIG_MRD_PROVINCE_NAME="STD"
+CONFIG_MRD_VENDOR_NAME="Zyxel Communications Corp."
+CONFIG_MRD_PRODUCT_NAME="DX5401-B0"
+CONFIG_MRD_SERIAL_NO="S090Y00000000"
+CONFIG_MRD_MAIN_FEATURE_BIT=0
+CONFIG_MRD_MODEL_ID="4566"
+CONFIG_MRD_DEBUG_BIT=1
+CONFIG_MRD_COUNTRY_CODE=0xFF
+
+#
+# Other MRD information
+#
+# CONFIG_ZYXEL_HARDWARE_VENDOR_PEGATRON is not set
+CONFIG_ZYXEL_HARDWARE_VENDOR_MSTC=y
+# CONFIG_ZYXEL_HARDWARE_VENDOR_TWSZ is not set
+# CONFIG_ZYXEL_HARDWARE_VENDOR_PROWARE is not set
+CONFIG_ZYXEL_HARDWARE_VENDOR="MSTC"
+CONFIG_ZYXEL_HARDWARE_VERSION=1
+CONFIG_SAME_FW_FOR_PROJECTS=y
+# CONFIG_ZYXEL_SUPPORT_LONG_BYTE_SERIAL_NUMBER is not set
+
+#
+# Zyxel Feature Bits Option
+#
+CONFIG_ZYXEL_FEATURE_BITS=y
+CONFIG_MRD_FEATURE_BITS=y
+CONFIG_MRD_SUPPORT_VOICE=y
+# CONFIG_MRD_SUPPORT_VOICE_SINGLE is not set
+CONFIG_MRD_SUPPORT_2_4_G=y
+# CONFIG_MRD_SUPPORT_FEM_2_4_G is not set
+# CONFIG_MRD_SUPPORT_EXTANT_2_4_G is not set
+CONFIG_MRD_SUPPORT_5G=y
+# CONFIG_MRD_SUPPORT_FEM_5G is not set
+# CONFIG_MRD_SUPPORT_EXTANT_5G is not set
+CONFIG_MRD_SUPPORT_VDSL_17A=y
+CONFIG_MRD_SUPPORT_VDSL_35B=y
+# CONFIG_MRD_SUPPORT_GFAST is not set
+# CONFIG_MRD_SUPPORT_WITHOUT_XDSL is not set
+CONFIG_MRD_SUPPORT_ANNEX_A=y
+# CONFIG_MRD_SUPPORT_ANNEX_B is not set
+# CONFIG_MRD_SUPPORT_ANNEX_C is not set
+# CONFIG_MRD_SUPPORT_ZIGBEE is not set
+CONFIG_ZYXEL_SUPPORT_MISC=y
+CONFIG_ZYXEL_CUSTOMISED_MISC_NAME="misc2"
+CONFIG_ZYXEL_BROADCOM_LICENSE_NAME="license_zyxel_altibox_eyenetworks_speed_service_20220302.txt"
+
+#
+# bcm963xx default NVRAM values
+#
+CONFIG_BCM63138_NVRAM_MEMORY_CONFIG=0x00010427
+CONFIG_BCM63138_NVRAM_MC_MEMORY_ALLOCATION=8
+CONFIG_BCM63138_NVRAM_TM_MEMORY_ALLOCATION=44
+CONFIG_BCM63138_NVRAM_DHD0_MEMORY_ALLOCATION=12
+CONFIG_BCM63138_NVRAM_DHD1_MEMORY_ALLOCATION=12
+CONFIG_BCM63138_NVRAM_DHD2_MEMORY_ALLOCATION=0
+
+#
+# Manufacture options
+#
+CONFIG_FILL_IN_PARTITION_INFO_INTO_NVRAM=y
+CONFIG_TARGET_NAND_FLASH_TOTAL_SIZE=512
+# CONFIG_ZYXEL_RMA_FW_SUPPORT is not set
+CONFIG_ZYXEL_SYS_FWUR_SUPPORT=y
+
+#
+# Supported components on hardware
+#
+CONFIG_DSL_SUPPORT=y
+# CONFIG_XPON_SUPPORT is not set
+# CONFIG_LTE_SUPPORT is not set
+# CONFIG_PROXIMITY_SENSOR_SUPPORT is not set
+# CONFIG_ZYXEL_ZIGBEE_SUPPORT is not set
+
+#
+# Hardware depend misc.
+#
+# CONFIG_ZYXEL_QTN_WIFI_5G_SUPPORT is not set
+CONFIG_ZYXEL_SW_RESET_WIFI_MODULE=y
+# CONFIG_ZYXEL_WPS_SPOTLIGHT is not set
+# CONFIG_ZYXEL_WPS_SPOTLIGHT_BLINK is not set
+# CONFIG_ZYXEL_WPS_IPTVPARING_2GPIO is not set
+# CONFIG_ZYXEL_QUALITY_AMBER_2GPIO is not set
+# CONFIG_ZYXEL_LED_EN_SUPPORT is not set
+CONFIG_ZYXEL_SFP_MODULE_SUPPORT=y
+CONFIG_ZYXEL_SFP_DETECT_PIN=y
+CONFIG_ZYXEL_SFP_TX_FAULT_PIN=y
+CONFIG_ZYXEL_SFP_TX_DISABLE=y
+# CONFIG_ZYXEL_SFP_RX_SLEEP is not set
+# CONFIG_ZYXEL_SFP_SW_RX_LOS is not set
+# CONFIG_ZYXEL_FEM_DETECT is not set
+CONFIG_ZYXEL_BOARD_DETECT_BY_GPIO=y
+# CONFIG_ZYXEL_SUPPORT_BOTH_256_512_FLASH is not set
+# CONFIG_ZYXEL_UPS_FEATURE is not set
+CONFIG_ZYXEL_NEW_ATEN_ATSE=y
+# CONFIG_ZYXEL_NEW_ATSN is not set
+CONFIG_ZYXEL_AT_SET_KEY=y
+CONFIG_ZYXEL_AT_SET_SUPERVISOR_KEY=y
+# CONFIG_ZYXEL_YAD_SET_FIXED_PSK is not set
+# CONFIG_ZYXEL_ENCRYPTKEY_USE_AT_KEY is not set
+CONFIG_ZYXEL_ENCRYPT_USE_OLD_AES_KEY=y
+
+#
+# Customization design for new id
+#
+CONFIG_ZYXEL_DISABLE_TXRX_FOR_WAN_ACT=y
+# CONFIG_ZYXEL_ACEN_NEW_XDSL_BEHAVIOR is not set
+CONFIG_ZYXEL_SUPPORT_SW_LAN_AGGREGATE_LED=y
+CONFIG_ZYXEL_SUPPORT_SMB2=y
+CONFIG_ZYXEL_URL_FILTER=y
+CONFIG_ZYXEL_HOME_CYBER_SECURITY=y
+# CONFIG_ZYXEL_NPACK_GET_ATCK_GEN_BACKHAUL is not set
+CONFIG_ZYXEL_ZIPQ_USE_LIBMNL=y
+CONFIG_ZYXEL_ZIPQ_USE_ZEXTMARK=y
+CONFIG_ZYXEL_MODSW_ZYEE=y
+# CONFIG_ZYXEL_MODSW_ZYEE_PREINSTALL is not set
+# CONFIG_ZCFG_MODULE_DEBUG is not set
+# CONFIG_OUTPUT_REDIRECT is not set
+# CONFIG_ZYXEL_WIFI_DELAY_INIT is not set
+# CONFIG_ZYXEL_ZYWIFID_FORCE_AFFINITY is not set
+CONFIG_ZYXEL_DELAY_CHK_DO_POWER_SAVE=0
+# CONFIG_ZYXEL_TR69_XMPP_CONNECTION_REQUEST is not set
+CONFIG_ZYXEL_SYSTEMCMD_REPLACEMENT=y
+# CONFIG_ZYXEL_ZTR69_COMMON_LIB is not set
+# CONFIG_ZYXEL_ZTR69_CLI is not set
+# CONFIG_ZYXEL_LED_BLINKING_DEFAULT_DISABLE is not set
+# CONFIG_HIDE_GUI_WIFI_GUEST2_GUEST3_SSID is not set
+# CONFIG_ZYXEL_IPK_FLOW_ENHANCE is not set
+# CONFIG_ZYXEL_HOME_CYBER_SECURITY_FSECURE_NATIVE is not set
+# CONFIG_ZYXEL_HOME_CYBER_SECURITY_FSECURE_IPK is not set
+# CONFIG_ZYXEL_HOME_CYBER_SECURITY_FSECURE_COMMON is not set
+# CONFIG_TARGET_ppc40x is not set
+# CONFIG_TARGET_ppc44x is not set
+# CONFIG_TARGET_realview is not set
+# CONFIG_TARGET_atheros is not set
+# CONFIG_TARGET_ar71xx is not set
+# CONFIG_TARGET_at91 is not set
+# CONFIG_TARGET_avr32 is not set
+# CONFIG_TARGET_brcm2708 is not set
+# CONFIG_TARGET_brcm63xx is not set
+# CONFIG_TARGET_brcm47xx is not set
+CONFIG_TARGET_brcm963xx=y
+# CONFIG_TARGET_sibyte is not set
+# CONFIG_TARGET_cns21xx is not set
+# CONFIG_TARGET_cns3xxx is not set
+# CONFIG_TARGET_octeon is not set
+# CONFIG_TARGET_ep93xx is not set
+# CONFIG_TARGET_cobalt is not set
+# CONFIG_TARGET_gemini is not set
+# CONFIG_TARGET_coldfire is not set
+# CONFIG_TARGET_mpc52xx is not set
+# CONFIG_TARGET_mpc83xx is not set
+# CONFIG_TARGET_mpc85xx is not set
+# CONFIG_TARGET_imx21 is not set
+# CONFIG_TARGET_amazon is not set
+# CONFIG_TARGET_adm8668 is not set
+# CONFIG_TARGET_adm5120 is not set
+# CONFIG_TARGET_xburst is not set
+# CONFIG_TARGET_iop32x is not set
+# CONFIG_TARGET_ixp4xx is not set
+# CONFIG_TARGET_leon is not set
+# CONFIG_TARGET_lantiq is not set
+# CONFIG_TARGET_malta is not set
+# CONFIG_TARGET_mt75xx is not set
+# CONFIG_TARGET_ramips is not set
+# CONFIG_TARGET_kirkwood is not set
+# CONFIG_TARGET_orion is not set
+# CONFIG_TARGET_pxa is not set
+# CONFIG_TARGET_rb532 is not set
+# CONFIG_TARGET_mcs814x is not set
+# CONFIG_TARGET_ipq is not set
+# CONFIG_TARGET_au1000 is not set
+# CONFIG_TARGET_sparc is not set
+# CONFIG_TARGET_ar7 is not set
+# CONFIG_TARGET_omap24xx is not set
+# CONFIG_TARGET_omap35xx is not set
+# CONFIG_TARGET_omap4 is not set
+# CONFIG_TARGET_uml is not set
+# CONFIG_TARGET_x86 is not set
+# CONFIG_TARGET_lantiq_xway is not set
+# CONFIG_TARGET_lantiq_ase is not set
+# CONFIG_TARGET_lantiq_falcon is not set
+# CONFIG_TARGET_au1000_au1500 is not set
+# CONFIG_TARGET_au1000_au1550 is not set
+# CONFIG_TARGET_ixp4xx_generic is not set
+# CONFIG_TARGET_ixp4xx_harddisk is not set
+# CONFIG_TARGET_ipq_ipq806x is not set
+# CONFIG_TARGET_ipq_ipq40xx is not set
+# CONFIG_TARGET_ipq_ipq807x is not set
+# CONFIG_TARGET_ipq_ipq807x_64 is not set
+# CONFIG_TARGET_omap35xx_beagleboard is not set
+# CONFIG_TARGET_omap35xx_gumstix is not set
+# CONFIG_TARGET_ramips_rt288x is not set
+# CONFIG_TARGET_ramips_rt305x is not set
+# CONFIG_TARGET_ramips_rt3883 is not set
+# CONFIG_TARGET_ramips_mt7621 is not set
+# CONFIG_TARGET_ramips_lte7240 is not set
+# CONFIG_TARGET_ar7_generic is not set
+# CONFIG_TARGET_ar7_ac49x is not set
+# CONFIG_TARGET_xburst_qi_lb60 is not set
+# CONFIG_TARGET_xburst_n516 is not set
+# CONFIG_TARGET_xburst_n526 is not set
+# CONFIG_TARGET_xburst_id800wt is not set
+# CONFIG_TARGET_adm5120_router_le is not set
+# CONFIG_TARGET_adm5120_router_be is not set
+# CONFIG_TARGET_adm5120_rb1xx is not set
+# CONFIG_TARGET_malta_le is not set
+# CONFIG_TARGET_malta_be is not set
+# CONFIG_TARGET_at91_9g20 is not set
+# CONFIG_TARGET_at91_9260 is not set
+# CONFIG_TARGET_at91_9263 is not set
+# CONFIG_TARGET_orion_generic is not set
+# CONFIG_TARGET_orion_harddisk is not set
+# CONFIG_TARGET_orion_dns323 is not set
+# CONFIG_TARGET_brcm963xx_96858GWOV is not set
+# CONFIG_TARGET_brcm963xx_96838GWOV is not set
+# CONFIG_TARGET_brcm963xx_963158GW is not set
+# CONFIG_TARGET_brcm963xx_963138ref is not set
+# CONFIG_TARGET_brcm963xx_963269bhr is not set
+# CONFIG_TARGET_brcm963xx_963178GWV is not set
+# CONFIG_TARGET_brcm963xx_962118GWV is not set
+# CONFIG_TARGET_brcm963xx_dx3100_b0 is not set
+# CONFIG_TARGET_brcm963xx_dx3200_b0 is not set
+# CONFIG_TARGET_brcm963xx_dx3201_b0 is not set
+# CONFIG_TARGET_brcm963xx_dx4510_b0 is not set
+# CONFIG_TARGET_brcm963xx_dx5301_b0 is not set
+# CONFIG_TARGET_brcm963xx_dx5301_b1 is not set
+# CONFIG_TARGET_brcm963xx_dx5301_b2 is not set
+# CONFIG_TARGET_brcm963xx_dx5301_b3 is not set
+CONFIG_TARGET_brcm963xx_dx5401_b0=y
+# CONFIG_TARGET_brcm963xx_dx5511_b0 is not set
+# CONFIG_TARGET_brcm963xx_emg3415 is not set
+# CONFIG_TARGET_brcm963xx_emg6726_b10a is not set
+# CONFIG_TARGET_brcm963xx_ex3510_b0 is not set
+# CONFIG_TARGET_brcm963xx_ex5501_b0 is not set
+# CONFIG_TARGET_brcm963xx_ex5510_b0 is not set
+# CONFIG_TARGET_brcm963xx_fmg3586 is not set
+# CONFIG_TARGET_brcm963xx_mx5301_b3 is not set
+# CONFIG_TARGET_brcm963xx_pm701_b10a is not set
+# CONFIG_TARGET_brcm963xx_px5501_b0 is not set
+# CONFIG_TARGET_brcm963xx_px5501_b1 is not set
+# CONFIG_TARGET_brcm963xx_px7501_b0 is not set
+# CONFIG_TARGET_brcm963xx_px7511_b0 is not set
+# CONFIG_TARGET_brcm963xx_vmg1312 is not set
+# CONFIG_TARGET_brcm963xx_vmg3625 is not set
+# CONFIG_TARGET_brcm963xx_vmg3925 is not set
+# CONFIG_TARGET_brcm963xx_vmg3925_b10c is not set
+# CONFIG_TARGET_brcm963xx_vmg3925_b30c is not set
+# CONFIG_TARGET_brcm963xx_vmg3926 is not set
+# CONFIG_TARGET_brcm963xx_vmg3926b is not set
+# CONFIG_TARGET_brcm963xx_vmg3927_b50b is not set
+# CONFIG_TARGET_brcm963xx_vmg4005_b50a is not set
+# CONFIG_TARGET_brcm963xx_vmg4005_b60a is not set
+# CONFIG_TARGET_brcm963xx_vmg4927_b50a is not set
+# CONFIG_TARGET_brcm963xx_vmg5313b is not set
+# CONFIG_TARGET_brcm963xx_vmg8823_b10b is not set
+# CONFIG_TARGET_brcm963xx_vmg8823_b30b is not set
+# CONFIG_TARGET_brcm963xx_vmg8823_b50b is not set
+# CONFIG_TARGET_brcm963xx_vmg8823_b60b is not set
+# CONFIG_TARGET_brcm963xx_vmg8825_b50b is not set
+# CONFIG_TARGET_brcm963xx_vmg8825_b50k is not set
+# CONFIG_TARGET_brcm963xx_vmg8828_b50b is not set
+# CONFIG_TARGET_brcm963xx_vmg8924 is not set
+# CONFIG_TARGET_brcm963xx_vmg8924_b10a is not set
+# CONFIG_TARGET_brcm963xx_vmg8924_b10d is not set
+# CONFIG_TARGET_brcm963xx_vmg8924_b30d is not set
+# CONFIG_TARGET_brcm963xx_vmg8948 is not set
+# CONFIG_TARGET_brcm963xx_vmg9823 is not set
+# CONFIG_TARGET_brcm963xx_wx3401_b0 is not set
+# CONFIG_TARGET_brcm963xx_xmg3512 is not set
+# CONFIG_TARGET_brcm963xx_xmg3563_b10a is not set
+# CONFIG_TARGET_brcm963xx_xmg8825_b50a is not set
+# CONFIG_TARGET_mt75xx_mt7505 is not set
+# CONFIG_TARGET_mt75xx_mt7520 is not set
+# CONFIG_TARGET_mt75xx_mt7525_tw is not set
+# CONFIG_TARGET_mt75xx_pmg5317_t20a is not set
+# CONFIG_TARGET_mt75xx_pmg1006_t20a is not set
+# CONFIG_TARGET_mt75xx_pmg2006_t20a is not set
+# CONFIG_TARGET_x86_generic is not set
+# CONFIG_TARGET_x86_olpc is not set
+# CONFIG_TARGET_x86_xen_domu is not set
+# CONFIG_TARGET_x86_ep80579 is not set
+# CONFIG_TARGET_x86_net5501 is not set
+# CONFIG_TARGET_x86_kvm_guest is not set
+# CONFIG_TARGET_x86_geos is not set
+# CONFIG_TARGET_x86_alix2 is not set
+# CONFIG_TARGET_x86_thincan is not set
+# CONFIG_TARGET_x86_rdc is not set
+# CONFIG_TARGET_ar71xx_generic is not set
+# CONFIG_TARGET_ar71xx_nand is not set
+# CONFIG_TARGET_octeon_generic is not set
+# CONFIG_TARGET_octeon_mototech is not set
+# CONFIG_TARGET_lantiq_xway_ARV4525PW is not set
+# CONFIG_TARGET_lantiq_xway_ARV7525PW is not set
+# CONFIG_TARGET_lantiq_xway_ARV4518PW is not set
+# CONFIG_TARGET_lantiq_xway_ARV4510PW is not set
+# CONFIG_TARGET_lantiq_xway_ARV7518PW is not set
+# CONFIG_TARGET_lantiq_xway_ARV4520PW is not set
+# CONFIG_TARGET_lantiq_xway_ARV452CQW is not set
+# CONFIG_TARGET_lantiq_xway_ARV752DPW is not set
+# CONFIG_TARGET_lantiq_xway_ARV752DPW22 is not set
+# CONFIG_TARGET_lantiq_xway_FRITZ7320 is not set
+# CONFIG_TARGET_lantiq_xway_FRITZ3370 is not set
+# CONFIG_TARGET_lantiq_xway_WBMRA is not set
+# CONFIG_TARGET_lantiq_xway_WBMRB is not set
+# CONFIG_TARGET_lantiq_xway_EASY50712 is not set
+# CONFIG_TARGET_lantiq_xway_EASY80920NOR is not set
+# CONFIG_TARGET_lantiq_xway_EASY80920NAND is not set
+# CONFIG_TARGET_lantiq_xway_DGN3500 is not set
+# CONFIG_TARGET_lantiq_xway_DGN3500B is not set
+# CONFIG_TARGET_lantiq_ase_DGN1000B is not set
+# CONFIG_TARGET_lantiq_falcon_EASY98000NOR is not set
+# CONFIG_TARGET_lantiq_falcon_EASY98000SFLASH is not set
+# CONFIG_TARGET_omap24xx_n810-base is not set
+# CONFIG_TARGET_omap24xx_n810-gui is not set
+# CONFIG_TARGET_au1000_au1500_Atheros is not set
+# CONFIG_TARGET_au1000_au1500_InternetBox is not set
+# CONFIG_TARGET_au1000_au1500_MeshCube is not set
+# CONFIG_TARGET_au1000_au1550_DBAu1550 is not set
+# CONFIG_TARGET_mpc85xx_Default is not set
+# CONFIG_TARGET_brcm63xx_Broadcom is not set
+# CONFIG_TARGET_brcm63xx_Broadcom-wl is not set
+# CONFIG_TARGET_brcm63xx_Atheros is not set
+# CONFIG_TARGET_brcm63xx_Ralink is not set
+# CONFIG_TARGET_brcm63xx_NoWiFi is not set
+# CONFIG_TARGET_brcm63xx_Broadcom-brcmsmac is not set
+# CONFIG_TARGET_brcm63xx_GW6X00 is not set
+# CONFIG_TARGET_ixp4xx_generic_Default is not set
+# CONFIG_TARGET_ixp4xx_generic_Atheros-ath5k is not set
+# CONFIG_TARGET_ixp4xx_generic_NSLU2 is not set
+# CONFIG_TARGET_ixp4xx_generic_NAS100d is not set
+# CONFIG_TARGET_ixp4xx_generic_DSMG600RevA is not set
+# CONFIG_TARGET_ixp4xx_generic_USR8200 is not set
+# CONFIG_TARGET_ixp4xx_harddisk_FSG3 is not set
+# CONFIG_TARGET_mcs814x_Generic is not set
+# CONFIG_TARGET_mcs814x_dLAN_USB_Extender is not set
+# CONFIG_TARGET_ipq_Default is not set
+# CONFIG_TARGET_ipq_QSDK_Open is not set
+# CONFIG_TARGET_ipq_QSDK_Premium is not set
+# CONFIG_TARGET_ipq_QSDK_Standard is not set
+# CONFIG_TARGET_ipq_QSDK_Enterprise is not set
+# CONFIG_TARGET_ipq_QSDK_Deluxe is not set
+# CONFIG_TARGET_ipq_ipq806x_Default is not set
+# CONFIG_TARGET_ipq_ipq806x_QSDK_Open is not set
+# CONFIG_TARGET_ipq_ipq806x_QSDK_Premium is not set
+# CONFIG_TARGET_ipq_ipq806x_QSDK_Standard is not set
+# CONFIG_TARGET_ipq_ipq806x_QSDK_Enterprise is not set
+# CONFIG_TARGET_ipq_ipq806x_QSDK_Deluxe is not set
+# CONFIG_TARGET_ipq_ipq40xx_Default is not set
+# CONFIG_TARGET_ipq_ipq40xx_QSDK_Open is not set
+# CONFIG_TARGET_ipq_ipq40xx_QSDK_Premium is not set
+# CONFIG_TARGET_ipq_ipq40xx_QSDK_Standard is not set
+# CONFIG_TARGET_ipq_ipq40xx_QSDK_Enterprise is not set
+# CONFIG_TARGET_ipq_ipq40xx_QSDK_Deluxe is not set
+# CONFIG_TARGET_ipq_ipq807x_Default is not set
+# CONFIG_TARGET_ipq_ipq807x_QSDK_Open is not set
+# CONFIG_TARGET_ipq_ipq807x_QSDK_Premium is not set
+# CONFIG_TARGET_ipq_ipq807x_QSDK_Standard is not set
+# CONFIG_TARGET_ipq_ipq807x_QSDK_Enterprise is not set
+# CONFIG_TARGET_ipq_ipq807x_QSDK_Deluxe is not set
+# CONFIG_TARGET_ipq_ipq807x_64_Default is not set
+# CONFIG_TARGET_ipq_ipq807x_64_QSDK_Open is not set
+# CONFIG_TARGET_ipq_ipq807x_64_QSDK_Premium is not set
+# CONFIG_TARGET_ipq_ipq807x_64_QSDK_Standard is not set
+# CONFIG_TARGET_ipq_ipq807x_64_QSDK_Enterprise is not set
+# CONFIG_TARGET_ipq_ipq807x_64_QSDK_Deluxe is not set
+# CONFIG_TARGET_omap35xx_beagleboard_Beagleboard is not set
+# CONFIG_TARGET_omap35xx_gumstix_Gumstix is not set
+# CONFIG_TARGET_omap35xx_gumstix_Vpp is not set
+# CONFIG_TARGET_omap35xx_gumstix_Es is not set
+# CONFIG_TARGET_amazon_Default is not set
+# CONFIG_TARGET_atheros_Default is not set
+# CONFIG_TARGET_sparc_Default is not set
+# CONFIG_TARGET_ramips_rt288x_Default is not set
+# CONFIG_TARGET_ramips_rt288x_RTN15 is not set
+# CONFIG_TARGET_ramips_rt288x_F5D8235V1 is not set
+# CONFIG_TARGET_ramips_rt305x_Default is not set
+# CONFIG_TARGET_ramips_rt305x_ALL02393G is not set
+# CONFIG_TARGET_ramips_rt305x_ALL0256N is not set
+# CONFIG_TARGET_ramips_rt305x_ALL5002 is not set
+# CONFIG_TARGET_ramips_rt305x_HW5503G is not set
+# CONFIG_TARGET_ramips_rt305x_F5D8235V2 is not set
+# CONFIG_TARGET_ramips_rt305x_BROADWAY is not set
+# CONFIG_TARGET_ramips_rt305x_ESR9753 is not set
+# CONFIG_TARGET_ramips_rt305x_FONERA20N is not set
+# CONFIG_TARGET_ramips_rt305x_FREESTATION5 is not set
+# CONFIG_TARGET_ramips_rt305x_RT-N13U is not set
+# CONFIG_TARGET_ramips_rt305x_W306R_V20 is not set
+# CONFIG_TARGET_ramips_rt305x_UPVEL is not set
+# CONFIG_TARGET_ramips_rt3883_Default is not set
+# CONFIG_TARGET_ramips_rt3883_RTN56U is not set
+# CONFIG_TARGET_ramips_rt3883_DIR645 is not set
+# CONFIG_TARGET_ramips_rt3883_TEW691GR is not set
+# CONFIG_TARGET_ramips_rt3883_TEW692GR is not set
+# CONFIG_TARGET_ramips_mt7621_MT7621 is not set
+# CONFIG_TARGET_ramips_mt7621_LTE5366 is not set
+# CONFIG_TARGET_ramips_lte7240_Generic is not set
+# CONFIG_TARGET_cns3xxx_Default is not set
+# CONFIG_TARGET_coldfire_Default is not set
+# CONFIG_TARGET_ar7_generic_Annex-A is not set
+# CONFIG_TARGET_ar7_generic_Annex-B is not set
+# CONFIG_TARGET_ar7_generic_Texas is not set
+# CONFIG_TARGET_ar7_generic_None is not set
+# CONFIG_TARGET_ar7_ac49x_None is not set
+# CONFIG_TARGET_sibyte_Default is not set
+# CONFIG_TARGET_iop32x_Default is not set
+# CONFIG_TARGET_avr32_Default is not set
+# CONFIG_TARGET_gemini_Default is not set
+# CONFIG_TARGET_mpc52xx_Default is not set
+# CONFIG_TARGET_adm8668_WRTU54G-TM is not set
+# CONFIG_TARGET_brcm47xx_Broadcom-b43 is not set
+# CONFIG_TARGET_brcm47xx_Broadcom-wl is not set
+# CONFIG_TARGET_brcm47xx_Broadcom-ath5k is not set
+# CONFIG_TARGET_brcm47xx_Broadcom-none is not set
+# CONFIG_TARGET_brcm47xx_Bcm4705-b43 is not set
+# CONFIG_TARGET_brcm47xx_Bcm4705-wl is not set
+# CONFIG_TARGET_brcm47xx_Bcm4705-none is not set
+# CONFIG_TARGET_brcm47xx_Ps1208mfg is not set
+# CONFIG_TARGET_brcm47xx_WGT634U is not set
+# CONFIG_TARGET_brcm47xx_WL500GPv1 is not set
+# CONFIG_TARGET_brcm47xx_WRT350Nv1 is not set
+# CONFIG_TARGET_brcm47xx_WRTSL54GS is not set
+# CONFIG_TARGET_xburst_qi_lb60_Default is not set
+# CONFIG_TARGET_xburst_n516_Default is not set
+# CONFIG_TARGET_xburst_n526_Default is not set
+# CONFIG_TARGET_xburst_id800wt_Default is not set
+# CONFIG_TARGET_adm5120_router_le_Generic is not set
+# CONFIG_TARGET_adm5120_router_le_EB-214A is not set
+# CONFIG_TARGET_adm5120_router_le_CAS630 is not set
+# CONFIG_TARGET_adm5120_router_le_CAS630W is not set
+# CONFIG_TARGET_adm5120_router_le_CAS670 is not set
+# CONFIG_TARGET_adm5120_router_le_CAS670W is not set
+# CONFIG_TARGET_adm5120_router_le_CAS700 is not set
+# CONFIG_TARGET_adm5120_router_le_CAS700W is not set
+# CONFIG_TARGET_adm5120_router_le_CAS771 is not set
+# CONFIG_TARGET_adm5120_router_le_CAS771W is not set
+# CONFIG_TARGET_adm5120_router_le_CAS790 is not set
+# CONFIG_TARGET_adm5120_router_le_CAS861 is not set
+# CONFIG_TARGET_adm5120_router_le_CAS861W is not set
+# CONFIG_TARGET_adm5120_router_le_NFS101U is not set
+# CONFIG_TARGET_adm5120_router_le_NFS101WU is not set
+# CONFIG_TARGET_adm5120_router_le_NP27G is not set
+# CONFIG_TARGET_adm5120_router_le_NP28G is not set
+# CONFIG_TARGET_adm5120_router_le_WP54 is not set
+# CONFIG_TARGET_adm5120_router_le_BR6104K is not set
+# CONFIG_TARGET_adm5120_router_le_BR6104KP is not set
+# CONFIG_TARGET_adm5120_router_le_BR6104WG is not set
+# CONFIG_TARGET_adm5120_router_le_BR6114WG is not set
+# CONFIG_TARGET_adm5120_router_le_EASY5120RT is not set
+# CONFIG_TARGET_adm5120_router_le_EASY5120PATA is not set
+# CONFIG_TARGET_adm5120_router_le_PMUGW is not set
+# CONFIG_TARGET_adm5120_router_le_5GXI is not set
+# CONFIG_TARGET_adm5120_router_be_Generic is not set
+# CONFIG_TARGET_adm5120_router_be_P334WT is not set
+# CONFIG_TARGET_adm5120_router_be_P335WT is not set
+# CONFIG_TARGET_adm5120_rb1xx_RouterBoard is not set
+# CONFIG_TARGET_brcm2708_RaspberryPi is not set
+# CONFIG_TARGET_uml_Default is not set
+# CONFIG_TARGET_malta_le_Default is not set
+# CONFIG_TARGET_malta_be_Default is not set
+# CONFIG_TARGET_ep93xx_Default is not set
+# CONFIG_TARGET_ep93xx_Simone is not set
+# CONFIG_TARGET_omap4_Default is not set
+# CONFIG_TARGET_at91_9g20_Default is not set
+# CONFIG_TARGET_at91_9260_flexibity-minimal is not set
+# CONFIG_TARGET_at91_9260_flexibity-xwrt is not set
+# CONFIG_TARGET_at91_9260_flexibity-luci is not set
+# CONFIG_TARGET_at91_9263_Default is not set
+# CONFIG_TARGET_cobalt_Default is not set
+# CONFIG_TARGET_ppc44x_Default is not set
+# CONFIG_TARGET_cns21xx_Default is not set
+# CONFIG_TARGET_kirkwood_Default is not set
+# CONFIG_TARGET_imx21_Default is not set
+# CONFIG_TARGET_realview_Default is not set
+# CONFIG_TARGET_orion_generic_Default is not set
+# CONFIG_TARGET_orion_harddisk_Default is not set
+# CONFIG_TARGET_orion_dns323_Default is not set
+# CONFIG_TARGET_brcm963xx_96858GWOV_Default is not set
+# CONFIG_TARGET_brcm963xx_96838GWOV_Default is not set
+# CONFIG_TARGET_brcm963xx_963158GW_Default is not set
+# CONFIG_TARGET_brcm963xx_963138ref_Default is not set
+# CONFIG_TARGET_brcm963xx_963269bhr_Default is not set
+# CONFIG_TARGET_brcm963xx_963178GWV_Default is not set
+# CONFIG_TARGET_brcm963xx_962118GWV_Default is not set
+# CONFIG_TARGET_brcm963xx_dx3100_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_dx3200_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_dx3201_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_dx4510_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_dx5301_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_dx5301_b1_Default is not set
+# CONFIG_TARGET_brcm963xx_dx5301_b2_Default is not set
+# CONFIG_TARGET_brcm963xx_dx5301_b3_Default is not set
+CONFIG_TARGET_brcm963xx_dx5401_b0_Default=y
+# CONFIG_TARGET_brcm963xx_dx5511_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_emg3415_Default is not set
+# CONFIG_TARGET_brcm963xx_emg6726_b10a_Default is not set
+# CONFIG_TARGET_brcm963xx_ex3510_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_ex5501_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_ex5510_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_fmg3586_Default is not set
+# CONFIG_TARGET_brcm963xx_mx5301_b3_Default is not set
+# CONFIG_TARGET_brcm963xx_pm701_b10a_Default is not set
+# CONFIG_TARGET_brcm963xx_px5501_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_px5501_b1_Default is not set
+# CONFIG_TARGET_brcm963xx_px7501_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_px7511_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg1312_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg3625_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg3925_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg3925_b10c_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg3925_b30c_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg3926_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg3926b_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg3927_b50b_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg4005_b50a_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg4005_b60a_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg4927_b50a_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg5313b_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8823_b10b_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8823_b30b_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8823_b50b_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8823_b60b_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8825_b50b_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8825_b50k_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8828_b50b_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8924_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8924_b10a_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8924_b10d_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8924_b30d_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg8948_Default is not set
+# CONFIG_TARGET_brcm963xx_vmg9823_Default is not set
+# CONFIG_TARGET_brcm963xx_wx3401_b0_Default is not set
+# CONFIG_TARGET_brcm963xx_xmg3512_Default is not set
+# CONFIG_TARGET_brcm963xx_xmg3563_b10a_Default is not set
+# CONFIG_TARGET_brcm963xx_xmg8825_b50a_Default is not set
+# CONFIG_TARGET_mpc83xx_Default is not set
+# CONFIG_TARGET_mt75xx_mt7505_Default is not set
+# CONFIG_TARGET_mt75xx_mt7520_Default is not set
+# CONFIG_TARGET_mt75xx_mt7525_tw_Default is not set
+# CONFIG_TARGET_mt75xx_pmg5317_t20a_Default is not set
+# CONFIG_TARGET_mt75xx_pmg5317_t20a_Sdk180 is not set
+# CONFIG_TARGET_mt75xx_pmg1006_t20a_Default is not set
+# CONFIG_TARGET_mt75xx_pmg1006_t20a_Sdk180 is not set
+# CONFIG_TARGET_mt75xx_pmg2006_t20a_Default is not set
+# CONFIG_TARGET_mt75xx_pmg2006_t20a_Sdk180 is not set
+# CONFIG_TARGET_x86_generic_Generic is not set
+# CONFIG_TARGET_x86_generic_Soekris45xx is not set
+# CONFIG_TARGET_x86_generic_Soekris48xx is not set
+# CONFIG_TARGET_x86_generic_Wrap is not set
+# CONFIG_TARGET_x86_olpc_Default is not set
+# CONFIG_TARGET_x86_xen_domu_Default is not set
+# CONFIG_TARGET_x86_ep80579_Default is not set
+# CONFIG_TARGET_x86_net5501_Default is not set
+# CONFIG_TARGET_x86_kvm_guest_Default is not set
+# CONFIG_TARGET_x86_geos_Default is not set
+# CONFIG_TARGET_x86_alix2_Default is not set
+# CONFIG_TARGET_x86_thincan_DBE61 is not set
+# CONFIG_TARGET_x86_rdc_ar525w is not set
+# CONFIG_TARGET_x86_rdc_bifferboard is not set
+# CONFIG_TARGET_x86_rdc_r8610 is not set
+# CONFIG_TARGET_x86_rdc_sitecom is not set
+# CONFIG_TARGET_rb532_Default is not set
+# CONFIG_TARGET_ppc40x_Default is not set
+# CONFIG_TARGET_pxa_Default is not set
+# CONFIG_TARGET_pxa_Gumstix is not set
+# CONFIG_TARGET_ar71xx_generic_Default is not set
+# CONFIG_TARGET_ar71xx_generic_Minimal is not set
+# CONFIG_TARGET_ar71xx_generic_ath5k is not set
+# CONFIG_TARGET_ar71xx_generic_ALFAAP96 is not set
+# CONFIG_TARGET_ar71xx_generic_HORNETUB is not set
+# CONFIG_TARGET_ar71xx_generic_ALFANX is not set
+# CONFIG_TARGET_ar71xx_generic_ALL0305 is not set
+# CONFIG_TARGET_ar71xx_generic_ALL0258N is not set
+# CONFIG_TARGET_ar71xx_generic_ALL0315N is not set
+# CONFIG_TARGET_ar71xx_generic_AP113 is not set
+# CONFIG_TARGET_ar71xx_generic_AP121 is not set
+# CONFIG_TARGET_ar71xx_generic_AP121MINI is not set
+# CONFIG_TARGET_ar71xx_generic_AP135 is not set
+# CONFIG_TARGET_ar71xx_generic_AP136 is not set
+# CONFIG_TARGET_ar71xx_generic_AP81 is not set
+# CONFIG_TARGET_ar71xx_generic_AP83 is not set
+# CONFIG_TARGET_ar71xx_generic_AP96 is not set
+# CONFIG_TARGET_ar71xx_generic_DB120 is not set
+# CONFIG_TARGET_ar71xx_generic_PB42 is not set
+# CONFIG_TARGET_ar71xx_generic_PB44 is not set
+# CONFIG_TARGET_ar71xx_generic_PB92 is not set
+# CONFIG_TARGET_ar71xx_generic_A02RBW300N is not set
+# CONFIG_TARGET_ar71xx_generic_WZRHPG300NH is not set
+# CONFIG_TARGET_ar71xx_generic_WZRHPG300NH2 is not set
+# CONFIG_TARGET_ar71xx_generic_WZRHPAG300H is not set
+# CONFIG_TARGET_ar71xx_generic_WZRHPG450H is not set
+# CONFIG_TARGET_ar71xx_generic_WHRG301N is not set
+# CONFIG_TARGET_ar71xx_generic_WHRHPG300N is not set
+# CONFIG_TARGET_ar71xx_generic_WHRHPGN is not set
+# CONFIG_TARGET_ar71xx_generic_WLAEAG300N is not set
+# CONFIG_TARGET_ar71xx_generic_WP543 is not set
+# CONFIG_TARGET_ar71xx_generic_WPE72 is not set
+# CONFIG_TARGET_ar71xx_generic_DIR600A1 is not set
+# CONFIG_TARGET_ar71xx_generic_DIR601A1 is not set
+# CONFIG_TARGET_ar71xx_generic_DIR615C1 is not set
+# CONFIG_TARGET_ar71xx_generic_DIR615E4 is not set
+# CONFIG_TARGET_ar71xx_generic_DIR825B1 is not set
+# CONFIG_TARGET_ar71xx_generic_EWDORIN is not set
+# CONFIG_TARGET_ar71xx_generic_JA76PF is not set
+# CONFIG_TARGET_ar71xx_generic_JA76PF2 is not set
+# CONFIG_TARGET_ar71xx_generic_JWAP003 is not set
+# CONFIG_TARGET_ar71xx_generic_WRT160NL is not set
+# CONFIG_TARGET_ar71xx_generic_WRT400N is not set
+# CONFIG_TARGET_ar71xx_generic_WNDR3700 is not set
+# CONFIG_TARGET_ar71xx_generic_WNDR4300 is not set
+# CONFIG_TARGET_ar71xx_generic_OM2P is not set
+# CONFIG_TARGET_ar71xx_generic_MR600 is not set
+# CONFIG_TARGET_ar71xx_generic_OPENMESH is not set
+# CONFIG_TARGET_ar71xx_generic_UBDEV01 is not set
+# CONFIG_TARGET_ar71xx_generic_DLRTDEV01 is not set
+# CONFIG_TARGET_ar71xx_generic_MZKW04NU is not set
+# CONFIG_TARGET_ar71xx_generic_MZKW300NH is not set
+# CONFIG_TARGET_ar71xx_generic_RW2458N is not set
+# CONFIG_TARGET_ar71xx_generic_CAP4200AG is not set
+# CONFIG_TARGET_ar71xx_generic_TLMR11U is not set
+# CONFIG_TARGET_ar71xx_generic_TLMR3020 is not set
+# CONFIG_TARGET_ar71xx_generic_TLMR3040 is not set
+# CONFIG_TARGET_ar71xx_generic_TLMR3220 is not set
+# CONFIG_TARGET_ar71xx_generic_TLMR3420 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWR703 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWA701 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWA7510 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWA801 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWA901 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWDR4300 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWR740 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWR741 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWR743 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWR841 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWR842 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWR941 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWR1041 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWR1043 is not set
+# CONFIG_TARGET_ar71xx_generic_TLWR2543 is not set
+# CONFIG_TARGET_ar71xx_generic_TEW632BRP is not set
+# CONFIG_TARGET_ar71xx_generic_TEW652BRP is not set
+# CONFIG_TARGET_ar71xx_generic_TEW673GRU is not set
+# CONFIG_TARGET_ar71xx_generic_TEW712BR is not set
+# CONFIG_TARGET_ar71xx_generic_UBNTRS is not set
+# CONFIG_TARGET_ar71xx_generic_UBNTRSPRO is not set
+# CONFIG_TARGET_ar71xx_generic_UBNTUNIFI is not set
+# CONFIG_TARGET_ar71xx_generic_UBNTUNIFIOUTDOOR is not set
+# CONFIG_TARGET_ar71xx_generic_UAPPRO is not set
+# CONFIG_TARGET_ar71xx_generic_UBNT is not set
+# CONFIG_TARGET_ar71xx_generic_ZCN1523H28 is not set
+# CONFIG_TARGET_ar71xx_generic_ZCN1523H516 is not set
+# CONFIG_TARGET_ar71xx_generic_NBG_460N_550N_550NH is not set
+# CONFIG_TARGET_ar71xx_generic_NBG6716 is not set
+# CONFIG_TARGET_ar71xx_generic_NBG6616 is not set
+# CONFIG_TARGET_ar71xx_nand_DefaultNoWifi is not set
+# CONFIG_TARGET_ar71xx_nand_Ath5k is not set
+# CONFIG_TARGET_leon_Default is not set
+CONFIG_HAS_SUBTARGETS=y
+CONFIG_TARGET_BOARD="brcm963xx"
+CONFIG_TARGET_ARCH_PACKAGES="brcm963xx"
+CONFIG_DEFAULT_TARGET_OPTIMIZATION="-Os -pipe -march=armv5te -mtune=xscale -fno-caller-saves"
+CONFIG_LINUX_4_1=y
+CONFIG_DEFAULT_busybox=y
+CONFIG_DEFAULT_dropbear=y
+CONFIG_DEFAULT_libc=y
+CONFIG_DEFAULT_libgcc=y
+CONFIG_DEFAULT_mtd=y
+CONFIG_DEFAULT_opkg=y
+CONFIG_AUDIO_SUPPORT=y
+CONFIG_PCI_SUPPORT=y
+CONFIG_PCMCIA_SUPPORT=y
+CONFIG_USB_SUPPORT=y
+CONFIG_arm=y
+CONFIG_ARCH="arm"
+
+#
+# brcm963xx configuration
+#
+# CONFIG_BRCM963xx_SDK_VER_412L08 is not set
+# CONFIG_BRCM963xx_SDK_VER_414L04 is not set
+# CONFIG_BRCM963xx_SDK_VER_416L01RC1 is not set
+# CONFIG_BRCM963xx_SDK_VER_416L01 is not set
+# CONFIG_BRCM963xx_SDK_VER_416L02 is not set
+# CONFIG_BRCM963xx_SDK_VER_416L02A is not set
+# CONFIG_BRCM963xx_SDK_VER_416L04 is not set
+# CONFIG_BRCM963xx_SDK_VER_416L05 is not set
+# CONFIG_BRCM963xx_SDK_VER_502L04 is not set
+# CONFIG_BRCM963xx_SDK_VER_502L05 is not set
+# CONFIG_BRCM963xx_SDK_VER_502L06 is not set
+CONFIG_BRCM963xx_SDK_VER_502L07=y
+CONFIG_BRCM_SDK_VERSION="502L07"
+
+#
+# Broadcom SDK Configuration
+#
+
+#
+# Chip and Board configuration selection
+#
+# CONFIG_BRCMSDK502L07_BRCM_63268 is not set
+# CONFIG_BRCMSDK502L07_BRCM_6838 is not set
+# CONFIG_BRCMSDK502L07_BRCM_6848 is not set
+# CONFIG_BRCMSDK502L07_BRCM_6858 is not set
+# CONFIG_BRCMSDK502L07_BRCM_6846 is not set
+# CONFIG_BRCMSDK502L07_BRCM_6878 is not set
+# CONFIG_BRCMSDK502L07_BRCM_6855 is not set
+# CONFIG_BRCMSDK502L07_BRCM_47622 is not set
+# CONFIG_BRCMSDK502L07_BRCM_63178 is not set
+# CONFIG_BRCMSDK502L07_BRCM_6856 is not set
+CONFIG_BRCMSDK502L07_BRCM_63138=y
+# CONFIG_BRCMSDK502L07_BRCM_63148 is not set
+# CONFIG_BRCMSDK502L07_BRCM_63158 is not set
+# CONFIG_BRCMSDK502L07_BRCM_63381 is not set
+# CONFIG_BRCMSDK502L07_BRCM_47189 is not set
+# CONFIG_BRCMSDK502L07_BRCM_4908 is not set
+CONFIG_BRCMSDK502L07_BRCM_CHIP="63138"
+CONFIG_BRCM502L07_RM_QUOTES_BRCM_CHIP=y
+CONFIG_BRCMSDK502L07_BRCM_CHIP_REV=""
+CONFIG_BRCMSDK502L07_BRCM_BUILD_MULTIARCH=""
+CONFIG_BRCMSDK502L07_BRCM_BOARD_ID="DX5401-B0"
+CONFIG_BRCMSDK502L07_BRCM_VOICE_BOARD_ID="SI32280_ISI_CB"
+CONFIG_BRCMSDK502L07_BRCM_GPON_SERIAL_NUMBER=""
+CONFIG_BRCM502L07_RM_QUOTES_BRCM_GPON_SERIAL_NUMBER=y
+CONFIG_BRCMSDK502L07_BRCM_GPON_PASSWORD=""
+CONFIG_BRCM502L07_RM_QUOTES_BRCM_GPON_PASSWORD=y
+CONFIG_BRCMSDK502L07_BRCM_GPON_CT_LOID=""
+CONFIG_BRCM502L07_RM_QUOTES_BRCM_GPON_CT_LOID=y
+CONFIG_BRCMSDK502L07_BRCM_GPON_CT_PASSWORD=""
+CONFIG_BRCM502L07_RM_QUOTES_BRCM_GPON_CT_PASSWORD=y
+CONFIG_BRCMSDK502L07_BRCM_FLASHBLK_SIZE=256
+CONFIG_BRCMSDK502L07_BRCM_NUM_MAC_ADDRESSES=12
+CONFIG_BRCMSDK502L07_BRCM_BASE_MAC_ADDRESS="02:10:18:01:00:01"
+CONFIG_BRCMSDK502L07_BRCM_PSI_SIZE=48
+CONFIG_BRCMSDK502L07_BRCM_BACKUP_PSI=0
+CONFIG_BRCMSDK502L07_BRCM_MAIN_TP_NUM=0
+
+#
+# Toolchain selection
+#
+CONFIG_BRCMSDK502L07_PROFILE_ARCH="arm"
+CONFIG_BRCM502L07_RM_QUOTES_PROFILE_ARCH=y
+CONFIG_BRCMSDK502L07_KERNEL_ARCH="arm"
+CONFIG_BRCM502L07_RM_QUOTES_KERNEL_ARCH=y
+CONFIG_BRCMSDK502L07_BRCM_USE_STD_TOOLCHAIN=y
+# CONFIG_BRCMSDK502L07_BRCM_USE_ALT_TOOLCHAIN is not set
+# CONFIG_BRCMSDK502L07_BRCM_UCLIBC is not set
+CONFIG_BRCMSDK502L07_BRCM_GLIBC=y
+
+#
+# File system selection
+#
+# CONFIG_BRCMSDK502L07_BRCM_ROOTFS_SQUASHFS is not set
+# CONFIG_BRCMSDK502L07_BRCM_ROOTFS_ALL is not set
+CONFIG_BRCMSDK502L07_BRCM_ROOTFS_CONFIG=y
+CONFIG_BRCMSDK502L07_BRCM_FLASH_BUILD_NAND=y
+CONFIG_BRCMSDK502L07_BRCM_FLASH_NAND_LAYOUT_SPLIT=y
+CONFIG_BRCMSDK502L07_BRCM_FLASH_NAND_LAYOUT_PUREUBI=y
+CONFIG_BRCMSDK502L07_BRCM_FLASH_NAND_ROOTFS_UBIFS=y
+CONFIG_BRCMSDK502L07_BRCM_FLASH_NAND_ROOTFS_SQUBI=y
+# CONFIG_BRCMSDK502L07_BUILD_EMMC_IMG is not set
+
+#
+# NAND Options
+#
+CONFIG_BRCMSDK502L07_BUILD_NAND_KERNEL_LZMA=y
+# CONFIG_BRCMSDK502L07_BUILD_NAND_KERNEL_LZ4 is not set
+# CONFIG_BRCMSDK502L07_BUILD_NAND_IMG_BLKSIZE_128KB is not set
+CONFIG_BRCMSDK502L07_BUILD_NAND_IMG_BLKSIZE_256KB=y
+# CONFIG_BRCMSDK502L07_BUILD_NAND_IMG_BLKSIZE_512KB is not set
+# CONFIG_BRCMSDK502L07_BUILD_NAND_IMG_BLKSIZE_1024KB is not set
+# CONFIG_BRCMSDK502L07_BRCM_ROOTFS_RW is not set
+CONFIG_BRCMSDK502L07_BUILD_MTDUTILS=y
+# CONFIG_BRCMSDK502L07_BLD_FLASH_TOOLS is not set
+CONFIG_BRCMSDK502L07_BRCM_MISC1_PARTITION_SIZE=8
+CONFIG_BRCMSDK502L07_BRCM_MISC2_PARTITION_SIZE=256
+CONFIG_BRCMSDK502L07_BRCM_MISC3_PARTITION_SIZE=0
+CONFIG_BRCMSDK502L07_BRCM_MISC4_PARTITION_SIZE=8
+# CONFIG_BRCMSDK502L07_BRCM_CFG_USER_PARTITIONS is not set
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_ROOTFS="all"
+CONFIG_BRCM502L07_RM_QUOTES_BRCM_KERNEL_ROOTFS=y
+# CONFIG_BRCMSDK502L07_BRCM_RAMDISK_BOOT_EN is not set
+# CONFIG_BRCMSDK502L07_BRCM_NFS_MOUNT_EN is not set
+CONFIG_BRCMSDK502L07_BRCM_INCREMENTAL_IMAGE_LOAD=y
+# CONFIG_BRCMSDK502L07_BRCM_NO_AUTOCOMMIT_IMAGE is not set
+
+#
+# Kernel configuration selection
+#
+# CONFIG_BRCMSDK502L07_LINUX_3_4_0_RT is not set
+# CONFIG_BRCMSDK502L07_LINUX_3_14_0 is not set
+CONFIG_BRCMSDK502L07_LINUX_4_1_0=y
+# CONFIG_BRCMSDK502L07_LINUX_4_19_0 is not set
+CONFIG_BRCMSDK502L07_PROFILE_KERNEL_VER="LINUX_4_1_0"
+CONFIG_BRCM502L07_RM_QUOTES_PROFILE_KERNEL_VER=y
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_PREEMPT=y
+CONFIG_BRCMSDK502L07_BRCM_SCHED_RT_PERIOD=100000
+CONFIG_BRCMSDK502L07_BRCM_SCHED_RT_RUNTIME=99000
+# CONFIG_BRCMSDK502L07_BRCM_SCHED_RT_SHARE is not set
+# CONFIG_BRCMSDK502L07_BRCM_PROC_CPU_AFFINITY_HINT is not set
+# CONFIG_BRCMSDK502L07_BRCM_CONFIG_HIGH_RES_TIMERS is not set
+CONFIG_BRCMSDK502L07_BCM_HARDIRQ_COUNT_CYCLES=y
+# CONFIG_BRCMSDK502L07_BCM_CGROUPS is not set
+# CONFIG_BRCMSDK502L07_BCM_KERNEL_CMDLINE_BOOL is not set
+# CONFIG_BRCMSDK502L07_BRCM_ANDROID is not set
+# CONFIG_BRCMSDK502L07_BRCM_WAN_2_WAN_FWD_ENABLED is not set
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_BONDING=y
+# CONFIG_BRCMSDK502L07_BRCM_RUNNER_FLOODING is not set
+# CONFIG_BRCMSDK502L07_BRCM_SPECTRE_PATCH_ENABLE is not set
+# CONFIG_BRCMSDK502L07_BP_PHYS_INTF is not set
+# CONFIG_BRCMSDK502L07_BRCM_CMA_RSVMEM is not set
+
+#
+# Kernel Cryptographic selection
+#
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_CRYPTO=y
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_CRYPTO_HMAC=y
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_CRYPTO_NULL=y
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_CRYPTO_MD5=y
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_CRYPTO_SHA1=y
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_CRYPTO_SHA2=y
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_CRYPTO_DES=y
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_CRYPTO_AES=y
+
+#
+# Misc Drivers (other drivers are grouped with their features)
+#
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_PCI=y
+# CONFIG_BRCMSDK502L07_BRCM_PCIE_SSC is not set
+# CONFIG_BRCMSDK502L07_BRCM_PCIE_PLATFORM is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_PCI_MSI is not set
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_I2C=y
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_OPTICALDET=y
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_SMTC is not set
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_HS_UART=y
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_EMMC is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_I2S is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_ISDN is not set
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_EXT_TIMER=y
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_WDT=y
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_TIMER is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_OTP is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_ACP is not set
+
+#
+# Major Feature Selection
+#
+CONFIG_BRCMSDK502L07_BUILD_BRCM_BASE_SHELL=y
+# CONFIG_BRCMSDK502L07_BUILD_BRCM_CMS is not set
+# CONFIG_BRCMSDK502L07_BUILD_BRCM_HNDROUTER is not set
+# CONFIG_BRCMSDK502L07_BUILD_BSTREAM_IQOS is not set
+# CONFIG_BRCMSDK502L07_BUILD_GENCFG_TOOLS is not set
+# CONFIG_BRCMSDK502L07_BUILD_BTEST_TOOLS is not set
+CONFIG_BRCM502L07_BUSYBOX_DONT_BUILD=y
+# CONFIG_BRCM502L07_BUSYBOX_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_BUSYBOX_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_IPV6=y
+CONFIG_BRCM502L07_VCONFIG_DONT_BUILD=y
+# CONFIG_BRCM502L07_VCONFIG_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_VCONFIG_STATIC_BUILD is not set
+# CONFIG_BRCMSDK502L07_BUILD_BRCM_INTERNAL is not set
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_SPDSVC=y
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_SPDTEST=y
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_LICENSE is not set
+# CONFIG_BRCMSDK502L07_BUILD_BOOT_BLOCK_HOUSEKEEPING is not set
+# CONFIG_BRCMSDK502L07_BUILD_EMMC_TRAPEZE is not set
+
+#
+# DSL/XTM selection
+#
+# CONFIG_BRCMSDK502L07_BUILD_PHY_ADSL is not set
+# CONFIG_BRCMSDK502L07_BUILD_PHY_VDSL is not set
+CONFIG_BRCMSDK502L07_BUILD_PHY_MULTIMODE=y
+# CONFIG_BRCMSDK502L07_BRCM_PHY_BONDING is not set
+# CONFIG_BRCMSDK502L07_BRCM_MULTI_PHY is not set
+# CONFIG_BRCMSDK502L07_BRCM_EXT_PHY_BONDING is not set
+# CONFIG_BRCMSDK502L07_BRCM_PHY_BONDING5B is not set
+# CONFIG_BRCMSDK502L07_BRCM_PHY_GINP_RTX is not set
+# CONFIG_BRCMSDK502L07_BRCM_PHY_BONDING_C0 is not set
+# CONFIG_BRCMSDK502L07_BRCM_PHY_GFAST is not set
+CONFIG_BRCMSDK502L07_BRCM_ADSL_ANNEX_A=y
+# CONFIG_BRCMSDK502L07_BRCM_ADSL_ANNEX_B is not set
+# CONFIG_BRCMSDK502L07_BRCM_ADSL_ANNEX_C is not set
+# CONFIG_BRCMSDK502L07_BRCM_ADSL_SADSL is not set
+CONFIG_BRCMSDK502L07_BRCM_ADSL_STANDARD="ANNEX_A"
+CONFIG_BRCM502L07_RM_QUOTES_BRCM_ADSL_STANDARD=y
+CONFIG_BRCMSDK502L07_CPE_ANNEX_A=y
+CONFIG_BRCMSDK502L07_BRCM_ANNEXAB_COMBO=y
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_ADSL=m
+CONFIG_BRCMSDK502L07_BUILD_DSL=y
+# CONFIG_BRCM502L07_XDSLCTL_DONT_BUILD is not set
+CONFIG_BRCM502L07_XDSLCTL_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_XDSLCTL_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_XDSLCTL="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_XDSLCTL=y
+CONFIG_BRCMSDK502L07_BUILD_DSLDIAGD=y
+# CONFIG_BRCMSDK502L07_BUILD_DSL_LOOP_DIAG is not set
+# CONFIG_BRCMSDK502L07_BRCM_PHY_LOOPBACK is not set
+# CONFIG_BRCMSDK502L07_BUILD_DSL_SELT_TEST is not set
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_XTM=m
+# CONFIG_BRCM502L07_XTMCTL_DONT_BUILD is not set
+CONFIG_BRCM502L07_XTMCTL_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_XTMCTL_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_XTMCTL="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_XTMCTL=y
+CONFIG_BRCMSDK502L07_BUILD_ATMWAN=y
+CONFIG_BRCMSDK502L07_BUILD_PTMWAN=y
+CONFIG_BRCMSDK502L07_BUILD_ATMLOOPBACK=y
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_EXT_BONDING is not set
+
+#
+# Ethernet, Switch, and VLAN Selection
+#
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_ETHERNET=m
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_ETHERNET_CONFIG=y
+CONFIG_BRCMSDK502L07_BUILD_ETHWAN=y
+CONFIG_BRCMSDK502L07_BRCM_SWITCH_SCHED_SP=y
+# CONFIG_BRCMSDK502L07_BRCM_SWITCH_SCHED_WRR is not set
+CONFIG_BRCMSDK502L07_BUILD_BCM_ALLOW_REAL_HW_SWITCHING=y
+CONFIG_BRCMSDK502L07_BUILD_ETHSWCTL=y
+CONFIG_BRCMSDK502L07_BUILD_SWMDK=y
+CONFIG_BRCMSDK502L07_BRCM_EXT_SWITCH=y
+CONFIG_BRCMSDK502L07_BRCM_EXT_SWITCH_TYPE=63100
+CONFIG_BRCMSDK502L07_BRCM_EXT_SWITCH_REV="a0"
+# CONFIG_BRCMSDK502L07_BRCM_PORTS_ON_INT_EXT_SW is not set
+# CONFIG_BRCMSDK502L07_BCM_PHY_54616 is not set
+# CONFIG_BRCMSDK502L07_BUILD_MDK_SHELL is not set
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_VLAN=m
+# CONFIG_BRCM502L07_VLANCTL_DONT_BUILD is not set
+CONFIG_BRCM502L07_VLANCTL_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_VLANCTL_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_VLANCTL="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_VLANCTL=y
+CONFIG_BRCMSDK502L07_BUILD_LANVLAN=y
+# CONFIG_BRCMSDK502L07_BUILD_VLAN_AGGR is not set
+# CONFIG_BRCMSDK502L07_BRCM_VLAN_ROUTED_WAN_USES_ROOT_DEV_MAC is not set
+CONFIG_BRCMSDK502L07_BUILD_ETHTOOL=y
+CONFIG_BRCMSDK502L07_BUILD_ETHTOOL_APP=y
+
+#
+# USB, SATA and Storage Options Selection
+#
+CONFIG_BRCMSDK502L07_BUILD_SATA=y
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_SATA_TEST is not set
+# CONFIG_BRCMSDK502L07_LINUX_DRIVER_USB_HOST is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_USBNET_THREAD is not set
+# CONFIG_BRCMSDK502L07_BUILD_LIBUSB is not set
+CONFIG_BRCM502L07_FTPD_DONT_BUILD=y
+# CONFIG_BRCM502L07_FTPD_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_FTPD_STATIC_BUILD is not set
+# CONFIG_BRCMSDK502L07_BUILD_FTPD_STORAGE is not set
+# CONFIG_BRCMSDK502L07_BUILD_STORAGESERVICE is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_USB is not set
+
+#
+# Moca Selection
+#
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_MoCA is not set
+
+#
+# WLAN Selection
+#
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_WIRELESS=m
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_DHD=m
+# CONFIG_BRCMSDK502L07_BUILD_HND_NIC is not set
+
+#
+# WLAN IMPL selection
+#
+CONFIG_BRCMSDK502L07_BCM_WLIMPL=87
+CONFIG_KERNEL_BCM_WLAN_IMPL=87
+# CONFIG_BRCMSDK502L07_BRCM_WAPI is not set
+CONFIG_BRCMSDK502L07_BRCM_WLALTBLD=""
+# CONFIG_BRCM502L07_BUILD_WIFIWAN is not set
+CONFIG_BRCMSDK502L07_BUILD_WIFIWAN=""
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_WIFIWAN=y
+# CONFIG_BRCMSDK502L07_BRCM_WLMEDIA is not set
+CONFIG_BRCMSDK502L07_WLBRAND_none=y
+CONFIG_BRCMSDK502L07_BRCM_WLBRAND=""
+CONFIG_BRCM502L07_RM_QUOTES_BRCM_WLBRAND=y
+# CONFIG_BRCM502L07_WLCTL_DONT_BUILD is not set
+CONFIG_BRCM502L07_WLCTL_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_WLCTL_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_WLCTL="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_WLCTL=y
+# CONFIG_BRCM502L07_DHDCTL_DONT_BUILD is not set
+CONFIG_BRCM502L07_DHDCTL_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_DHDCTL_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_DHDCTL="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_DHDCTL=y
+CONFIG_BRCMSDK502L07_BUILD_WLHSPOT=y
+CONFIG_BRCMSDK502L07_BUILD_WBD=y
+# CONFIG_BRCMSDK502L07_BUILD_WLVISUALIZATION is not set
+# CONFIG_BRCMSDK502L07_BUILD_UNIFIED_WLMNGR is not set
+CONFIG_BRCMSDK502L07_BUILD_BRCM_UNFWLCFG=y
+# CONFIG_BRCMSDK502L07_BUILD_NO_WLMNGR is not set
+CONFIG_BRCMSDK502L07_BUILD_BRCM_CPEROUTER=y
+CONFIG_BRCMSDK502L07_BRCM_NVRAM_INCLUDE_IMAGE=y
+# CONFIG_BRCM502L07_NAS_DONT_BUILD is not set
+CONFIG_BRCM502L07_NAS_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_NAS_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_NAS="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_NAS=y
+CONFIG_BRCMSDK502L07_WLSETUP_WPS=y
+# CONFIG_BRCMSDK502L07_WLSETUP_none is not set
+CONFIG_BRCMSDK502L07_BUILD_WPS_BTN="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_WPS_BTN=y
+CONFIG_BRCMSDK502L07_BUILD_WSC="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_WSC=y
+# CONFIG_BRCM502L07_NVRAM_DONT_BUILD is not set
+CONFIG_BRCM502L07_NVRAM_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_NVRAM_STATIC_BUILD is not set
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_NVRAM=y
+CONFIG_BRCMSDK502L07_BCM_WLAN_16BIT_STATION_CHAIN_IDX_SUPPORT=y
+# CONFIG_BRCMSDK502L07_BUILD_BCM_CPEPKTC is not set
+CONFIG_BRCMSDK502L07_BUILD_BCM_PKTFWD=y
+CONFIG_BRCMSDK502L07_BUILD_BCM_PKTFWD_FLCTL=y
+# CONFIG_BRCMSDK502L07_BUILD_HND_MFG is not set
+# CONFIG_BRCMSDK502L07_BUILD_WLAN_TESTBED_AP is not set
+# CONFIG_BRCMSDK502L07_BUILD_BCM_WLAN_NO_MFGBIN is not set
+CONFIG_BRCMSDK502L07_BUILD_BCM_WLAN_REMOVE_INTERNAL_DEBUG=y
+# CONFIG_BRCMSDK502L07_BUILD_HND_EAP is not set
+# CONFIG_BRCMSDK502L07_BUILD_HND_EAP_AP1 is not set
+# CONFIG_BRCMSDK502L07_BUILD_BCM_WLAN_DPDCTL is not set
+
+#
+# Voice/Phone Selection
+#
+CONFIG_BRCMSDK502L07_BRCM_VOICE_SUPPORT=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_APP_SIP=y
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_APP_EPTAPP is not set
+# CONFIG_BRCM502L07_BUILD_CERT_DONT_BUILD is not set
+CONFIG_BRCM502L07_BUILD_CERT_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_BUILD_CERT_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_DM_TR104_V1=y
+# CONFIG_BRCMSDK502L07_BUILD_DM_TR104_V2 is not set
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_DECT_SUPPORT is not set
+# CONFIG_BRCMSDK502L07_BUILD_AVS_DEVICE_SDK is not set
+# CONFIG_BRCMSDK502L07_BUILD_AUDIO_SUPPORT is not set
+# CONFIG_BRCMSDK502L07_BUILD_BCM_DSP_ALSA_BRIDGE is not set
+
+#
+# Locale Selection
+#
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_NORTH_AMERICA=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_AUSTRALIA=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_AUSTRIA=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_BELGIUM=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_BRAZIL=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_CHILE=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_CHINA=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_CYPRUS=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_CZECH=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_DENMARK=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_ETSI=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_FINLAND=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_FRANCE=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_GERMANY=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_HUNGARY=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_INDIA=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_ITALY=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_JAPAN=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_NETHERLANDS=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_NEW_ZEALAND=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_NORWAY=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_POLAND=y
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_SLOVAKIA is not set
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_SLOVENIA is not set
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_SPAIN=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_SWEDEN=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_SWITZERLAND=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_TAIWAN=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_TR57=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_UK=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_TURKEY=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_CROATIA=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_COLOMBIA=y
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_BOSNIA is not set
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_COUNTRY_GREECE is not set
+CONFIG_BRCMSDK502L07_BRCM_VOICE_HALCAP_NETWORK_SUPPORT=y
+CONFIG_BRCMSDK502L07_BRCM_VOICE_LOW_POWER_IDLE=y
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_PSTN_SUPPORT is not set
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_RANDOM_PORTS is not set
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_RECORDING is not set
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_SRTP_SUPPORT is not set
+
+#
+# ===== EXTRA OPTIONS =====
+#
+
+#
+# General Options
+#
+
+#
+# General Options
+#
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_MEM_DEBUG is not set
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_COMPILE_WITH_DEBUG is not set
+CONFIG_BRCMSDK502L07_BRCM_VOICE_STRIP_SYMBOLS=y
+
+#
+# DSPHAL Options
+#
+
+#
+# DSPHAL Options
+#
+CONFIG_BRCMSDK502L07_BRCM_VOICE_DPLL_LOCK_WAIT=y
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_DSPHAL_EGRESS_1KHZ_TONE is not set
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_DSPHAL_INGRESS_1KHZ_TONE is not set
+CONFIG_BRCMSDK502L07_BRCM_VOICE_DSPHAL_CAPTURE=y
+
+#
+# SLIC/SLAC Options
+#
+
+#
+# SLIC/SLAC Options
+#
+# CONFIG_BRCMSDK502L07_BRCM_VOICE_SLICSLAC_DEBUG is not set
+CONFIG_BRCMSDK502L07_BRCM_VRG_SLACVENDOR_CFG_ZARLINK=y
+CONFIG_BRCMSDK502L07_BRCM_VRG_SLACVENDOR_CFG_SILABS=y
+
+#
+# WAN Protocols and VPN
+#
+CONFIG_BRCM502L07_PPPD_DONT_BUILD=y
+# CONFIG_BRCM502L07_PPPD_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_PPPD_STATIC_BUILD is not set
+# CONFIG_BRCMSDK502L07_PPP_AUTODISCONN is not set
+CONFIG_BRCMSDK502L07_BUILD_WANVLANMUX=y
+CONFIG_BRCM502L07_IPSEC_TOOLS_DONT_BUILD=y
+# CONFIG_BRCM502L07_IPSEC_TOOLS_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_IPSEC_TOOLS_STATIC_BUILD is not set
+CONFIG_BRCM502L07_OPENVPN_DONT_BUILD=y
+# CONFIG_BRCM502L07_OPENVPN_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_OPENVPN_STATIC_BUILD is not set
+# CONFIG_BRCMSDK502L07_BUILD_L2TPAC is not set
+# CONFIG_BRCMSDK502L07_BUILD_GRE_TUNNEL is not set
+# CONFIG_BRCMSDK502L07_BUILD_ACCEL_PPTP is not set
+
+#
+# Firewall, ALGs, and Networking Features
+#
+
+#
+# Netfilter and firewall selection
+#
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NETFILTER=m
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_FIREWALL=m
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_MANGLE=m
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT=m
+# CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_DYNDSCP is not set
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_FTP=m
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_SIP=m
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_TFTP=m
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_H323=m
+# CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_H323_SIGNAL_PROXY is not set
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_IRC=m
+# CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_WM is not set
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_PT=m
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_PPTP=m
+# CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_IPSEC is not set
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_RTSP=m
+# CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_SNMP is not set
+# CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_NAT_ALG_TALK is not set
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_LOG=m
+# CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_PPPREMOTE is not set
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NF_REGARDLESS_DROP_ORDER=1
+# CONFIG_BRCMSDK502L07_BUILD_CONNTRACK_TOOLS is not set
+# CONFIG_BRCMSDK502L07_BUILD_IPSET is not set
+CONFIG_BRCM502L07_IPTABLES_DONT_BUILD=y
+# CONFIG_BRCM502L07_IPTABLES_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_IPTABLES_STATIC_BUILD is not set
+CONFIG_BRCM502L07_EBTABLES_DONT_BUILD=y
+# CONFIG_BRCM502L07_EBTABLES_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_EBTABLES_STATIC_BUILD is not set
+CONFIG_BRCM502L07_TOD_DONT_BUILD=y
+# CONFIG_BRCM502L07_TOD_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_TOD_STATIC_BUILD is not set
+CONFIG_BRCM502L07_URLFILTER_DONT_BUILD=y
+# CONFIG_BRCM502L07_URLFILTER_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_URLFILTER_STATIC_BUILD is not set
+# CONFIG_BRCM502L07_BRCTL_DONT_BUILD is not set
+CONFIG_BRCM502L07_BRCTL_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_BRCTL_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_BRCTL="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_BRCTL=y
+CONFIG_BRCM502L07_SNTP_DONT_BUILD=y
+# CONFIG_BRCM502L07_SNTP_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_SNTP_STATIC_BUILD is not set
+# CONFIG_BRCMSDK502L07_DRELAY_DNSPROBE is not set
+# CONFIG_BRCMSDK502L07_DRELAY_DPROXY is not set
+# CONFIG_BRCMSDK502L07_DRELAY_DPROXYWITHPROBE is not set
+CONFIG_BRCMSDK502L07_DRELAY_NONE=y
+CONFIG_BRCMSDK502L07_BUILD_DNSPROBE=""
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_DNSPROBE=y
+CONFIG_BRCMSDK502L07_BUILD_DPROXY=""
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_DPROXY=y
+CONFIG_BRCMSDK502L07_BUILD_DPROXYWITHPROBE=""
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_DPROXYWITHPROBE=y
+CONFIG_BRCM502L07_DNSSPOOF_DONT_BUILD=y
+# CONFIG_BRCM502L07_DNSSPOOF_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_DNSSPOOF_STATIC_BUILD is not set
+# CONFIG_BRCMSDK502L07_BUILD_SUPERDMZ is not set
+CONFIG_BRCM502L07_IPROUTE2_DONT_BUILD=y
+# CONFIG_BRCM502L07_IPROUTE2_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_IPROUTE2_STATIC_BUILD is not set
+CONFIG_BRCM502L07_ZEBRA_DONT_BUILD=y
+# CONFIG_BRCM502L07_ZEBRA_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_ZEBRA_STATIC_BUILD is not set
+# CONFIG_BRCM502L07_MCAST_PROXY_DONT_BUILD is not set
+CONFIG_BRCM502L07_MCAST_PROXY_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_MCAST_PROXY_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_MCAST_PROXY="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_MCAST_PROXY=y
+CONFIG_BRCMSDK502L07_BUILD_MCAST_SNOOP=y
+# CONFIG_BRCMSDK502L07_BUILD_PCP is not set
+CONFIG_BRCMSDK502L07_BCM_JUMBO_FRAME=y
+CONFIG_BRCMSDK502L07_BCM_MAX_MTU_SIZE=2044
+# CONFIG_BRCMSDK502L07_BCM_USER_DEFINED_DEFAULT_MTU is not set
+# CONFIG_BRCMSDK502L07_BCM_IGNORE_BRIDGE_MTU is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_TM is not set
+
+#
+# Traffic Control selection
+#
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_NETQOS=y
+CONFIG_BRCMSDK502L07_BRCM_TC_RATE_LIMIT=y
+# CONFIG_BRCMSDK502L07_BRCM_TC_POLICING is not set
+CONFIG_BRCMSDK502L07_BUILD_TMCTL=y
+# CONFIG_BRCMSDK502L07_BUILD_DPI is not set
+CONFIG_BRCMSDK502L07_BUILD_MAP=y
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_MAP=m
+CONFIG_BRCMSDK502L07_BUILD_MPTCP=y
+
+#
+# Datapath
+#
+
+#
+# Flow-Cache Acceleration
+#
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_PKTFLOW=m
+CONFIG_BRCMSDK502L07_BRCM_PKTFLOW_MAX_FLOWS=16384
+CONFIG_BRCMSDK502L07_BRCM_PKTFLOW_MAX_FDB=1024
+CONFIG_BRCMSDK502L07_BRCM_PKTFLOW_MAX_HOST_DEV=64
+CONFIG_BRCMSDK502L07_BRCM_PKTFLOW_MAX_HOST_MAC=32
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_PKTFLOW_IPV6=y
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_PKTFLOW_MCAST=y
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_PKTFLOW_GRE=y
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_PKTFLOW_L2TP is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_PKTFLOW_FEATURE is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_PKTFLOW_DEBUG is not set
+# CONFIG_BRCM502L07_FCCTL_DONT_BUILD is not set
+CONFIG_BRCM502L07_FCCTL_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_FCCTL_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_FCCTL="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_FCCTL=y
+# CONFIG_BRCM502L07_BUILD_BLOGCTL_DONT_BUILD is not set
+CONFIG_BRCM502L07_BUILD_BLOGCTL_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_BUILD_BLOGCTL_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_BLOGCTL="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_BLOGCTL=y
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_CMDLIST=m
+# CONFIG_BRCMSDK502L07_BRCM_CSO is not set
+
+#
+# Runner Data Path API Selection
+#
+CONFIG_BRCMSDK502L07_BUILD_RDPA=y
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_BDMF=m
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_RDPA=m
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_RDPA_GPL=m
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_RDPA_USR=m
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_RDPA_GPL_EXT=m
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_RDPA_MW=m
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_RDPA_DRV=m
+CONFIG_BRCMSDK502L07_BUILD_BDMF_SHELL=y
+CONFIG_BRCMSDK502L07_BUILD_DSL_RUNNER=y
+
+#
+# Runner Flow Acceleration
+#
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_PKTRUNNER=m
+CONFIG_BRCMSDK502L07_BRCM_RUNNER_MAX_FLOWS=16384
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_PKTRUNNER_GSO=y
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_CMDLIST_SIM is not set
+CONFIG_BRCMSDK502L07_BRCM_RDPA_MCAST_SUPPORT=y
+# CONFIG_BRCMSDK502L07_BCM_FCACHE_CLASSIFICATION_BYPASS is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_NETXL is not set
+
+#
+# Runner Memory Configuration
+#
+CONFIG_BRCMSDK502L07_BRCM_RDP_PARAM1_SIZE=44
+CONFIG_BRCMSDK502L07_BRCM_RDP_PARAM2_SIZE=8
+
+#
+# WLAN Acceleration
+#
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_WIFI_FORWARDING_DRV=m
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_DHD_RUNNER=y
+CONFIG_BRCMSDK502L07_BRCM_DHD_PARAM1_SIZE=12
+CONFIG_BRCMSDK502L07_BRCM_DHD_PARAM2_SIZE=12
+CONFIG_BRCMSDK502L07_BRCM_DHD_PARAM3_SIZE=0
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_DHD_RUNNER_GSO=y
+
+#
+# Software Buffer Pool Manager
+#
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_BPM=y
+CONFIG_BRCMSDK502L07_BRCM_BUF_MEM_PRCNT=15
+# CONFIG_BRCMSDK502L07_BRCM_BPM_BUF_TRACKING is not set
+# CONFIG_BRCMSDK502L07_BRCM_BPM_DYNAMIC is not set
+CONFIG_BRCM502L07_BPMCTL_DONT_BUILD=y
+# CONFIG_BRCM502L07_BPMCTL_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_BPMCTL_STATIC_BUILD is not set
+
+#
+# Ingress QoS
+#
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_INGQOS=m
+# CONFIG_BRCM502L07_IQCTL_DONT_BUILD is not set
+CONFIG_BRCM502L07_IQCTL_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_IQCTL_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_IQCTL="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_IQCTL=y
+
+#
+# Misc datapath configuration
+#
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_SW_GSO is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_FBOND is not set
+# CONFIG_BRCMSDK502L07_BRCM_RNR_CPU_RX_DYN_METER is not set
+
+#
+# BEEP - Broadcom Execution Environment Platform
+#
+# CONFIG_BRCMSDK502L07_BUILD_MODSW_EE is not set
+
+#
+# ZyXEL Features
+#
+# CONFIG_BRCMSDK502L07_ZYXEL_USE_CE_SROM_FOR_ELISA_PROJECT is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_WIND_ITALY_CUSTOMIZATION is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_ISKON_CUSTOMIZATION is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_ABQA_CUSTOMIZATION is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_HT_CUSTOMIZATION is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_ALLOW_IGMPv2_JOIN_WITH_SSM is not set
+CONFIG_BRCMSDK502L07_ZYXEL_FIX_WAN_MAC=y
+# CONFIG_BRCMSDK502L07_ZYXEL_ONE_MAC_ADDRESS is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_PPPOE_PASS_THROUGH_WAN_MAC is not set
+CONFIG_BRCMSDK502L07_BUILD_ZCFG=y
+# CONFIG_BRCMSDK502L07_ZYXEL_INDEPENDENT_WPS_LED is not set
+# CONFIG_BRCMSDK502L07_ZCFG_TR98_COMPATIBLE is not set
+CONFIG_BRCMSDK502L07_ZYXEL=y
+# CONFIG_BRCMSDK502L07_ZYXEL_L2_WAN_SAME_MAC is not set
+# CONFIG_BRCMSDK502L07_ABWW_IPTV_WPS_PBC_BEHAVIOR is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_LED_ERROR_INDICATION_FOR_100M is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_SUPPORT_G988_IGMP_WHITE_LIST is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_LAN4_AS_WAN is not set
+CONFIG_BRCMSDK502L07_ZYXEL_PRODUCT="DX5401_B0"
+CONFIG_BRCM502L07_RM_QUOTES_ZYXEL_PRODUCT=y
+# CONFIG_BRCMSDK502L07_ZYXEL_3086 is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_3586 is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_EMG3415 is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_VMG3927_B50B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_VMG4005_B50A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_VMG4005_B60A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_VMG4927_B50A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_VMG8823_B10B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_VMG8823_B30B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_VMG8823_B50B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_VMG8823_B60B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_VMG8825_B50B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_VMG8828_B50B is not set
+CONFIG_BRCMSDK502L07_ZYXEL_DX5401_B0=y
+# CONFIG_BRCMSDK502L07_ZYXEL_XMG3512 is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_XMG3563_B10A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_XMG8825_B50A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_DX4510_B0 is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_FMG3086_B10A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_FMG3586_B10A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_EMG3415_B10A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_VMG3927_B50B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_VMG4005_B50A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_VMG4005_B60A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_VMG4927_B50A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_VMG8823_B10B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_VMG8823_B30B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_VMG8823_B50B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_VMG8823_B60B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_VMG8825_B50B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_VMG8828_B50B is not set
+CONFIG_BRCMSDK502L07_ZYXEL_BOARD_DX5401_B0=y
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_XMG3512_B10A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_XMG3563_B10A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_XMG8825_B50A is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BOARD_DX4510_B0 is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_SUPPORT_ETHWAN_AS_LAN is not set
+CONFIG_BRCMSDK502L07_ZYPRJ_HARDWARE_VERSION=1
+CONFIG_BRCMSDK502L07_ZYXEL_CFE_SOFTWARE_FLASH_LED=y
+CONFIG_BRCMSDK502L07_ZYXEL_PHONE_FXS_PHONE_PORT_SWAP=y
+CONFIG_BRCMSDK502L07_ZYXEL_PARTITION=y
+CONFIG_BRCMSDK502L07_ZYXEL_AT_COMMANDS=y
+# CONFIG_BRCMSDK502L07_ZLOADER_SUPPORT_LOGIN is not set
+CONFIG_BRCMSDK502L07_ZYXEL_DEBUG_CFERAM=y
+CONFIG_BRCMSDK502L07_ZYXEL_DEBUG_ADDR=0xd00000
+CONFIG_BRCMSDK502L07_ZYXEL_RSA_FORMAT=y
+# CONFIG_BRCMSDK502L07_ZYXEL_FW_SIGNATURE_SUPPORT is not set
+CONFIG_BRCMSDK502L07_BUILD_ZYBTNCHK=y
+# CONFIG_BRCMSDK502L07_BUILD_ZYLEDCTL is not set
+CONFIG_BRCMSDK502L07_ZYXEL_SFP_HIGHER_PRIORITY=y
+# CONFIG_BRCMSDK502L07_ZYXEL_KERNEL_RESET_BTN is not set
+CONFIG_BRCMSDK502L07_NAND_READBACK_CHECK=y
+# CONFIG_BRCMSDK502L07_ZYXEL_SW_INTERNET_LED_BLINK is not set
+CONFIG_BRCMSDK502L07_ZYXEL_FW_UPGRADE_POWER_LED_BLINK=y
+# CONFIG_BRCMSDK502L07_ZYXEL_SUPPORT_3G_LED_GREEN_AND_RED is not set
+CONFIG_BRCMSDK502L07_NO_XTUR_CUSTOMIZATION=y
+# CONFIG_BRCMSDK502L07_SUNRISE_XTUR_CUSTOMIZATION is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_99_7 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_99_1301 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_99_17 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_99_27 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_117_0 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_121_11 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_121_2004 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_121_37 is not set
+# CONFIG_BCM502L07_WIFI_VER_7_14_170_43 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_121_41 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_99_41 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_157_2805 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_157_60 is not set
+# CONFIG_BCM502L07_WIFI_VER_17_10_188_55 is not set
+CONFIG_BCM502L07_WIFI_VER_17_10_188_75=y
+CONFIG_BCM502L07_WIFI_DRIVER="17.10.188.75"
+CONFIG_BRCMSDK502L07_WIFI_DRIVER_SERIES="17_10_188"
+CONFIG_BRCMSDK502L07_WIFI_DRIVER_SUBVERSION="75"
+# CONFIG_BRCMSDK502L07_ZYXEL_FORCE_WIFI_SROM is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_WL_PROBRESP_FLTER is not set
+# CONFIG_BRCMSDK502L07_CONFIG_TT_PORTMIRROR is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_SUPPORT_SAME_CHIP_IN_DUAL_BAND is not set
+CONFIG_BRCMSDK502L07_ZYXEL_EASYMESH=y
+CONFIG_BRCMSDK502L07_ZYXEL_EASYMESH_R2=y
+# CONFIG_BRCMSDK502L07_ABPY_CUSTOMIZATION is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_BUILD_DHD_IMAGE_SRC is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_UPS_FEATURE is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_OPAL_EXTENDER is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_OPAL_EXTENDER_USA is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_SUPPORT_GPY211 is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_SUPPORT_RTL8226B is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_RADIO_MAIN_SSID_INDEPENDENT is not set
+# CONFIG_BRCMSDK502L07_ZYXEL_WIFI_SUPPORT_WEP_WPA_MIXMODE is not set
+
+#
+# Bootloader and Secure Boot Options
+#
+
+#
+# Bootloader and Secure Boot Options
+#
+# CONFIG_BRCMSDK502L07_BUILD_DYNAMIC_CFE is not set
+# CONFIG_BRCMSDK502L07_BUILD_HND_EAP_UBOOT is not set
+CONFIG_BRCMSDK502L07_BUILD_CFE_APPEND_BOOT_CMDLINE=""
+# CONFIG_BRCMSDK502L07_BUILD_SECURE_BOOT is not set
+CONFIG_BRCMSDK502L07_SECURE_BOOT_ARCH="GEN2"
+CONFIG_BRCM502L07_RM_QUOTES_SECURE_BOOT_ARCH=y
+
+#
+# Gen2 Secure Boot Feature Selection
+#
+
+#
+# Gen2 Secure Boot Feature Selection
+#
+
+#
+# Secure OS selection
+#
+# CONFIG_BRCMSDK502L07_BUILD_SECURE_OS is not set
+
+#
+# Security Features
+#
+
+#
+# Security Toolkit Options
+#
+
+#
+# CFE features unavailable unless bootloader is built with Linux
+#
+
+#
+# Seccomp - Secure Computing with Filters
+#
+# CONFIG_BRCMSDK502L07_BUILD_LIBSECCOMP is not set
+
+#
+# Other Features
+#
+
+#
+# Other Features
+#
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_PWRMNGT=m
+# CONFIG_BRCM502L07_PWRCTL_DONT_BUILD is not set
+CONFIG_BRCM502L07_PWRCTL_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_PWRCTL_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_PWRCTL="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_PWRCTL=y
+CONFIG_BRCMSDK502L07_BRCM_ETH_PWRSAVE=y
+# CONFIG_BRCMSDK502L07_BRCM_ENERGY_EFFICIENT_ETHERNET is not set
+CONFIG_BRCMSDK502L07_BRCM_ETH_DEEP_GREEN_MODE=y
+CONFIG_BRCMSDK502L07_BRCM_CPU_FREQ_PWRSAVE=y
+CONFIG_BRCMSDK502L07_BRCM_CPU_FREQ_TARGET_LOAD=20
+# CONFIG_BRCMSDK502L07_BRCM_DDR_SELF_REFRESH_PWRSAVE is not set
+CONFIG_BRCMSDK502L07_BUILD_WL_IDLE_PWRSAVE=y
+CONFIG_BRCMSDK502L07_BUILD_BMU=y
+CONFIG_BRCMSDK502L07_BUILD_BMU_2CELL=y
+# CONFIG_BRCMSDK502L07_BUILD_BMU_3CELL is not set
+# CONFIG_BRCMSDK502L07_BUILD_BMU_0CELL is not set
+CONFIG_BRCMSDK502L07_BUILD_STANDARD_NAND_DRIVER=y
+# CONFIG_BRCMSDK502L07_BUILD_LEGACY_NAND_DRIVER is not set
+CONFIG_BRCMSDK502L07_BUILD_TMS=y
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_TRNG is not set
+CONFIG_BRCM502L07_RNGD_DONT_BUILD=y
+# CONFIG_BRCM502L07_RNGD_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_RNGD_STATIC_BUILD is not set
+# CONFIG_BRCMSDK502L07_BUILD_AUTODETECTION is not set
+# CONFIG_BRCMSDK502L07_BUILD_BCM_CLEDS_PROC_DRIVER is not set
+# CONFIG_BRCMSDK502L07_BUILD_LEDCTL is not set
+# CONFIG_BRCMSDK502L07_BCM_WLCLED is not set
+CONFIG_BRCMSDK502L07_BUILD_WDTCTL=y
+# CONFIG_BRCMSDK502L07_BUILD_BACKUP_PSI is not set
+# CONFIG_BRCMSDK502L07_BUILD_PSICTL is not set
+CONFIG_BRCMSDK502L07_COMPRESSED_CONFIG_FILE=y
+CONFIG_BRCMSDK502L07_CMS_CONFIG_COMPAT=y
+# CONFIG_BRCMSDK502L07_CMS_CONFIG_IGNORE_UNRECOGNIZED is not set
+# CONFIG_BRCM502L07_IPPD_DONT_BUILD is not set
+CONFIG_BRCM502L07_IPPD_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_IPPD_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_IPPD="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_IPPD=y
+CONFIG_BRCMSDK502L07_BUILD_DLNA=y
+CONFIG_BRCMSDK502L07_BUILD_SPDSVC=y
+CONFIG_BRCMSDK502L07_BUILD_SPDTEST=y
+# CONFIG_BRCMSDK502L07_BUILD_IEEE1905 is not set
+CONFIG_BRCM502L07_CERT_DONT_BUILD=y
+# CONFIG_BRCM502L07_CERT_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_CERT_STATIC_BUILD is not set
+
+#
+# Default Configuration
+#
+CONFIG_BRCMSDK502L07_BRCM_DEFAULTCFG=""
+# CONFIG_BRCMSDK502L07_BUILD_LIBJSONC is not set
+# CONFIG_BRCMSDK502L07_BUILD_LIBXML2 is not set
+# CONFIG_BRCMSDK502L07_BUILD_LIBSQLITE is not set
+# CONFIG_BRCMSDK502L07_BUILD_LIBCAP is not set
+# CONFIG_BRCMSDK502L07_BRCM_USER_SSP is not set
+# CONFIG_BRCMSDK502L07_BUILD_LXC is not set
+# CONFIG_BRCMSDK502L07_BUILD_DBUS is not set
+# CONFIG_BRCMSDK502L07_BUILD_QRCODE is not set
+# CONFIG_BRCMSDK502L07_BUILD_BLUETOOTH_LIB is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_M2M_DMA is not set
+CONFIG_BRCMSDK502L07_BUILD_BCM_RECVFILE=y
+# CONFIG_BRCMSDK502L07_BCM_SPEEDYGET is not set
+
+#
+# Openvswitch
+#
+# CONFIG_BRCMSDK502L07_BUILD_OPENVSWITCH is not set
+# CONFIG_BRCMSDK502L07_BRCM_OVS_SUPPORT is not set
+# CONFIG_BRCMSDK502L07_BUILD_BRCM_AIRIQ is not set
+CONFIG_BRCMSDK502L07_BUILD_BRCM_HOSTAPD=y
+# CONFIG_BRCMSDK502L07_BUILD_BCM_ASOC_AUDIO is not set
+
+#
+# Management Protocols and User Interface Selection
+#
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_SERIAL=y
+# CONFIG_BRCMSDK502L07_ARM_PL011_SERIAL is not set
+# CONFIG_BRCMSDK502L07_BUILD_CLI_MENU is not set
+CONFIG_BRCMSDK502L07_BUILD_CLI_CMD=y
+CONFIG_BRCMSDK502L07_BUILD_RDPACTL=y
+# CONFIG_BRCMSDK502L07_BUILD_TELNETD is not set
+# CONFIG_BRCMSDK502L07_BUILD_SSHD is not set
+CONFIG_BRCMSDK502L07_BRCM_MAX_BSD_PTP=16
+CONFIG_BRCMSDK502L07_BUILD_HTTPD=y
+# CONFIG_BRCMSDK502L07_BUILD_HTTPD_SSL is not set
+# CONFIG_BRCMSDK502L07_BUILD_HTTPD_BASIC_SSL is not set
+# CONFIG_BRCMSDK502L07_BUILD_HTTPD_none is not set
+# CONFIG_BRCMSDK502L07_WEB_POPUP is not set
+CONFIG_BRCMSDK502L07_BUILD_QUICKSETUP=y
+# CONFIG_BRCMSDK502L07_BRCM_CPU_MEMORY_WEB_PAGE is not set
+
+#
+# WebUI language selection
+#
+CONFIG_BRCMSDK502L07_BRCM_LANG_EN=y
+# CONFIG_BRCMSDK502L07_BRCM_LANG_CN is not set
+# CONFIG_BRCMSDK502L07_BRCM_LANG_TW is not set
+# CONFIG_BRCMSDK502L07_BRCM_LANG_KR is not set
+CONFIG_BRCMSDK502L07_BRCM_WEBUI_LANG="en_US"
+CONFIG_BRCM502L07_RM_QUOTES_BRCM_WEBUI_LANG=y
+# CONFIG_BRCMSDK502L07_MGMT_TR69C is not set
+# CONFIG_BRCMSDK502L07_MGMT_TR69C_BEEP is not set
+CONFIG_BRCMSDK502L07_MGMT_none=y
+CONFIG_BRCMSDK502L07_BUILD_TR69C=""
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_TR69C=y
+CONFIG_BRCMSDK502L07_BUILD_TR69C_SSL=""
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_TR69C_SSL=y
+CONFIG_BRCMSDK502L07_BUILD_TR69C_BCM_SSL=""
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_TR69C_BCM_SSL=y
+CONFIG_BRCMSDK502L07_BRCM_CERT_FILE=""
+CONFIG_BRCM502L07_RM_QUOTES_BRCM_CERT_FILE=y
+# CONFIG_BRCMSDK502L07_BUILD_XMPP is not set
+# CONFIG_BRCMSDK502L07_BUILD_ALLJOYN is not set
+# CONFIG_BRCMSDK502L07_BUILD_UPNP_IGD_HTTP_CONNREQ is not set
+CONFIG_BRCM502L07_SNMP_DONT_BUILD=y
+# CONFIG_BRCM502L07_SNMP_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_SNMP_STATIC_BUILD is not set
+# CONFIG_BRCMSDK502L07_BUILD_TR64 is not set
+# CONFIG_BRCM502L07_UPNP_DONT_BUILD is not set
+CONFIG_BRCM502L07_UPNP_DYNAMIC_BUILD=y
+# CONFIG_BRCM502L07_UPNP_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_BUILD_UPNP="dynamic"
+CONFIG_BRCM502L07_RM_QUOTES_BUILD_UPNP=y
+# CONFIG_BRCMSDK502L07_BUILD_HASHED_PASSWORDS is not set
+
+#
+# Debug selection
+#
+# CONFIG_BRCMSDK502L07_BUZZZ is not set
+# CONFIG_BRCMSDK502L07_BRCM_KERNEL_FTRACE is not set
+CONFIG_BRCMSDK502L07_BRCM_DRIVER_LOG=y
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_KALLSYMS=y
+CONFIG_BRCMSDK502L07_BRCM_KERNEL_DEBUG=y
+CONFIG_BRCM502L07_EPITTCP_DONT_BUILD=y
+# CONFIG_BRCM502L07_EPITTCP_DYNAMIC_BUILD is not set
+# CONFIG_BRCM502L07_EPITTCP_STATIC_BUILD is not set
+CONFIG_BRCMSDK502L07_ENABLE_PRINTK_AND_BUG=y
+CONFIG_BRCMSDK502L07_BCM_DEFAULT_CONSOLE_LOGLEVEL=8
+# CONFIG_BRCMSDK502L07_BCM_PRINTK_TIME is not set
+CONFIG_BRCMSDK502L07_BCM_COLORIZE_PRINTS=y
+# CONFIG_BRCMSDK502L07_BCM_ASSERTS is not set
+# CONFIG_BRCMSDK502L07_BCM_KERNEL_HACKING is not set
+CONFIG_BRCMSDK502L07_BCM_BCM_SCHEDAUDIT=y
+CONFIG_BRCMSDK502L07_BCM_MAGIC_SYSRQ=y
+# CONFIG_BRCMSDK502L07_BRCM_KERNEL_VMTOOLS is not set
+# CONFIG_BRCMSDK502L07_BRCM_KERNEL_CSTAT is not set
+# CONFIG_BRCMSDK502L07_BRCM_IKOS is not set
+# CONFIG_BRCMSDK502L07_BRCM_QEMU is not set
+# CONFIG_BRCMSDK502L07_BRCM_DRIVER_BCMPROF is not set
+CONFIG_BRCMSDK502L07_BUILD_DEBUG_TOOLS=y
+# CONFIG_BRCMSDK502L07_BUILD_GDBSERVER is not set
+# CONFIG_BRCMSDK502L07_ENABLE_APP_COREDUMPS is not set
+# CONFIG_BRCMSDK502L07_CMS_SECURITY_LOG is not set
+CONFIG_BRCMSDK502L07_CMS_LOG_DEBUG=y
+# CONFIG_BRCMSDK502L07_CMS_LOG_LEVEL_1 is not set
+CONFIG_BRCMSDK502L07_CMS_LOG_LEVEL_2=y
+# CONFIG_BRCMSDK502L07_CMS_STARTUP_DEBUG is not set
+# CONFIG_BRCMSDK502L07_CMS_ACTION_LOG is not set
+# CONFIG_BRCMSDK502L07_CMS_MEM_BOUNDARY_CHECK is not set
+# CONFIG_BRCMSDK502L07_CMS_MEM_POISON_ALLOC_FREE is not set
+# CONFIG_BRCMSDK502L07_CMS_MEM_LEAK_TRACING is not set
+# CONFIG_BRCMSDK502L07_CMS_FATAL_ASSERT is not set
+# CONFIG_BRCMSDK502L07_CMS_BYPASS_LOGIN is not set
+# CONFIG_BRCMSDK502L07_BUILD_SOAP is not set
+# CONFIG_BRCMSDK502L07_BUILD_DIAGAPP is not set
+# CONFIG_BRCMSDK502L07_BENCHMARKS_SMP is not set
+# CONFIG_BRCMSDK502L07_BUILD_SYSSTAT is not set
+# CONFIG_BRCMSDK502L07_BUILD_STRESS is not set
+# CONFIG_BRCMSDK502L07_BUILD_POSIX_STRESS is not set
+# CONFIG_BRCMSDK502L07_BUILD_LMBENCH is not set
+# CONFIG_BRCMSDK502L07_BUILD_TCPDUMP is not set
+# CONFIG_BRCMSDK502L07_BUILD_SENDPACKETS is not set
+# CONFIG_BRCMSDK502L07_BUILD_IPERFV2 is not set
+CONFIG_BRCMSDK502L07_BUILD_IPERFV3=y
+# CONFIG_BRCMSDK502L07_BUILD_PCIUTILS is not set
+# CONFIG_BRCMSDK502L07_BUILD_STRACE is not set
+# CONFIG_BRCMSDK502L07_BUILD_DISABLE_EXEC_STACK is not set
+# CONFIG_BRCMSDK502L07_BUILD_DISABLE_PINMUXTEST is not set
+# CONFIG_BRCMSDK502L07_BUILD_LINUX_PERF is not set
+CONFIG_BRCMSDK502L07_BRCM_MEMORY_RESTRICTION_OFF=y
+# CONFIG_BRCMSDK502L07_BRCM_MEMORY_RESTRICTION_16M is not set
+# CONFIG_BRCMSDK502L07_BRCM_MEMORY_RESTRICTION_32M is not set
+# CONFIG_BRCMSDK502L07_BRCM_MEMORY_RESTRICTION_64M is not set
+# CONFIG_BRCMSDK502L07_BUILD_SPICTL is not set
+# CONFIG_BRCMSDK502L07_BUILD_WEB_SOCKETS_TEST is not set
+# CONFIG_BRCMSDK502L07_BUILD_FPING is not set
+# CONFIG_BRCMSDK502L07_BUILD_MTD_OOPS is not set
+# CONFIG_BRCMSDK502L07_BUILD_MSTC_GPON is not set
+# CONFIG_BRCMSDK502L07_BUILD_MSTC_TRANSCEIVER is not set
+# CONFIG_BRCMSDK502L07_BUILD_ARM_PLTS is not set
+CONFIG_BRCM_SDK_PATCH_VERSION="P2"
+CONFIG_BRCM_SDK_PACKAGE_SUFFIX="_220117"
+
+#
+# Kernel Images
+#
+CONFIG_EMBEDDED_KERNEL_IN_ROOTFS=y
+# CONFIG_KERNEL_COMPRESS_MODE_NONE is not set
+CONFIG_KERNEL_COMPRESS_MODE_LZMA=y
+# CONFIG_KERNEL_COMPRESS_MODE_GZIP is not set
+
+#
+# Target Images
+#
+# CONFIG_USE_ZYXEL_WIFI_IMAGE_HEADER is not set
+CONFIG_PAD_ROOTFS_IMG_TO_ALIGN_BYTE=0
+# CONFIG_TARGET_ROOTFS_INITRAMFS is not set
+CONFIG_EXTERNAL_CPIO=""
+
+#
+# Root filesystem archives
+#
+# CONFIG_TARGET_ROOTFS_CPIOGZ is not set
+# CONFIG_TARGET_ROOTFS_TARGZ is not set
+
+#
+# Root filesystem images
+#
+# CONFIG_TARGET_ROOTFS_EXT4FS is not set
+CONFIG_TARGET_ROOTFS_JFFS2=y
+CONFIG_TARGET_ROOTFS_JFFS2_IN_NAND=y
+# CONFIG_TARGET_ROOTFS_SQUASHFS is not set
+CONFIG_TARGET_ROOTFS_UBIFS=y
+# CONFIG_TARGET_UBIFS_COMPRESSION_NONE is not set
+# CONFIG_TARGET_UBIFS_COMPRESSION_LZO is not set
+CONFIG_TARGET_UBIFS_COMPRESSION_ZLIB=y
+CONFIG_TARGET_UBIFS_FREE_SPACE_FIXUP=y
+CONFIG_TARGET_UBIFS_JOURNAL_SIZE=""
+
+#
+# Image Options
+#
+
+#
+# Global build settings
+#
+# CONFIG_ALL is not set
+
+#
+# General build options
+#
+# CONFIG_DISPLAY_SUPPORT is not set
+CONFIG_BUILD_PATENTED=y
+CONFIG_BUILD_NLS=y
+# CONFIG_BUILD_STATIC_TOOLS is not set
+CONFIG_SHADOW_PASSWORDS=y
+# CONFIG_CLEAN_IPKG is not set
+# CONFIG_COLLECT_KERNEL_DEBUG is not set
+
+#
+# Kernel build options
+#
+CONFIG_KERNEL_ZYXEL_USE_LINUX_SIP_ALG=y
+CONFIG_KERNEL_JFFS2_FS=y
+CONFIG_KERNEL_JFFS2_SUMMARY=y
+CONFIG_KERNEL_DEBUG_FS=y
+# CONFIG_KERNEL_PERF_EVENTS is not set
+# CONFIG_KERNEL_PROFILING is not set
+CONFIG_KERNEL_KALLSYMS=y
+# CONFIG_KERNEL_FTRACE is not set
+CONFIG_KERNEL_DEBUG_KERNEL=y
+# CONFIG_KERNEL_DEBUG_INFO is not set
+CONFIG_KERNEL_DEBUG_LL_UART_NONE=y
+CONFIG_KERNEL_DEBUG_LL=y
+CONFIG_KERNEL_EARLY_PRINTK=y
+# CONFIG_KERNEL_AIO is not set
+# CONFIG_KERNEL_DIRECT_IO is not set
+CONFIG_KERNEL_MAGIC_SYSRQ=y
+CONFIG_KERNEL_COREDUMP=y
+CONFIG_KERNEL_ELF_CORE=y
+# CONFIG_KERNEL_PROVE_LOCKING is not set
+# CONFIG_KERNEL_PRINTK_TIME is not set
+# CONFIG_KERNEL_RELAY is not set
+CONFIG_KERNEL_CGROUPS=y
+# CONFIG_KERNEL_CGROUP_DEBUG is not set
+CONFIG_KERNEL_FREEZER=y
+CONFIG_KERNEL_CGROUP_FREEZER=y
+CONFIG_KERNEL_CGROUP_DEVICE=y
+CONFIG_KERNEL_CGROUP_PIDS=y
+CONFIG_KERNEL_CPUSETS=y
+# CONFIG_KERNEL_PROC_PID_CPUSET is not set
+CONFIG_KERNEL_CGROUP_CPUACCT=y
+# CONFIG_KERNEL_RESOURCE_COUNTERS is not set
+CONFIG_KERNEL_MM_OWNER=y
+CONFIG_KERNEL_MEMCG=y
+CONFIG_KERNEL_MEMCG_SWAP=y
+# CONFIG_KERNEL_MEMCG_SWAP_ENABLED is not set
+CONFIG_KERNEL_MEMCG_KMEM=y
+CONFIG_KERNEL_CGROUP_SCHED=y
+CONFIG_KERNEL_FAIR_GROUP_SCHED=y
+CONFIG_KERNEL_CFS_BANDWIDTH=y
+CONFIG_KERNEL_RT_GROUP_SCHED=y
+CONFIG_KERNEL_BLK_CGROUP=y
+# CONFIG_KERNEL_CFQ_GROUP_IOSCHED is not set
+# CONFIG_KERNEL_BLK_DEV_THROTTLING is not set
+# CONFIG_KERNEL_DEBUG_BLK_CGROUP is not set
+# CONFIG_KERNEL_NET_CLS_CGROUP is not set
+# CONFIG_KERNEL_CGROUP_NET_PRIO is not set
+CONFIG_KERNEL_NAMESPACES=y
+CONFIG_KERNEL_UTS_NS=y
+CONFIG_KERNEL_IPC_NS=y
+CONFIG_KERNEL_USER_NS=y
+CONFIG_KERNEL_PID_NS=y
+CONFIG_KERNEL_NET_NS=y
+CONFIG_KERNEL_LXC_MISC=y
+CONFIG_KERNEL_DEVPTS_MULTIPLE_INSTANCES=y
+CONFIG_KERNEL_POSIX_MQUEUE=y
+# CONFIG_KERNEL_I2C_SX9310 is not set
+
+#
+# Package build options
+#
+# CONFIG_DEBUG is not set
+CONFIG_IPV6=y
+CONFIG_PKG_BUILD_PARALLEL=y
+CONFIG_PKG_BUILD_USE_JOBSERVER=y
+
+#
+# Stripping options
+#
+# CONFIG_NO_STRIP is not set
+CONFIG_USE_STRIP=y
+# CONFIG_USE_SSTRIP is not set
+CONFIG_STRIP_ARGS="--strip-all"
+# CONFIG_STRIP_KERNEL_EXPORTS is not set
+# CONFIG_USE_MKLIBS is not set
+# CONFIG_USE_UCLIBCXX is not set
+CONFIG_USE_LIBSTDCXX=y
+CONFIG_DEVEL=y
+# CONFIG_BROKEN is not set
+CONFIG_DOWNLOAD_FOLDER=""
+CONFIG_LOCALMIRROR=""
+CONFIG_AUTOREBUILD=y
+CONFIG_BUILD_SUFFIX=""
+CONFIG_TARGET_ROOTFS_DIR=""
+# CONFIG_CCACHE is not set
+CONFIG_EXTERNAL_KERNEL_TREE=""
+CONFIG_KERNEL_GIT_CLONE_URI=""
+CONFIG_KERNEL_GIT_LOCAL_REPOSITORY=""
+# CONFIG_BUILD_LOG is not set
+# CONFIG_SRC_TREE_OVERRIDE is not set
+CONFIG_TARGET_OPTIONS=y
+CONFIG_TARGET_OPTIMIZATION="-Os -pipe -march=armv7-a -mabi=aapcs-linux -mfloat-abi=soft"
+CONFIG_SOFT_FLOAT=y
+# CONFIG_EXTERNAL_TOOLCHAIN is not set
+CONFIG_NEED_TOOLCHAIN=y
+# CONFIG_EXTERNAL_KERNEL_TOOLCHAIN is not set
+CONFIG_TOOLCHAINOPTS=y
+# CONFIG_EXTRA_TARGET_ARCH is not set
+
+#
+# Binary tools
+#
+# CONFIG_BINUTILS_VERSION_2_19_1 is not set
+# CONFIG_BINUTILS_VERSION_2_19_92 is not set
+# CONFIG_BINUTILS_VERSION_2_20 is not set
+# CONFIG_BINUTILS_VERSION_2_20_1 is not set
+# CONFIG_BINUTILS_VERSION_2_21 is not set
+# CONFIG_BINUTILS_VERSION_2_21_1 is not set
+# CONFIG_BINUTILS_VERSION_2_22 is not set
+# CONFIG_BINUTILS_VERSION_2_23_1 is not set
+# CONFIG_BINUTILS_VERSION_2_25_1 is not set
+# CONFIG_BINUTILS_VERSION_2_24 is not set
+CONFIG_BINUTILS_VERSION_2_28_1=y
+CONFIG_EXTRA_BINUTILS_CONFIG_OPTIONS=""
+CONFIG_BINUTILS_DISABLE_NLS=y
+CONFIG_BINUTILS_VERSION="2.28.1"
+
+#
+# Compiler
+#
+# CONFIG_GCC_USE_VERSION_4_3_4 is not set
+# CONFIG_GCC_USE_VERSION_4_3_6 is not set
+# CONFIG_GCC_USE_VERSION_4_4_2 is not set
+# CONFIG_GCC_USE_VERSION_4_4_7 is not set
+# CONFIG_GCC_USE_VERSION_4_6_2 is not set
+# CONFIG_GCC_USE_VERSION_4_6_3 is not set
+# CONFIG_GCC_USE_VERSION_4_7_2 is not set
+# CONFIG_GCC_USE_VERSION_4_6_LINARO is not set
+# CONFIG_GCC_USE_VERSION_4_7_LINARO is not set
+# CONFIG_GCC_USE_VERSION_4_8_0 is not set
+# CONFIG_GCC_USE_VERSION_4_8_1 is not set
+# CONFIG_GCC_USE_VERSION_4_8_LINARO is not set
+# CONFIG_GCC_USE_VERSION_5 is not set
+# CONFIG_GCC_USE_VERSION_5_3_0 is not set
+CONFIG_GCC_USE_VERSION_5_5_0=y
+# CONFIG_GCC_USE_GRAPHITE is not set
+CONFIG_EXTRA_GCC_CONFIG_OPTIONS=""
+# CONFIG_SSP_SUPPORT is not set
+# CONFIG_TLS_UNSUPPORTED is not set
+# CONFIG_SJLJ_EXCEPTIONS is not set
+CONFIG_INSTALL_LIBSTDCPP=y
+# CONFIG_INSTALL_LIBGCJ is not set
+# CONFIG_INSTALL_GFORTRAN is not set
+
+#
+# C Library
+#
+CONFIG_LIBC_USE_GLIBC=y
+# CONFIG_LIBC_USE_UCLIBC is not set
+# CONFIG_LIBC_USE_MUSL is not set
+CONFIG_GLIBC_USE_VERSION_2_26=y
+# CONFIG_GLIBC_USE_VERSION_2_24 is not set
+# CONFIG_GLIBC_USE_VERSION_2_22 is not set
+
+#
+# Debuggers
+#
+# CONFIG_GDB is not set
+# CONFIG_INSIGHT is not set
+CONFIG_USE_GLIBC=y
+CONFIG_GCC_VERSION_5_5_0=y
+CONFIG_GCC_VERSION="5.5.0"
+CONFIG_GLIBC_VERSION="2.26"
+
+#
+# glibc-2.24 needs kernel headers >= 3.2
+#
+CONFIG_GLIBC_VERSION_2_26=y
+CONFIG_LIBC="glibc"
+CONFIG_LIBC_VERSION="2.26"
+CONFIG_TARGET_SUFFIX="gnueabi"
+# CONFIG_IB is not set
+# CONFIG_SDK is not set
+# CONFIG_MAKE_TOOLCHAIN is not set
+# CONFIG_IMAGEOPT is not set
+# CONFIG_PREINITOPT is not set
+CONFIG_TARGET_PREINIT_SUPPRESS_STDERR=y
+CONFIG_TARGET_PREINIT_TIMEOUT=2
+# CONFIG_TARGET_PREINIT_SHOW_NETMSG is not set
+# CONFIG_TARGET_PREINIT_SUPPRESS_FAILSAFE_NETMSG is not set
+CONFIG_TARGET_PREINIT_IFNAME=""
+CONFIG_TARGET_PREINIT_IP="192.168.1.1"
+CONFIG_TARGET_PREINIT_NETMASK="255.255.255.0"
+CONFIG_TARGET_PREINIT_BROADCAST="192.168.1.255"
+# CONFIG_INITOPT is not set
+CONFIG_TARGET_INIT_PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+CONFIG_TARGET_INIT_ENV=""
+CONFIG_TARGET_INIT_CMD="/sbin/init"
+CONFIG_TARGET_INIT_SUPPRESS_STDERR=y
+# CONFIG_VERSIONOPT is not set
+
+#
+# Base system
+#
+# CONFIG_PACKAGE_base-files is not set
+# CONFIG_PACKAGE_base-files-econet is not set
+# CONFIG_PACKAGE_base-files-ramips is not set
+CONFIG_PACKAGE_block-mount=y
+CONFIG_EXTROOT_SETTLETIME=20
+CONFIG_PACKAGE_bridge=y
+CONFIG_PACKAGE_busybox=y
+# CONFIG_BUSYBOX_CONFIG_NOMMU is not set
+CONFIG_busybox_revision="1_20_1"
+# CONFIG_CONFIG_BUSYBOX_CONFIG_FEATURE_SH_IS_HUSH is not set
+# CONFIG_BUSYBOX_CONFIG_HUSH is not set
+CONFIG_BUSYBOX_CONFIG_HAVE_DOT_CONFIG=y
+
+#
+# Busybox Settings
+#
+
+#
+# General Configuration
+#
+# CONFIG_BUSYBOX_CONFIG_DESKTOP is not set
+# CONFIG_BUSYBOX_CONFIG_EXTRA_COMPAT is not set
+# CONFIG_BUSYBOX_CONFIG_INCLUDE_SUSv2 is not set
+# CONFIG_BUSYBOX_CONFIG_USE_PORTABLE_CODE is not set
+CONFIG_BUSYBOX_CONFIG_PLATFORM_LINUX=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_BUFFERS_USE_MALLOC=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_BUFFERS_GO_ON_STACK is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_BUFFERS_GO_IN_BSS is not set
+CONFIG_BUSYBOX_CONFIG_SHOW_USAGE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_VERBOSE_USAGE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_COMPRESS_USAGE=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_INSTALLER is not set
+# CONFIG_BUSYBOX_CONFIG_INSTALL_NO_USR is not set
+# CONFIG_BUSYBOX_CONFIG_LOCALE_SUPPORT is not set
+# CONFIG_BUSYBOX_CONFIG_UNICODE_SUPPORT is not set
+CONFIG_BUSYBOX_CONFIG_LONG_OPTS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_DEVPTS=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_CLEAN_UP is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_UTMP=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_WTMP is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_PIDFILE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_SUID=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SUID_CONFIG is not set
+# CONFIG_BUSYBOX_CONFIG_SELINUX is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_PREFER_APPLETS=y
+CONFIG_BUSYBOX_CONFIG_BUSYBOX_EXEC_PATH="/proc/self/exe"
+CONFIG_BUSYBOX_CONFIG_FEATURE_SYSLOG=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_HAVE_RPC is not set
+
+#
+# Build Options
+#
+# CONFIG_BUSYBOX_CONFIG_STATIC is not set
+# CONFIG_BUSYBOX_CONFIG_PIE is not set
+CONFIG_BUSYBOX_CONFIG_LFS=y
+CONFIG_BUSYBOX_CONFIG_CROSS_COMPILER_PREFIX=""
+CONFIG_BUSYBOX_CONFIG_EXTRA_CFLAGS=""
+
+#
+# Debugging Options
+#
+# CONFIG_BUSYBOX_CONFIG_DEBUG is not set
+# CONFIG_BUSYBOX_CONFIG_WERROR is not set
+CONFIG_BUSYBOX_CONFIG_NO_DEBUG_LIB=y
+# CONFIG_BUSYBOX_CONFIG_DMALLOC is not set
+# CONFIG_BUSYBOX_CONFIG_EFENCE is not set
+
+#
+# Installation Options ("make install" behavior)
+#
+CONFIG_BUSYBOX_CONFIG_INSTALL_APPLET_SYMLINKS=y
+# CONFIG_BUSYBOX_CONFIG_INSTALL_APPLET_HARDLINKS is not set
+# CONFIG_BUSYBOX_CONFIG_INSTALL_APPLET_SCRIPT_WRAPPERS is not set
+# CONFIG_BUSYBOX_CONFIG_INSTALL_APPLET_DONT is not set
+CONFIG_BUSYBOX_CONFIG_PREFIX="./_install"
+
+#
+# Busybox Library Tuning
+#
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SYSTEMD is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_RTMINMAX is not set
+CONFIG_BUSYBOX_CONFIG_PASSWORD_MINLEN=6
+CONFIG_BUSYBOX_CONFIG_MD5_SIZE_VS_SPEED=2
+CONFIG_BUSYBOX_CONFIG_FEATURE_FAST_TOP=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_ETC_NETWORKS is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_USE_TERMIOS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_EDITING=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_EDITING_MAX_LEN=512
+# CONFIG_BUSYBOX_CONFIG_FEATURE_EDITING_VI is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_EDITING_HISTORY=256
+# CONFIG_BUSYBOX_CONFIG_FEATURE_EDITING_SAVEHISTORY is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_TAB_COMPLETION=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_USERNAME_COMPLETION is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_EDITING_FANCY_PROMPT is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_EDITING_ASK_TERMINAL is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_NON_POSIX_CP=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_VERBOSE_CP_MESSAGE is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_COPYBUF_KB=4
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SKIP_ROOTFS is not set
+# CONFIG_BUSYBOX_CONFIG_MONOTONIC_SYSCALL is not set
+CONFIG_BUSYBOX_CONFIG_IOCTL_HEX2STR_ERROR=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_HWIB is not set
+
+#
+# Applets
+#
+
+#
+# Archival Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SEAMLESS_XZ is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SEAMLESS_LZMA is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SEAMLESS_BZ2 is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_SEAMLESS_GZ=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SEAMLESS_Z is not set
+# CONFIG_BUSYBOX_CONFIG_AR is not set
+CONFIG_BUSYBOX_CONFIG_BUNZIP2=y
+# CONFIG_BUSYBOX_CONFIG_BZIP2 is not set
+# CONFIG_BUSYBOX_CONFIG_CPIO is not set
+# CONFIG_BUSYBOX_CONFIG_DPKG is not set
+# CONFIG_BUSYBOX_CONFIG_DPKG_DEB is not set
+CONFIG_BUSYBOX_CONFIG_GUNZIP=y
+CONFIG_BUSYBOX_CONFIG_GZIP=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_GZIP_LONG_OPTIONS is not set
+# CONFIG_BUSYBOX_CONFIG_LZOP is not set
+# CONFIG_BUSYBOX_CONFIG_RPM2CPIO is not set
+# CONFIG_BUSYBOX_CONFIG_RPM is not set
+CONFIG_BUSYBOX_CONFIG_TAR=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TAR_CREATE=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TAR_AUTODETECT is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_TAR_FROM=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TAR_OLDGNU_COMPATIBILITY is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TAR_OLDSUN_COMPATIBILITY is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_TAR_GNU_EXTENSIONS=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TAR_LONG_OPTIONS is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TAR_UNAME_GNAME is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TAR_NOPRESERVE_TIME is not set
+# CONFIG_BUSYBOX_CONFIG_UNCOMPRESS is not set
+# CONFIG_BUSYBOX_CONFIG_UNLZMA is not set
+# CONFIG_BUSYBOX_CONFIG_UNXZ is not set
+# CONFIG_BUSYBOX_CONFIG_UNZIP is not set
+
+#
+# Coreutils
+#
+CONFIG_BUSYBOX_CONFIG_BASENAME=y
+CONFIG_BUSYBOX_CONFIG_CAT=y
+CONFIG_BUSYBOX_CONFIG_DATE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_DATE_ISOFMT=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_DATE_NANO is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_DATE_COMPAT is not set
+CONFIG_BUSYBOX_CONFIG_ID=y
+# CONFIG_BUSYBOX_CONFIG_GROUPS is not set
+CONFIG_BUSYBOX_CONFIG_TEST=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TEST_64=y
+CONFIG_BUSYBOX_CONFIG_TOUCH=y
+CONFIG_BUSYBOX_CONFIG_TR=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TR_CLASSES is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TR_EQUIV is not set
+# CONFIG_BUSYBOX_CONFIG_BASE64 is not set
+# CONFIG_BUSYBOX_CONFIG_WHO is not set
+# CONFIG_BUSYBOX_CONFIG_USERS is not set
+# CONFIG_BUSYBOX_CONFIG_CAL is not set
+# CONFIG_BUSYBOX_CONFIG_CATV is not set
+CONFIG_BUSYBOX_CONFIG_CHGRP=y
+CONFIG_BUSYBOX_CONFIG_CHMOD=y
+CONFIG_BUSYBOX_CONFIG_CHOWN=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_CHOWN_LONG_OPTIONS is not set
+CONFIG_BUSYBOX_CONFIG_CHROOT=y
+# CONFIG_BUSYBOX_CONFIG_CKSUM is not set
+# CONFIG_BUSYBOX_CONFIG_COMM is not set
+CONFIG_BUSYBOX_CONFIG_CP=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_CP_LONG_OPTIONS is not set
+CONFIG_BUSYBOX_CONFIG_CUT=y
+CONFIG_BUSYBOX_CONFIG_DD=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_DD_SIGNAL_HANDLING=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_DD_THIRD_STATUS_LINE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_DD_IBS_OBS=y
+CONFIG_BUSYBOX_CONFIG_DF=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_DF_FANCY is not set
+CONFIG_BUSYBOX_CONFIG_DIRNAME=y
+# CONFIG_BUSYBOX_CONFIG_DOS2UNIX is not set
+CONFIG_BUSYBOX_CONFIG_DU=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_DU_DEFAULT_BLOCKSIZE_1K=y
+CONFIG_BUSYBOX_CONFIG_ECHO=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FANCY_ECHO=y
+CONFIG_BUSYBOX_CONFIG_ENV=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_ENV_LONG_OPTIONS is not set
+# CONFIG_BUSYBOX_CONFIG_EXPAND is not set
+CONFIG_BUSYBOX_CONFIG_EXPR=y
+CONFIG_BUSYBOX_CONFIG_EXPR_MATH_SUPPORT_64=y
+CONFIG_BUSYBOX_CONFIG_FALSE=y
+# CONFIG_BUSYBOX_CONFIG_FOLD is not set
+CONFIG_BUSYBOX_CONFIG_FSYNC=y
+CONFIG_BUSYBOX_CONFIG_HEAD=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FANCY_HEAD=y
+CONFIG_BUSYBOX_CONFIG_HOSTID=y
+# CONFIG_BUSYBOX_CONFIG_INSTALL is not set
+CONFIG_BUSYBOX_CONFIG_LN=y
+# CONFIG_BUSYBOX_CONFIG_LOGNAME is not set
+CONFIG_BUSYBOX_CONFIG_LS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_LS_FILETYPES=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_LS_FOLLOWLINKS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_LS_RECURSIVE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_LS_SORTFILES=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_LS_TIMESTAMPS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_LS_USERNAME=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_LS_COLOR=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_LS_COLOR_IS_DEFAULT=y
+CONFIG_BUSYBOX_CONFIG_MD5SUM=y
+CONFIG_BUSYBOX_CONFIG_MKDIR=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_MKDIR_LONG_OPTIONS is not set
+CONFIG_BUSYBOX_CONFIG_MKFIFO=y
+CONFIG_BUSYBOX_CONFIG_MKNOD=y
+CONFIG_BUSYBOX_CONFIG_MV=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_MV_LONG_OPTIONS is not set
+CONFIG_BUSYBOX_CONFIG_NICE=y
+# CONFIG_BUSYBOX_CONFIG_NOHUP is not set
+# CONFIG_BUSYBOX_CONFIG_OD is not set
+CONFIG_BUSYBOX_CONFIG_PRINTENV=y
+CONFIG_BUSYBOX_CONFIG_PRINTF=y
+CONFIG_BUSYBOX_CONFIG_PWD=y
+CONFIG_BUSYBOX_CONFIG_READLINK=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_READLINK_FOLLOW=y
+# CONFIG_BUSYBOX_CONFIG_REALPATH is not set
+CONFIG_BUSYBOX_CONFIG_RM=y
+CONFIG_BUSYBOX_CONFIG_RMDIR=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_RMDIR_LONG_OPTIONS is not set
+CONFIG_BUSYBOX_CONFIG_SEQ=y
+# CONFIG_BUSYBOX_CONFIG_SHA1SUM is not set
+# CONFIG_BUSYBOX_CONFIG_SHA256SUM is not set
+# CONFIG_BUSYBOX_CONFIG_SHA512SUM is not set
+CONFIG_BUSYBOX_CONFIG_SLEEP=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FANCY_SLEEP=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_FLOAT_SLEEP is not set
+CONFIG_BUSYBOX_CONFIG_SORT=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SORT_BIG is not set
+# CONFIG_BUSYBOX_CONFIG_SPLIT is not set
+# CONFIG_BUSYBOX_CONFIG_STAT is not set
+CONFIG_BUSYBOX_CONFIG_STTY=y
+# CONFIG_BUSYBOX_CONFIG_SUM is not set
+CONFIG_BUSYBOX_CONFIG_SYNC=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SYNC_FANCY is not set
+# CONFIG_BUSYBOX_CONFIG_TAC is not set
+CONFIG_BUSYBOX_CONFIG_TAIL=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FANCY_TAIL=y
+CONFIG_BUSYBOX_CONFIG_TEE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TEE_USE_BLOCK_IO=y
+CONFIG_BUSYBOX_CONFIG_TRUE=y
+CONFIG_BUSYBOX_CONFIG_TTY=y
+CONFIG_BUSYBOX_CONFIG_UNAME=y
+# CONFIG_BUSYBOX_CONFIG_UNEXPAND is not set
+CONFIG_BUSYBOX_CONFIG_UNIQ=y
+# CONFIG_BUSYBOX_CONFIG_USLEEP is not set
+# CONFIG_BUSYBOX_CONFIG_UUDECODE is not set
+# CONFIG_BUSYBOX_CONFIG_UUENCODE is not set
+CONFIG_BUSYBOX_CONFIG_WC=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_WC_LARGE is not set
+# CONFIG_BUSYBOX_CONFIG_WHOAMI is not set
+CONFIG_BUSYBOX_CONFIG_YES=y
+
+#
+# Common options for cp and mv
+#
+CONFIG_BUSYBOX_CONFIG_FEATURE_PRESERVE_HARDLINKS=y
+
+#
+# Common options for ls, more and telnet
+#
+CONFIG_BUSYBOX_CONFIG_FEATURE_AUTOWIDTH=y
+
+#
+# Common options for df, du, ls
+#
+CONFIG_BUSYBOX_CONFIG_FEATURE_HUMAN_READABLE=y
+
+#
+# Common options for md5sum, sha1sum, sha256sum, sha512sum
+#
+CONFIG_BUSYBOX_CONFIG_FEATURE_MD5_SHA1_SUM_CHECK=y
+
+#
+# Console Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_CHVT is not set
+# CONFIG_BUSYBOX_CONFIG_FGCONSOLE is not set
+CONFIG_BUSYBOX_CONFIG_CLEAR=y
+# CONFIG_BUSYBOX_CONFIG_DEALLOCVT is not set
+# CONFIG_BUSYBOX_CONFIG_DUMPKMAP is not set
+# CONFIG_BUSYBOX_CONFIG_KBD_MODE is not set
+# CONFIG_BUSYBOX_CONFIG_LOADFONT is not set
+# CONFIG_BUSYBOX_CONFIG_LOADKMAP is not set
+# CONFIG_BUSYBOX_CONFIG_OPENVT is not set
+CONFIG_BUSYBOX_CONFIG_RESET=y
+# CONFIG_BUSYBOX_CONFIG_RESIZE is not set
+# CONFIG_BUSYBOX_CONFIG_SETCONSOLE is not set
+# CONFIG_BUSYBOX_CONFIG_SETFONT is not set
+# CONFIG_BUSYBOX_CONFIG_SETKEYCODES is not set
+# CONFIG_BUSYBOX_CONFIG_SETLOGCONS is not set
+# CONFIG_BUSYBOX_CONFIG_SHOWKEY is not set
+
+#
+# Debian Utilities
+#
+CONFIG_BUSYBOX_CONFIG_MKTEMP=y
+# CONFIG_BUSYBOX_CONFIG_PIPE_PROGRESS is not set
+# CONFIG_BUSYBOX_CONFIG_RUN_PARTS is not set
+# CONFIG_BUSYBOX_CONFIG_START_STOP_DAEMON is not set
+CONFIG_BUSYBOX_CONFIG_WHICH=y
+
+#
+# Editors
+#
+# CONFIG_BUSYBOX_CONFIG_PATCH is not set
+CONFIG_BUSYBOX_CONFIG_VI=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_MAX_LEN=1024
+# CONFIG_BUSYBOX_CONFIG_FEATURE_VI_8BIT is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_COLON=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_YANKMARK=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_SEARCH=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_VI_REGEX_SEARCH is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_USE_SIGNALS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_DOT_CMD=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_READONLY=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_SETOPTS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_SET=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_WIN_RESIZE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_ASK_TERMINAL=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_VI_OPTIMIZE_CURSOR=y
+CONFIG_BUSYBOX_CONFIG_AWK=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_AWK_LIBM=y
+CONFIG_BUSYBOX_CONFIG_CMP=y
+# CONFIG_BUSYBOX_CONFIG_DIFF is not set
+# CONFIG_BUSYBOX_CONFIG_ED is not set
+CONFIG_BUSYBOX_CONFIG_SED=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_ALLOW_EXEC=y
+
+#
+# Finding Utilities
+#
+CONFIG_BUSYBOX_CONFIG_FIND=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_PRINT0=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_MTIME is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_MMIN is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_PERM=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_TYPE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_XDEV=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_MAXDEPTH=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_NEWER is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_INUM is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_EXEC=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_USER=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_GROUP=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_NOT=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_DEPTH=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_PAREN=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_SIZE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_PRUNE=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_DELETE is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_PATH=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_REGEX=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_FIND_LINKS is not set
+CONFIG_BUSYBOX_CONFIG_GREP=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_GREP_EGREP_ALIAS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_GREP_FGREP_ALIAS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_GREP_CONTEXT=y
+CONFIG_BUSYBOX_CONFIG_XARGS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_XARGS_SUPPORT_CONFIRMATION=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_XARGS_SUPPORT_QUOTES=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_XARGS_SUPPORT_TERMOPT=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_XARGS_SUPPORT_ZERO_TERM=y
+
+#
+# Init Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_BOOTCHARTD is not set
+CONFIG_BUSYBOX_CONFIG_HALT=y
+CONFIG_BUSYBOX_CONFIG_INIT=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_USE_INITTAB=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_KILL_REMOVED is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_INIT_SCTTY is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_INIT_SYSLOG=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_EXTRA_QUIET is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_INIT_COREDUMPS is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_INITRD is not set
+CONFIG_BUSYBOX_CONFIG_INIT_TERMINAL_TYPE="linux"
+# CONFIG_BUSYBOX_CONFIG_MESG is not set
+
+#
+# Login/Password Management Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_ADD_SHELL is not set
+# CONFIG_BUSYBOX_CONFIG_REMOVE_SHELL is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_SHADOWPASSWDS=y
+# CONFIG_BUSYBOX_CONFIG_USE_BB_PWD_GRP is not set
+CONFIG_BUSYBOX_CONFIG_USE_BB_CRYPT=y
+CONFIG_BUSYBOX_CONFIG_USE_BB_CRYPT_SHA=y
+# CONFIG_BUSYBOX_CONFIG_ADDUSER is not set
+# CONFIG_BUSYBOX_CONFIG_ADDGROUP is not set
+# CONFIG_BUSYBOX_CONFIG_DELUSER is not set
+# CONFIG_BUSYBOX_CONFIG_DELGROUP is not set
+CONFIG_BUSYBOX_CONFIG_GETTY=y
+CONFIG_BUSYBOX_CONFIG_LOGIN=y
+# CONFIG_BUSYBOX_CONFIG_PAM is not set
+CONFIG_BUSYBOX_CONFIG_LOGIN_SCRIPTS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_NOLOGIN=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_SECURETTY=y
+CONFIG_BUSYBOX_CONFIG_PASSWD=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_PASSWD_WEAK_CHECK=y
+# CONFIG_BUSYBOX_CONFIG_CRYPTPW is not set
+CONFIG_BUSYBOX_CONFIG_CHPASSWD=y
+# CONFIG_BUSYBOX_CONFIG_SU is not set
+# CONFIG_BUSYBOX_CONFIG_SULOGIN is not set
+# CONFIG_BUSYBOX_CONFIG_VLOCK is not set
+
+#
+# Linux Ext2 FS Progs
+#
+# CONFIG_BUSYBOX_CONFIG_CHATTR is not set
+# CONFIG_BUSYBOX_CONFIG_FSCK is not set
+# CONFIG_BUSYBOX_CONFIG_LSATTR is not set
+# CONFIG_BUSYBOX_CONFIG_TUNE2FS is not set
+
+#
+# Linux Module Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_MODINFO is not set
+# CONFIG_BUSYBOX_CONFIG_MODPROBE_SMALL is not set
+CONFIG_BUSYBOX_CONFIG_INSMOD=y
+CONFIG_BUSYBOX_CONFIG_RMMOD=y
+CONFIG_BUSYBOX_CONFIG_LSMOD=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_LSMOD_PRETTY_2_6_OUTPUT=y
+CONFIG_BUSYBOX_CONFIG_MODPROBE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_MODPROBE_BLACKLIST=y
+CONFIG_BUSYBOX_CONFIG_DEPMOD=y
+
+#
+# Options common to multiple modutils
+#
+# CONFIG_BUSYBOX_CONFIG_FEATURE_2_4_MODULES is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_INSMOD_TRY_MMAP is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_CHECK_TAINTED_MODULE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_MODUTILS_ALIAS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_MODUTILS_SYMBOLS=y
+CONFIG_BUSYBOX_CONFIG_DEFAULT_MODULES_DIR="/lib/modules"
+CONFIG_BUSYBOX_CONFIG_DEFAULT_DEPMOD_FILE="modules.dep"
+
+#
+# Linux System Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_BLOCKDEV is not set
+# CONFIG_BUSYBOX_CONFIG_REV is not set
+# CONFIG_BUSYBOX_CONFIG_ACPID is not set
+# CONFIG_BUSYBOX_CONFIG_BLKID is not set
+CONFIG_BUSYBOX_CONFIG_DMESG=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_DMESG_PRETTY=y
+# CONFIG_BUSYBOX_CONFIG_FBSET is not set
+# CONFIG_BUSYBOX_CONFIG_FALLOCATE is not set
+# CONFIG_BUSYBOX_CONFIG_FDFLUSH is not set
+# CONFIG_BUSYBOX_CONFIG_FDFORMAT is not set
+# CONFIG_BUSYBOX_CONFIG_FDISK is not set
+# CONFIG_BUSYBOX_CONFIG_FINDFS is not set
+# CONFIG_BUSYBOX_CONFIG_FLOCK is not set
+# CONFIG_BUSYBOX_CONFIG_FREERAMDISK is not set
+# CONFIG_BUSYBOX_CONFIG_FSCK_MINIX is not set
+# CONFIG_BUSYBOX_CONFIG_MKFS_EXT2 is not set
+# CONFIG_BUSYBOX_CONFIG_MKFS_MINIX is not set
+# CONFIG_BUSYBOX_CONFIG_MKFS_REISER is not set
+# CONFIG_BUSYBOX_CONFIG_MKFS_VFAT is not set
+# CONFIG_BUSYBOX_CONFIG_GETOPT is not set
+CONFIG_BUSYBOX_CONFIG_HEXDUMP=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_HEXDUMP_REVERSE is not set
+# CONFIG_BUSYBOX_CONFIG_HD is not set
+CONFIG_BUSYBOX_CONFIG_HWCLOCK=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_HWCLOCK_LONG_OPTIONS is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_HWCLOCK_ADJTIME_FHS is not set
+# CONFIG_BUSYBOX_CONFIG_IPCRM is not set
+# CONFIG_BUSYBOX_CONFIG_IPCS is not set
+# CONFIG_BUSYBOX_CONFIG_LOSETUP is not set
+# CONFIG_BUSYBOX_CONFIG_LSPCI is not set
+# CONFIG_BUSYBOX_CONFIG_LSUSB is not set
+CONFIG_BUSYBOX_CONFIG_MDEV=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_MDEV_CONF=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_MDEV_RENAME=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_MDEV_RENAME_REGEXP=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_MDEV_EXEC=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_MDEV_LOAD_FIRMWARE=y
+# CONFIG_BUSYBOX_CONFIG_MKSWAP is not set
+# CONFIG_BUSYBOX_CONFIG_MORE is not set
+CONFIG_BUSYBOX_CONFIG_MOUNT=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_MOUNT_FAKE is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_MOUNT_VERBOSE is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_MOUNT_HELPERS=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_MOUNT_LABEL is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_MOUNT_NFS is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_MOUNT_CIFS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_MOUNT_FLAGS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_MOUNT_FSTAB=y
+# CONFIG_BUSYBOX_CONFIG_NSENTER is not set
+CONFIG_BUSYBOX_CONFIG_PIVOT_ROOT=y
+# CONFIG_BUSYBOX_CONFIG_RDATE is not set
+# CONFIG_BUSYBOX_CONFIG_RDEV is not set
+# CONFIG_BUSYBOX_CONFIG_READPROFILE is not set
+# CONFIG_BUSYBOX_CONFIG_RTCWAKE is not set
+# CONFIG_BUSYBOX_CONFIG_SCRIPT is not set
+# CONFIG_BUSYBOX_CONFIG_SCRIPTREPLAY is not set
+# CONFIG_BUSYBOX_CONFIG_SETARCH is not set
+# CONFIG_BUSYBOX_CONFIG_SWAPONOFF is not set
+# CONFIG_BUSYBOX_CONFIG_SWITCH_ROOT is not set
+CONFIG_BUSYBOX_CONFIG_UMOUNT=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_UMOUNT_ALL=y
+
+#
+# Common options for mount/umount
+#
+CONFIG_BUSYBOX_CONFIG_FEATURE_MOUNT_LOOP=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_MOUNT_LOOP_CREATE is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_MTAB_SUPPORT is not set
+# CONFIG_BUSYBOX_CONFIG_VOLUMEID is not set
+
+#
+# Miscellaneous Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_CONSPY is not set
+# CONFIG_BUSYBOX_CONFIG_LESS is not set
+# CONFIG_BUSYBOX_CONFIG_NANDWRITE is not set
+# CONFIG_BUSYBOX_CONFIG_NANDDUMP is not set
+# CONFIG_BUSYBOX_CONFIG_SETSERIAL is not set
+# CONFIG_BUSYBOX_CONFIG_UBIATTACH is not set
+# CONFIG_BUSYBOX_CONFIG_UBIDETACH is not set
+# CONFIG_BUSYBOX_CONFIG_UBIMKVOL is not set
+# CONFIG_BUSYBOX_CONFIG_UBIRMVOL is not set
+# CONFIG_BUSYBOX_CONFIG_UBIRSVOL is not set
+# CONFIG_BUSYBOX_CONFIG_UBIUPDATEVOL is not set
+# CONFIG_BUSYBOX_CONFIG_ADJTIMEX is not set
+# CONFIG_BUSYBOX_CONFIG_BBCONFIG is not set
+# CONFIG_BUSYBOX_CONFIG_BEEP is not set
+# CONFIG_BUSYBOX_CONFIG_CHAT is not set
+CONFIG_BUSYBOX_CONFIG_CHRT=y
+CONFIG_BUSYBOX_CONFIG_CROND=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_CROND_D is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_CROND_CALL_SENDMAIL is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_CROND_DIR="/var/spool/cron"
+CONFIG_BUSYBOX_CONFIG_CRONTAB=y
+# CONFIG_BUSYBOX_CONFIG_DC is not set
+# CONFIG_BUSYBOX_CONFIG_DEVFSD is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_DEVFS is not set
+# CONFIG_BUSYBOX_CONFIG_DEVMEM is not set
+CONFIG_BUSYBOX_CONFIG_EJECT=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_EJECT_SCSI is not set
+# CONFIG_BUSYBOX_CONFIG_FBSPLASH is not set
+# CONFIG_BUSYBOX_CONFIG_FLASHCP is not set
+# CONFIG_BUSYBOX_CONFIG_FLASH_LOCK is not set
+# CONFIG_BUSYBOX_CONFIG_FLASH_UNLOCK is not set
+# CONFIG_BUSYBOX_CONFIG_FLASH_ERASEALL is not set
+# CONFIG_BUSYBOX_CONFIG_IONICE is not set
+# CONFIG_BUSYBOX_CONFIG_INOTIFYD is not set
+# CONFIG_BUSYBOX_CONFIG_HDPARM is not set
+CONFIG_BUSYBOX_CONFIG_LOCK=y
+# CONFIG_BUSYBOX_CONFIG_MAKEDEVS is not set
+# CONFIG_BUSYBOX_CONFIG_MAN is not set
+# CONFIG_BUSYBOX_CONFIG_MICROCOM is not set
+# CONFIG_BUSYBOX_CONFIG_MOUNTPOINT is not set
+# CONFIG_BUSYBOX_CONFIG_MT is not set
+# CONFIG_BUSYBOX_CONFIG_RAIDAUTORUN is not set
+# CONFIG_BUSYBOX_CONFIG_READAHEAD is not set
+# CONFIG_BUSYBOX_CONFIG_RFKILL is not set
+# CONFIG_BUSYBOX_CONFIG_RUNLEVEL is not set
+# CONFIG_BUSYBOX_CONFIG_RX is not set
+# CONFIG_BUSYBOX_CONFIG_SETSID is not set
+CONFIG_BUSYBOX_CONFIG_STRINGS=y
+CONFIG_BUSYBOX_CONFIG_TASKSET=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TASKSET_FANCY=y
+CONFIG_BUSYBOX_CONFIG_TIME=y
+# CONFIG_BUSYBOX_CONFIG_TIMEOUT is not set
+# CONFIG_BUSYBOX_CONFIG_TTYSIZE is not set
+# CONFIG_BUSYBOX_CONFIG_VOLNAME is not set
+# CONFIG_BUSYBOX_CONFIG_WALL is not set
+# CONFIG_BUSYBOX_CONFIG_WATCHDOG is not set
+
+#
+# Networking Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_NAMEIF is not set
+# CONFIG_BUSYBOX_CONFIG_NBDCLIENT is not set
+CONFIG_BUSYBOX_CONFIG_NC=y
+# CONFIG_BUSYBOX_CONFIG_NC_SERVER is not set
+# CONFIG_BUSYBOX_CONFIG_NC_EXTRA is not set
+# CONFIG_BUSYBOX_CONFIG_NC_110_COMPAT is not set
+CONFIG_BUSYBOX_CONFIG_PING=y
+CONFIG_BUSYBOX_CONFIG_PING6=y
+CONFIG_BUSYBOX_CONFIG_PINGSVRS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_FANCY_PING=y
+# CONFIG_BUSYBOX_CONFIG_WHOIS is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_IPV6=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_UNIX_LOCAL is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_PREFER_IPV4_ADDRESS=y
+CONFIG_BUSYBOX_CONFIG_VERBOSE_RESOLUTION_ERRORS=y
+CONFIG_BUSYBOX_CONFIG_ARP=y
+CONFIG_BUSYBOX_CONFIG_ARPING=y
+CONFIG_BUSYBOX_SENDARP=y
+# CONFIG_BUSYBOX_CONFIG_BRCTL is not set
+# CONFIG_BUSYBOX_CONFIG_DNSD is not set
+# CONFIG_BUSYBOX_CONFIG_ETHER_WAKE is not set
+# CONFIG_BUSYBOX_CONFIG_FAKEIDENTD is not set
+# CONFIG_BUSYBOX_CONFIG_FTPD is not set
+# CONFIG_BUSYBOX_CONFIG_FTPGET is not set
+CONFIG_BUSYBOX_CONFIG_FTPPUT=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_FTPGETPUT_LONG_OPTIONS is not set
+# CONFIG_BUSYBOX_CONFIG_HOSTNAME is not set
+# CONFIG_BUSYBOX_CONFIG_HTTPD is not set
+CONFIG_BUSYBOX_CONFIG_IFCONFIG=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_IFCONFIG_STATUS=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_IFCONFIG_SLIP is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_IFCONFIG_MEMSTART_IOADDR_IRQ is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_IFCONFIG_HW=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_IFCONFIG_BROADCAST_PLUS=y
+# CONFIG_BUSYBOX_CONFIG_IFENSLAVE is not set
+# CONFIG_BUSYBOX_CONFIG_IFPLUGD is not set
+# CONFIG_BUSYBOX_CONFIG_IFUPDOWN is not set
+# CONFIG_BUSYBOX_CONFIG_INETD is not set
+# CONFIG_BUSYBOX_CONFIG_IP is not set
+# CONFIG_BUSYBOX_CONFIG_IPCALC is not set
+# CONFIG_BUSYBOX_CONFIG_NETMSG is not set
+CONFIG_BUSYBOX_CONFIG_NETSTAT=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_NETSTAT_WIDE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_NETSTAT_PRG=y
+CONFIG_BUSYBOX_CONFIG_NSLOOKUP=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_NSLOOKUP_BIG is not set
+# CONFIG_BUSYBOX_CONFIG_NTPD is not set
+# CONFIG_BUSYBOX_CONFIG_PSCAN is not set
+CONFIG_BUSYBOX_CONFIG_ROUTE=y
+# CONFIG_BUSYBOX_CONFIG_SLATTACH is not set
+# CONFIG_BUSYBOX_CONFIG_TCPSVD is not set
+# CONFIG_BUSYBOX_CONFIG_TELNET is not set
+CONFIG_BUSYBOX_CONFIG_TELNETD=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TELNETD_STANDALONE=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TELNETD_INETD_WAIT is not set
+CONFIG_BUSYBOX_CONFIG_TFTP=y
+CONFIG_BUSYBOX_CONFIG_TFTPD=y
+
+#
+# Common options for tftp/tftpd
+#
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TFTP_GET is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_TFTP_PUT=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TFTP_BLOCKSIZE=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TFTP_PROGRESS_BAR is not set
+# CONFIG_BUSYBOX_CONFIG_TFTP_DEBUG is not set
+CONFIG_BUSYBOX_CONFIG_TRACEROUTE=y
+CONFIG_BUSYBOX_CONFIG_TRACEROUTE6=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TRACEROUTE_VERBOSE=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TRACEROUTE_SOURCE_ROUTE is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_TRACEROUTE_USE_ICMP is not set
+# CONFIG_BUSYBOX_CONFIG_TUNCTL is not set
+# CONFIG_BUSYBOX_CONFIG_UDHCPD is not set
+# CONFIG_BUSYBOX_CONFIG_UDHCPC is not set
+CONFIG_BUSYBOX_CONFIG_UDPSVD=y
+# CONFIG_BUSYBOX_CONFIG_VCONFIG is not set
+CONFIG_BUSYBOX_CONFIG_WGET=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_WGET_STATUSBAR=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_WGET_AUTHENTICATION=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_WGET_LONG_OPTIONS=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_WGET_TIMEOUT is not set
+# CONFIG_BUSYBOX_CONFIG_ZCIP is not set
+
+#
+# Print Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_LPD is not set
+# CONFIG_BUSYBOX_CONFIG_LPR is not set
+# CONFIG_BUSYBOX_CONFIG_LPQ is not set
+
+#
+# Mail Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_MAKEMIME is not set
+# CONFIG_BUSYBOX_CONFIG_POPMAILDIR is not set
+# CONFIG_BUSYBOX_CONFIG_REFORMIME is not set
+# CONFIG_BUSYBOX_CONFIG_SENDMAIL is not set
+
+#
+# Process Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_IOSTAT is not set
+CONFIG_BUSYBOX_CONFIG_MPSTAT=y
+# CONFIG_BUSYBOX_CONFIG_NMETER is not set
+# CONFIG_BUSYBOX_CONFIG_PMAP is not set
+# CONFIG_BUSYBOX_CONFIG_POWERTOP is not set
+# CONFIG_BUSYBOX_CONFIG_PSTREE is not set
+# CONFIG_BUSYBOX_CONFIG_PWDX is not set
+# CONFIG_BUSYBOX_CONFIG_SMEMCAP is not set
+CONFIG_BUSYBOX_CONFIG_UPTIME=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_UPTIME_UTMP_SUPPORT is not set
+# CONFIG_BUSYBOX_CONFIG_FREE is not set
+# CONFIG_BUSYBOX_CONFIG_FUSER is not set
+CONFIG_BUSYBOX_CONFIG_KILL=y
+CONFIG_BUSYBOX_CONFIG_KILLALL=y
+# CONFIG_BUSYBOX_CONFIG_KILLALL5 is not set
+CONFIG_BUSYBOX_CONFIG_PGREP=y
+CONFIG_BUSYBOX_CONFIG_PIDOF=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_PIDOF_SINGLE is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_PIDOF_OMIT is not set
+# CONFIG_BUSYBOX_CONFIG_PKILL is not set
+CONFIG_BUSYBOX_CONFIG_PS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_PS_WIDE=y
+# CONFIG_BUSYBOX_CONFIG_RENICE is not set
+# CONFIG_BUSYBOX_CONFIG_BB_SYSCTL is not set
+CONFIG_BUSYBOX_CONFIG_TOP=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TOP_CPU_USAGE_PERCENTAGE=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TOP_CPU_GLOBAL_PERCENTS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TOP_SMP_CPU=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TOP_DECIMALS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TOP_SMP_PROCESS=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_TOPMEM=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_SHOW_THREADS=y
+# CONFIG_BUSYBOX_CONFIG_WATCH is not set
+
+#
+# Runit Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_RUNSV is not set
+# CONFIG_BUSYBOX_CONFIG_RUNSVDIR is not set
+# CONFIG_BUSYBOX_CONFIG_SV is not set
+# CONFIG_BUSYBOX_CONFIG_SVLOGD is not set
+# CONFIG_BUSYBOX_CONFIG_CHPST is not set
+# CONFIG_BUSYBOX_CONFIG_SETUIDGID is not set
+# CONFIG_BUSYBOX_CONFIG_ENVUIDGID is not set
+# CONFIG_BUSYBOX_CONFIG_ENVDIR is not set
+# CONFIG_BUSYBOX_CONFIG_SOFTLIMIT is not set
+
+#
+# Shells
+#
+CONFIG_BUSYBOX_CONFIG_ASH=y
+CONFIG_BUSYBOX_CONFIG_ASH_BASH_COMPAT=y
+# CONFIG_BUSYBOX_CONFIG_ASH_IDLE_TIMEOUT is not set
+CONFIG_BUSYBOX_CONFIG_ASH_JOB_CONTROL=y
+CONFIG_BUSYBOX_CONFIG_ASH_ALIAS=y
+CONFIG_BUSYBOX_CONFIG_ASH_GETOPTS=y
+CONFIG_BUSYBOX_CONFIG_ASH_BUILTIN_ECHO=y
+CONFIG_BUSYBOX_CONFIG_ASH_BUILTIN_PRINTF=y
+CONFIG_BUSYBOX_CONFIG_ASH_BUILTIN_TEST=y
+CONFIG_BUSYBOX_CONFIG_ASH_CMDCMD=y
+# CONFIG_BUSYBOX_CONFIG_ASH_MAIL is not set
+# CONFIG_BUSYBOX_CONFIG_ASH_OPTIMIZE_FOR_SIZE is not set
+# CONFIG_BUSYBOX_CONFIG_ASH_RANDOM_SUPPORT is not set
+CONFIG_BUSYBOX_CONFIG_ASH_EXPAND_PRMT=y
+# CONFIG_BUSYBOX_CONFIG_CTTYHACK is not set
+# CONFIG_BUSYBOX_CONFIG_MSH is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_SH_IS_ASH=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SH_IS_HUSH is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SH_IS_NONE is not set
+CONFIG_BUSYBOX_CONFIG_FEATURE_BASH_IS_ASH=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_BASH_IS_HUSH is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_BASH_IS_NONE is not set
+CONFIG_BUSYBOX_CONFIG_SH_MATH_SUPPORT=y
+CONFIG_BUSYBOX_CONFIG_SH_MATH_SUPPORT_64=y
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SH_EXTRA_QUIET is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SH_STANDALONE is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SH_NOFORK is not set
+# CONFIG_BUSYBOX_CONFIG_FEATURE_SH_HISTFILESIZE is not set
+
+#
+# System Logging Utilities
+#
+# CONFIG_BUSYBOX_CONFIG_SYSLOGD is not set
+CONFIG_BUSYBOX_CONFIG_KLOGD=y
+CONFIG_BUSYBOX_CONFIG_FEATURE_KLOGD_KLOGCTL=y
+# CONFIG_BUSYBOX_CONFIG_LOGGER is not set
+CONFIG_PACKAGE_dhcpoptinj=y
+CONFIG_PACKAGE_dnsmasq=y
+CONFIG_dnsmasq_releaseno="2.78"
+# CONFIG_dnsmasq_dnssec is not set
+# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set
+CONFIG_PACKAGE_dropbear=y
+# CONFIG_PACKAGE_ead is not set
+# CONFIG_PACKAGE_firewall is not set
+# CONFIG_PACKAGE_hotplug2 is not set
+CONFIG_PACKAGE_libc=y
+CONFIG_PACKAGE_libgcc=y
+CONFIG_PACKAGE_libpthread=y
+CONFIG_PACKAGE_libresolv=y
+CONFIG_PACKAGE_librt=y
+CONFIG_PACKAGE_libstdcpp=y
+# CONFIG_PACKAGE_libthread-db is not set
+CONFIG_PACKAGE_logrotate=y
+# CONFIG_PACKAGE_mtd is not set
+# CONFIG_PACKAGE_mtd-econet is not set
+CONFIG_PACKAGE_net-snmp=y
+
+#
+# Configuration
+#
+# CONFIG_NETSNMP_MODSW is not set
+# CONFIG_PACKAGE_netifd is not set
+CONFIG_PACKAGE_ntpclient=y
+# CONFIG_PACKAGE_om-watchdog is not set
+CONFIG_PACKAGE_opkg=y
+# CONFIG_PACKAGE_p910nd is not set
+CONFIG_PACKAGE_pcp-master=y
+# CONFIG_PACKAGE_procd is not set
+CONFIG_PACKAGE_pure-ftpd=y
+# CONFIG_PACKAGE_qos-scripts is not set
+CONFIG_PACKAGE_resolveip=y
+# CONFIG_PACKAGE_swconfig is not set
+# CONFIG_PACKAGE_uci is not set
+# CONFIG_PACKAGE_udev is not set
+CONFIG_PACKAGE_udhcp=y
+CONFIG_PACKAGE_updatedd=y
+# CONFIG_PACKAGE_wireless-tools is not set
+CONFIG_PACKAGE_zebra=y
+
+#
+# Administration
+#
+# CONFIG_PACKAGE_rport is not set
+CONFIG_PACKAGE_syslog-ng=y
+# CONFIG_PACKAGE_syslog-ng3 is not set
+
+#
+# ZYXEL Packages
+#
+# CONFIG_PACKAGE_libzyplatform is not set
+
+#
+# BRCM Userspace Packages
+#
+CONFIG_PACKAGE_brcm-base-files=y
+# CONFIG_PACKAGE_brcm-userspace is not set
+CONFIG_PACKAGE_brcm-userspace-pkg=y
+CONFIG_PACKAGE_brcm-wlanDhd=m
+CONFIG_BCMDHD_CHIPS="6715b0_43684b0"
+# CONFIG_PACKAGE_brcm-wlanDhd-source is not set
+CONFIG_PACKAGE_libatmctl=y
+# CONFIG_PACKAGE_libcms_boardctl is not set
+CONFIG_PACKAGE_libcms_util=y
+CONFIG_PACKAGE_libxdslctl=y
+CONFIG_PACKAGE_tmsctl=y
+# CONFIG_PACKAGE_zygetgpio is not set
+# CONFIG_PACKAGE_zyled is not set
+# CONFIG_PACKAGE_zytool is not set
+
+#
+# Boot Loaders
+#
+CONFIG_PACKAGE_brcm-cfe=y
+
+#
+# Broadcom CFE Configuration
+#
+# CONFIG_BRCM_CFE_CHIP_6328 is not set
+# CONFIG_BRCM_CFE_CHIP_6362 is not set
+# CONFIG_BRCM_CFE_CHIP_63268 is not set
+# CONFIG_BRCM_CFE_CHIP_6318 is not set
+# CONFIG_BRCM_CFE_CHIP_6838 is not set
+# CONFIG_BRCM_CFE_CHIP_6848 is not set
+# CONFIG_BRCM_CFE_CHIP_6858 is not set
+# CONFIG_BRCM_CFE_CHIP_6856 is not set
+CONFIG_BRCM_CFE_CHIP_63138=y
+# CONFIG_BRCM_CFE_CHIP_63148 is not set
+# CONFIG_BRCM_CFE_CHIP_63158 is not set
+# CONFIG_BRCM_CFE_CHIP_63381 is not set
+# CONFIG_BRCM_CFE_CHIP_60333 is not set
+# CONFIG_BRCM_CFE_CHIP_63178 is not set
+# CONFIG_BRCM_CFE_CHIP_4908 is not set
+CONFIG_BRCM_CFE_CHIP="63138"
+# CONFIG_BRCM_CFE_BOOT_FROM_NOR is not set
+CONFIG_BRCM_CFE_BOOT_FROM_NAND=y
+# CONFIG_BRCM_CFE_BOOT_FROM_NOR_WITH_NAND_PROG is not set
+# CONFIG_ZYXEL_REBUILD_CFE is not set
+# CONFIG_PACKAGE_uboot-zyxel is not set
+# CONFIG_PACKAGE_zloader is not set
+
+#
+# Zyxel Packages
+#
+CONFIG_PACKAGE_SpeedTest=y
+CONFIG_PACKAGE_ZyIMS=y
+# CONFIG_PACKAGE_acts_script is not set
+CONFIG_PACKAGE_base-files-prebuild=y
+# CONFIG_PACKAGE_ber is not set
+CONFIG_PACKAGE_brcm-license=y
+# CONFIG_PACKAGE_bsa is not set
+# CONFIG_PACKAGE_bsa_image_source is not set
+# CONFIG_PACKAGE_cdbg is not set
+CONFIG_PACKAGE_dalcmd=y
+# CONFIG_PACKAGE_datamodel_show is not set
+CONFIG_PACKAGE_esmd=y
+# CONFIG_PACKAGE_eth_backhaul_monitor is not set
+# CONFIG_PACKAGE_firmware-version is not set
+CONFIG_PACKAGE_fw_upgrade=y
+CONFIG_PACKAGE_hostpolling=y
+# CONFIG_PACKAGE_hynetwork is not set
+CONFIG_PACKAGE_iptk_8_2_2=y
+# CONFIG_PACKAGE_libtransceiverctl is not set
+CONFIG_PACKAGE_libzcfg_fe_dal=y
+CONFIG_PACKAGE_libzcfg_fe_rdm_access=y
+CONFIG_PACKAGE_libzcfg_fe_rdm_string=y
+CONFIG_PACKAGE_libzcfg_fe_rdm_struct=y
+CONFIG_PACKAGE_libzcfg_fe_schema=y
+CONFIG_PACKAGE_libzcfg_fe_tr98=y
+CONFIG_PACKAGE_libzcmd_tool=y
+CONFIG_PACKAGE_libzyuitimer=y
+CONFIG_PACKAGE_libzyutil=y
+# CONFIG_PACKAGE_libzywlan is not set
+CONFIG_PACKAGE_libzywwan=y
+CONFIG_PACKAGE_netprobe=y
+# CONFIG_PACKAGE_powermonitor is not set
+CONFIG_PACKAGE_ramonitor=y
+CONFIG_PACKAGE_redirect_console=y
+# CONFIG_PACKAGE_rilcmd is not set
+# CONFIG_PACKAGE_rs6 is not set
+# CONFIG_PACKAGE_transceiverctl is not set
+CONFIG_PACKAGE_tty_log_echo=y
+CONFIG_PACKAGE_vcautohunt=y
+CONFIG_PACKAGE_vlanautohunt=y
+# CONFIG_PACKAGE_webgui is not set
+CONFIG_PACKAGE_webgui_vue=y
+CONFIG_webgui_vue_jquery="3.5.1"
+CONFIG_PACKAGE_wwan=y
+CONFIG_PACKAGE_wwanbackupd=y
+CONFIG_PACKAGE_zatm_oam=y
+CONFIG_PACKAGE_zcfg=y
+CONFIG_ZYXEL_SUPPORT_ZCFG=y
+# CONFIG_ZYXEL_ZCFG_DEDICATED_PARTITION is not set
+CONFIG_ZCFG_TR98_COMPATIBLE=y
+# CONFIG_ZCFG_IPQ8074_Generic is not set
+# CONFIG_ZCFG_963138REF is not set
+# CONFIG_ZCFG_968380GWOV is not set
+# CONFIG_ZCFG_EMG3415_B10A_Generic is not set
+# CONFIG_ZCFG_EMG3415_B10A_CBT is not set
+# CONFIG_ZCFG_FMG3586_B10A_platform is not set
+# CONFIG_ZCFG_PM701_B10A_Generic is not set
+# CONFIG_ZCFG_PX5501_B0_Generic is not set
+# CONFIG_ZCFG_PX5501_B1_WIND is not set
+# CONFIG_ZCFG_PX7501_B0_Altibox is not set
+# CONFIG_ZCFG_PX7501_B0_Generic is not set
+# CONFIG_ZCFG_AX7501_B0_Sunrise is not set
+# CONFIG_ZCFG_AX7501_B0_TMNL is not set
+# CONFIG_ZCFG_PX7511_B0_Generic is not set
+# CONFIG_ZCFG_EX5510_B0_Generic is not set
+# CONFIG_ZCFG_EX5510_B0_Generic_ZYEE is not set
+# CONFIG_ZCFG_EX5501_B0_Generic is not set
+# CONFIG_ZCFG_VMG1312_B10D_Generic is not set
+# CONFIG_ZCFG_VMG1312_B10D_Codetel is not set
+# CONFIG_ZCFG_VMG1312_B10D_Telkom is not set
+# CONFIG_ZCFG_VMG1312_B10D_Tsf is not set
+# CONFIG_ZCFG_VMG1312_B10D_Turkey is not set
+# CONFIG_ZCFG_VMG3625_B10A_Generic is not set
+# CONFIG_ZCFG_VMG3925_B10A_Generic is not set
+# CONFIG_ZCFG_VMG3925_B10A_Retail is not set
+# CONFIG_ZCFG_VMG3925_B10C_Generic is not set
+# CONFIG_ZCFG_VMG3925_B30C_Generic is not set
+# CONFIG_ZCFG_VMG3926_B10A_Generic is not set
+# CONFIG_ZCFG_VMG3926_B10A_Elisa is not set
+# CONFIG_ZCFG_VMG3926_B10B_Generic is not set
+# CONFIG_ZCFG_VMG3927_B50B_Generic is not set
+# CONFIG_ZCFG_VMG4005_B50A_Generic is not set
+# CONFIG_ZCFG_VMG4005_B60A_Generic is not set
+# CONFIG_ZCFG_VMG4825_B10A_Generic is not set
+# CONFIG_ZCFG_VMG4927_B50A_Generic is not set
+# CONFIG_ZCFG_EMG6726_B10A_Generic is not set
+# CONFIG_ZCFG_VMG5313_Generic is not set
+# CONFIG_ZCFG_VMG5313_B10B_Generic is not set
+# CONFIG_ZCFG_VMG5313-B10B_SOL is not set
+# CONFIG_ZCFG_VMG5313_B30B_Generic_AnnexB is not set
+# CONFIG_ZCFG_VMG5313_B30B_Iskon is not set
+# CONFIG_ZCFG_VMG8823_B10B_Generic is not set
+# CONFIG_ZCFG_VMG8823_B10B_WIND is not set
+# CONFIG_ZCFG_VMG8823_B30B_Generic is not set
+# CONFIG_ZCFG_VMG8823_B30B_Generic_502L04 is not set
+# CONFIG_ZCFG_VMG8823_B50B_Generic is not set
+# CONFIG_ZCFG_VMG8823_B50B_Generic_502L04 is not set
+# CONFIG_ZCFG_VMG8823_B50B_Tiscali is not set
+# CONFIG_ZCFG_VMG8823_B50B_WIND is not set
+# CONFIG_ZCFG_VMG8823_B60B_Generic is not set
+# CONFIG_ZCFG_VMG8825_B50B_Generic is not set
+# CONFIG_ZCFG_VMG8825_B50B_Generic_502L05 is not set
+# CONFIG_ZCFG_VMG8825_B50B_WIND is not set
+# CONFIG_ZCFG_VMG8828_B50B_WIND is not set
+# CONFIG_ZCFG_VMG8825_B50B_Altibox is not set
+# CONFIG_ZCFG_VMG8825_B50B_Altibox_502L07 is not set
+# CONFIG_ZCFG_VMG8825_B50K_Eircom is not set
+# CONFIG_ZCFG_VMG8924_B10B_Generic is not set
+# CONFIG_ZCFG_VMG8924_B10A_Generic is not set
+# CONFIG_ZCFG_VMG8924_B10A_DU is not set
+# CONFIG_ZCFG_VMG8924_B10A_WIND is not set
+# CONFIG_ZCFG_VMG8924_B10D_Generic is not set
+# CONFIG_ZCFG_VMG8924_B10D_Tiscali is not set
+# CONFIG_ZCFG_VMG8924_B10D_WIND is not set
+# CONFIG_ZCFG_VMG8924_B30D_Generic is not set
+# CONFIG_ZCFG_VMG8924_B30D_Iskon is not set
+# CONFIG_ZCFG_VMG8948_B10A_Generic is not set
+# CONFIG_ZCFG_VMG8948_B10A_Sunrise is not set
+# CONFIG_ZCFG_VMG8948_B10A_Wingo is not set
+# CONFIG_ZCFG_VMG9823_B10A_Generic is not set
+# CONFIG_ZCFG_VMG4825_B10A_FairPoint is not set
+# CONFIG_ZCFG_XMG3512_B10A_Generic is not set
+# CONFIG_ZCFG_XMG3512_B10A_HawaiianTelcom is not set
+# CONFIG_ZCFG_XMG3563_B10A_Generic is not set
+# CONFIG_ZCFG_XMG8825_B50A_Generic is not set
+# CONFIG_ZCFG_XMG8825_B50A_Elisa is not set
+# CONFIG_ZCFG_EN7512_Generic is not set
+# CONFIG_ZCFG_EN7523_Generic is not set
+# CONFIG_ZCFG_EN7529_Generic is not set
+# CONFIG_ZCFG_DX3501_T0_Generic is not set
+# CONFIG_ZCFG_MT7520_Generic is not set
+# CONFIG_ZCFG_MT7525G_Generic is not set
+# CONFIG_ZCFG_PMG5317_T20A_Generic is not set
+# CONFIG_ZCFG_PMG5617_T20BV2_TE is not set
+# CONFIG_ZCFG_PMG5817_T20A_Generic is not set
+# CONFIG_ZCFG_PM7300_T0_Generic is not set
+# CONFIG_ZCFG_PM7300_T0_Cetin is not set
+# CONFIG_ZCFG_PM3101_T0_Generic is not set
+# CONFIG_ZCFG_PM5100_T0_Generic is not set
+# CONFIG_ZCFG_PM5100_T0_Cetin is not set
+# CONFIG_ZCFG_PMG1006_T20A_Generic is not set
+# CONFIG_ZCFG_PMG2006_T20A_Generic is not set
+# CONFIG_ZCFG_VMG1302_T20A_Oi is not set
+# CONFIG_ZCFG_VMG1302_T20A_Brazil is not set
+# CONFIG_ZCFG_VMG1312_T20A_Generic is not set
+# CONFIG_ZCFG_VMG1312_T20A_Brazil is not set
+# CONFIG_ZCFG_VMG1312_T20A_Algar is not set
+# CONFIG_ZCFG_VMG3312_T20A_Generic is not set
+# CONFIG_ZCFG_VMG3312_T20A_Generic_AnnexB is not set
+# CONFIG_ZCFG_VMG1312_T20B_Generic is not set
+# CONFIG_ZCFG_VMG1312_T20B_Shatel is not set
+# CONFIG_ZCFG_VMG3625_T20A_Generic is not set
+# CONFIG_ZCFG_VMG3625_T20A_Codetel is not set
+# CONFIG_ZCFG_VMG3625_T20A_Claro is not set
+# CONFIG_ZCFG_EN7525G_Generic is not set
+# CONFIG_ZCFG_PMG5317_T20B_Generic is not set
+# CONFIG_ZCFG_PMG4506_T20B_CHT is not set
+# CONFIG_ZCFG_DX5511_B0 is not set
+# CONFIG_ZCFG_DX3100_B0 is not set
+# CONFIG_ZCFG_DX5301_B0 is not set
+# CONFIG_ZCFG_DX5301_B1 is not set
+# CONFIG_ZCFG_DX5301_B2 is not set
+CONFIG_ZCFG_DX5401_B0_Generic=y
+# CONFIG_ZCFG_DX5401_B0_TMNL is not set
+# CONFIG_ZCFG_MX5301_B3 is not set
+# CONFIG_ZCFG_WX3401_B0 is not set
+# CONFIG_ZCFG_HGW500GX2X2M is not set
+# CONFIG_ZCFG_WX5600_T0_Generic is not set
+# CONFIG_ZCFG_EX5512_T0_Generic is not set
+# CONFIG_ZCFG_WX3401_B0_Altibox is not set
+# CONFIG_ZCFG_DX3201_B0_Generic is not set
+# CONFIG_ZCFG_DX3200_B0 is not set
+# CONFIG_ZCFG_DX3200_B0_TT is not set
+# CONFIG_ZCFG_EX3510_B0_Generic is not set
+# CONFIG_ZCFG_EX3510_B0_Starry is not set
+# CONFIG_ZCFG_EX3510_B0_GFiber is not set
+# CONFIG_ZCFG_DX4510_B0_Generic is not set
+# CONFIG_ZCFG_DX4510_B0_Starry is not set
+# CONFIG_ZCFG_VMG3625_T20A_WIND is not set
+# CONFIG_ZCFG_VMG3625_T20A_Oi is not set
+# CONFIG_ZCFG_VMG8825_T50A_TIM is not set
+# CONFIG_ZCFG_VMG8825_T50A_Generic is not set
+# CONFIG_ZCFG_VMG8825_T50K_Generic is not set
+# CONFIG_ZCFG_VMG8825_T50K_Tiscali is not set
+# CONFIG_ZCFG_VMG8825_T50K_NOS is not set
+# CONFIG_ZCFG_VMG8825_T50K_OBB is not set
+# CONFIG_ZCFG_VMG8825_T50K_TIM is not set
+# CONFIG_ZCFG_VMG8623_T50A_Generic is not set
+# CONFIG_ZCFG_VMG8623_T50B_Generic is not set
+# CONFIG_ZCFG_VMG8623_T50B_TM is not set
+# CONFIG_ZCFG_VMG8623_T50B_TT is not set
+# CONFIG_ZCFG_VMG8623_T50B_WindGreece is not set
+# CONFIG_ZCFG_VMG8623_T50B_CHT is not set
+# CONFIG_ZCFG_DX3301_T0_Generic is not set
+# CONFIG_ZCFG_EX3301_T0_TT is not set
+# CONFIG_ZCFG_DX3301_T0_WIND is not set
+# CONFIG_ZCFG_HGW500TX2X2E is not set
+# CONFIG_ZCFG_HGW500TX2X2E_EXTERNAL is not set
+# CONFIG_ZCFG_HGW500TX2X2E_EXTERNAL_TM is not set
+# CONFIG_ZCFG_EX3220_T0_Generic is not set
+# CONFIG_ZCFG_EX3220_T0_TOT is not set
+# CONFIG_ZCFG_EX3220_T0_Vodafone is not set
+# CONFIG_ZCFG_EX3200_T0_Generic is not set
+# CONFIG_ZCFG_EX3200_T0_TOT is not set
+# CONFIG_ZCFG_EX3300_T0_CAT is not set
+# CONFIG_ZCFG_EX3300_T0_CHT is not set
+# CONFIG_ZCFG_DX3401_T0_Generic is not set
+# CONFIG_ZCFG_DX3401_T0_TMobile is not set
+# CONFIG_ZCFG_WX3100_T0_Generic is not set
+# CONFIG_ZCFG_WX3100_T0_A1 is not set
+# CONFIG_ZCFG_VMG1312_T20B_Telekom is not set
+# CONFIG_ZCFG_VMG8825_T50K_TMobile is not set
+# CONFIG_ZCFG_VMG1312_T20B_EU_Generic is not set
+# CONFIG_ZCFG_VMG1312_T20B_CHT is not set
+# CONFIG_ZCFG_VMG8623_T50B_Turksat is not set
+# CONFIG_ZCFG_VMG1312_T20B_OTN is not set
+# CONFIG_ZCFG_VMG8623_T50B_O2CZ is not set
+# CONFIG_ZCFG_VMG1312_T20B_WindGreece is not set
+# CONFIG_ZCFG_HGW_2502GX4TU_B is not set
+# CONFIG_ZCFG_EX7710_B0 is not set
+CONFIG_ZCFG_PROJECT="DX5401-B0_Generic"
+CONFIG_ZCFG_DEFAULT_ROMFILE=""
+# CONFIG_ZCFG_TR98_PARAM_GUARD is not set
+# CONFIG_ZCFG_QUERY_TR98_PARM_ATTR_LIST is not set
+# CONFIG_ZCFG_TR098181_OBJECT_MAPPING_NUM_NAME_CONVERT is not set
+CONFIG_ZCFG_ACS_CONNECT_DATA_SYNC=y
+# CONFIG_ZCFG_SMART_FOOTPRINTS_TRACK is not set
+# CONFIG_ZCFG_APPLY_RPC_METHOD_AND_SUBSEQUENT_ROUT is not set
+CONFIG_PACKAGE_zcfg_be=y
+
+#
+# zyxel backend modules
+#
+CONFIG_ZCFG_BE_MODULE_DEVINFO=y
+
+#
+# DSL backend modules
+#
+CONFIG_ZCFG_BE_MODULE_DSL=y
+CONFIG_ZCFG_BE_MODULE_ATM_LINK=y
+CONFIG_ZCFG_BE_MODULE_VC_AUTO_HUNT=y
+CONFIG_ZCFG_BE_MODULE_PTM_LINK=y
+
+#
+# Voice backend modules
+#
+CONFIG_ZCFG_BE_MODULE_VOICE=y
+
+#
+# WiFi backend modules
+#
+CONFIG_ZCFG_BE_MODULE_WIFI=y
+CONFIG_ZCFG_BE_MODULE_ZYXEL_EASYMESH=y
+CONFIG_ZCFG_BE_MODULE_ZYXEL_ONESSID=y
+CONFIG_ZCFG_BE_MODULE_WPS_BTN_PRESS=y
+
+#
+# NAT backend modules
+#
+CONFIG_ZCFG_BE_MODULE_NAT_PORT_CTRL=y
+
+#
+# QoS backend modules
+#
+CONFIG_ZCFG_BE_MODULE_QOS=y
+
+#
+# GRE Tunnel backend modules
+#
+CONFIG_ZCFG_BE_MODULE_GRE_TUNNEL=y
+CONFIG_ZCFG_BE_MODULE_GRE_TUNNEL_IFACE=y
+
+#
+# USB backend modules
+#
+CONFIG_ZCFG_BE_MODULE_USB=y
+CONFIG_ZCFG_BE_MODULE_DLNA=y
+CONFIG_ZCFG_BE_MODULE_ZYXEL_VLAN_GROUP=y
+CONFIG_ZCFG_BE_MODULE_TFTP_SERVER_NAME=y
+CONFIG_ZCFG_BE_MODULE_SPEED_TEST=y
+CONFIG_ZCFG_BE_MODULE_SAMBA=y
+CONFIG_ZCFG_BE_MODULE_UPNP=y
+CONFIG_ZCFG_BE_MODULE_STB_VENDOR_ID=y
+CONFIG_ZCFG_BE_MODULE_WWAN_BACKUP=y
+CONFIG_ZCFG_BE_MODULE_ZYXEL_ONECONNECT=y
+CONFIG_ZCFG_BE_MODULE_ZYXEL_SFP_POWER_MGMT=y
+CONFIG_ZCFG_BE_MODULE_ZYXEL_LIFEMOTE=y
+CONFIG_ZCFG_BE_MODULE_GPON_INFO=y
+CONFIG_ZCFG_BE_MODULE_ZLOG_USE_DEBUG=y
+CONFIG_ZCFG_BE_MODULE_ZYXEL_URL_FILTER=y
+CONFIG_ZCFG_BE_MODULE_CYBER_SECURITY=y
+CONFIG_ZCFG_BE_MODULE_ZYXEL_MODSW_ZYEE=y
+CONFIG_ZCFG_BE_MODULE_VPN_CLIENT=y
+CONFIG_ZCFG_BE_MODULE_SNMP=y
+# CONFIG_ZCFG_BE_MODULE_SMART_CARD is not set
+# CONFIG_ZCFG_BE_MODULE_BULK_DATA is not set
+# CONFIG_ZCFG_BE_MODULE_HPNA is not set
+# CONFIG_ZCFG_BE_MODULE_HOMEPLUG is not set
+# CONFIG_ZCFG_BE_MODULE_MOCA is not set
+# CONFIG_ZCFG_BE_MODULE_PERIODIC_STATISTICS is not set
+# CONFIG_ZCFG_BE_MODULE_FAULT_MGMT is not set
+# CONFIG_ZCFG_BE_MODULE_FAP is not set
+# CONFIG_ZCFG_BE_MODULE_TWAMP is not set
+
+#
+# zyxel backend extension
+#
+# CONFIG_ZCFG_BE_SAMPLE_EXTENSION is not set
+# CONFIG_ZCFG_BE_5G_EXTENSION is not set
+CONFIG_ZCFG_BE_DEBUG_EXTENSION=y
+
+#
+# backend modules for debug extension
+#
+# CONFIG_ZCFG_BE_MODULE_DEBUG_ZLOG_WITH_ZCONSOLE is not set
+CONFIG_PACKAGE_zcfg_util=y
+CONFIG_PACKAGE_zcmd=y
+# CONFIG_PACKAGE_zconsole_monitor is not set
+CONFIG_PACKAGE_zhotplugd=y
+CONFIG_PACKAGE_zhttpd=y
+CONFIG_PACKAGE_zhttpd_rest=y
+CONFIG_PACKAGE_zipq=y
+CONFIG_PACKAGE_zqmictl=y
+CONFIG_PACKAGE_zstun=y
+CONFIG_PACKAGE_ztr143=y
+CONFIG_PACKAGE_ztr64=y
+CONFIG_PACKAGE_ztr69=y
+CONFIG_PACKAGE_ztr69cmd=y
+CONFIG_PACKAGE_ztzu=y
+CONFIG_PACKAGE_zupnp=y
+CONFIG_PACKAGE_zwol=y
+# CONFIG_PACKAGE_zxmppc is not set
+CONFIG_PACKAGE_zy1905=y
+# CONFIG_PACKAGE_zyAPSteering is not set
+# CONFIG_PACKAGE_zyAutoProvision is not set
+CONFIG_PACKAGE_zyMAPLog=y
+CONFIG_PACKAGE_zyMAPSteer=y
+# CONFIG_PACKAGE_zyboardchk is not set
+CONFIG_PACKAGE_zybtnchk=y
+# CONFIG_PACKAGE_zycaldata is not set
+CONFIG_PACKAGE_zycfgfilter=y
+CONFIG_PACKAGE_zycli=y
+
+#
+# ZyXEL zycli options
+#
+CONFIG_ZYCLI_SHOW_WAN_DSL_CMD=y
+# CONFIG_ZYXEL_AT_SET_ATSH_DETAIL is not set
+CONFIG_PACKAGE_zyee=y
+# CONFIG_PACKAGE_zyee-demo is not set
+# CONFIG_PACKAGE_zyledctl is not set
+# CONFIG_PACKAGE_zyloopguard is not set
+# CONFIG_PACKAGE_zyomci-a is not set
+CONFIG_PACKAGE_zyschedule=y
+CONFIG_PACKAGE_zysh=y
+CONFIG_PACKAGE_zywifid=y
+
+#
+# Wifi Chip
+#
+# CONFIG_ZY_WIFI_CHIP_QCA is not set
+CONFIG_ZY_WIFI_CHIP_BRCM=y
+# CONFIG_ZY_WIFI_CHIP_QTN is not set
+# CONFIG_ZY_WIFI_CHIP_ECONET is not set
+# CONFIG_ZY_WIFI_CHIP_MTK is not set
+
+#
+# Wifi feature
+#
+CONFIG_ZY_WIFI_BRCM_EXT_WLCONF=y
+# CONFIG_ZY_WIFI_DBDC_MODE is not set
+# CONFIG_ZYXEL_WIFI_WPS_SHARE_SAME_LED_LOCATION is not set
+CONFIG_ZY_WIFI_FIX_MACADDR=y
+CONFIG_ZY_WIFI_EVENT_HANDLER=y
+# CONFIG_ZY_WIFI_SUPPROT_WPS_ST is not set
+CONFIG_ZY_WIFI_ASSOCDEV_UPDATE=y
+CONFIG_ZY_WIFI_CTL=y
+# CONFIG_ZYXEL_WLAN_WPS_CO_BTN is not set
+# CONFIG_ZYXEL_WPS_BTN_SHORT_AND_WLAN_BTN_LONG is not set
+# CONFIG_ZYXEL_WPS_WIFI_SHARE_WIFI_BUTTON_BEHAVIOR is not set
+# CONFIG_ZY_WIFI_WPSHWPBC_5G_FIRST is not set
+CONFIG_ZYXEL_WPS_PBC_OVERLAP_CHECK=y
+CONFIG_ZY_WIFI_AIRTIME_FAIRNESS=y
+# CONFIG_ZY_EDCCA_ENABLE is not set
+# CONFIG_ZY_WIFI_LOGO is not set
+# CONFIG_ZYXEL_INDEPENDENT_WPS_LED is not set
+# CONFIG_SCAN_PERIOD_UNIT_IS_SEC is not set
+# CONFIG_ZY_ECN_NO_MESH_CUSTOM is not set
+# CONFIG_ZYXEL_WLAN_PARTIAL_RELOAD_ENHANCE is not set
+# CONFIG_ZYXEL_ECONET_REPEATER_NO_MESH is not set
+# CONFIG_ZYXEL_ECONET_DISABLE_SKU is not set
+# CONFIG_ZYXEL_WLAN_BOOT_ENHANCE is not set
+# CONFIG_ZYXEL_ECONET_STANDALONE_BAND_STEERING is not set
+
+#
+# home plug
+#
+# CONFIG_PACKAGE_faifa is not set
+
+#
+# Extra packages
+#
+# CONFIG_PACKAGE_fast-classifier-example is not set
+# CONFIG_PACKAGE_zyethswctl is not set
+# CONFIG_PACKAGE_zygpiostate is not set
+
+#
+# FW Testing Packages
+#
+# CONFIG_PACKAGE_bcm-testtool is not set
+
+#
+# Fsecure Packages
+#
+# CONFIG_PACKAGE_fsecure-container is not set
+# CONFIG_ZYXEL_HOME_CYBER_SECURITY_FSECURE_CONTAINER is not set
+# CONFIG_PACKAGE_fsecure-ipk is not set
+# CONFIG_PACKAGE_fsecure-sdk is not set
+
+#
+# System
+#
+# CONFIG_PACKAGE_avast-init is not set
+
+#
+# Quectel Packages
+#
+# CONFIG_PACKAGE_QFirehose is not set
+
+#
+# WIND 8828 tool 
+#
+# CONFIG_PACKAGE_zyw88 is not set
+
+#
+# Oi Packages
+#
+# CONFIG_PACKAGE_oiwizard is not set
+
+#
+# Utilities
+#
+
+#
+# Boot Loaders
+#
+
+#
+# Filesystem
+#
+# CONFIG_PACKAGE_badblocks is not set
+# CONFIG_PACKAGE_e2fsprogs is not set
+# CONFIG_PACKAGE_fuse-utils is not set
+CONFIG_PACKAGE_hfs-fsck=y
+CONFIG_PACKAGE_ntfs-3g=y
+# CONFIG_PACKAGE_resize2fs is not set
+# CONFIG_PACKAGE_sysfsutils is not set
+# CONFIG_PACKAGE_tune2fs is not set
+
+#
+# Schedutil
+#
+# CONFIG_PACKAGE_taskset is not set
+
+#
+# Terminal
+#
+# CONFIG_PACKAGE_agetty is not set
+CONFIG_PACKAGE_picocom=y
+# CONFIG_PACKAGE_script-utils is not set
+# CONFIG_PACKAGE_setterm is not set
+# CONFIG_PACKAGE_wall is not set
+
+#
+# Zoneinfo
+#
+CONFIG_PACKAGE_zoneinfo-africa=y
+CONFIG_PACKAGE_zoneinfo-asia=y
+CONFIG_PACKAGE_zoneinfo-atlantic=y
+CONFIG_PACKAGE_zoneinfo-australia-nz=y
+CONFIG_PACKAGE_zoneinfo-command=y
+CONFIG_PACKAGE_zoneinfo-core=y
+CONFIG_PACKAGE_zoneinfo-europe=y
+CONFIG_PACKAGE_zoneinfo-india=y
+CONFIG_PACKAGE_zoneinfo-northamerica=y
+CONFIG_PACKAGE_zoneinfo-pacific=y
+CONFIG_PACKAGE_zoneinfo-poles=y
+CONFIG_PACKAGE_zoneinfo-simple=y
+CONFIG_PACKAGE_zoneinfo-southamerica=y
+
+#
+# database
+#
+# CONFIG_PACKAGE_sqlite3-cli is not set
+
+#
+# disc
+#
+CONFIG_PACKAGE_blkid=y
+# CONFIG_PACKAGE_cfdisk is not set
+CONFIG_PACKAGE_fdisk=y
+# CONFIG_PACKAGE_findfs is not set
+# CONFIG_PACKAGE_lsblk is not set
+# CONFIG_PACKAGE_partx-utils is not set
+# CONFIG_PACKAGE_sfdisk is not set
+CONFIG_PACKAGE_swap-utils=y
+# CONFIG_PACKAGE_wipefs is not set
+# CONFIG_PACKAGE_DCX81 is not set
+# CONFIG_PACKAGE_cal is not set
+# CONFIG_PACKAGE_comgt is not set
+# CONFIG_PACKAGE_dmesg is not set
+# CONFIG_PACKAGE_fconfig is not set
+# CONFIG_PACKAGE_flock is not set
+# CONFIG_PACKAGE_getopt is not set
+# CONFIG_PACKAGE_hwclock is not set
+# CONFIG_PACKAGE_iconv is not set
+# CONFIG_PACKAGE_iwcap is not set
+# CONFIG_PACKAGE_iwinfo is not set
+# CONFIG_PACKAGE_jpeg-tools is not set
+# CONFIG_PACKAGE_jshn is not set
+# CONFIG_PACKAGE_kexec-tools is not set
+CONFIG_PACKAGE_l2command=y
+# CONFIG_PACKAGE_ldconfig is not set
+# CONFIG_PACKAGE_ldd is not set
+CONFIG_PACKAGE_libubootenv=y
+# CONFIG_PACKAGE_logger is not set
+# CONFIG_PACKAGE_look is not set
+# CONFIG_PACKAGE_losetup is not set
+CONFIG_PACKAGE_lxc=y
+
+#
+# Configuration
+#
+CONFIG_LXC_KERNEL_OPTIONS=y
+# CONFIG_PACKAGE_maccalc is not set
+# CONFIG_PACKAGE_mcookie is not set
+# CONFIG_PACKAGE_mount-utils is not set
+# CONFIG_PACKAGE_mountd is not set
+CONFIG_PACKAGE_mtd-utils=y
+CONFIG_PACKAGE_mtd-utils-flash-erase=y
+CONFIG_PACKAGE_mtd-utils-mtdinfo=y
+CONFIG_PACKAGE_mtd-utils-nanddump=y
+CONFIG_PACKAGE_mtd-utils-nandtest=y
+CONFIG_PACKAGE_mtd-utils-nandwrite=y
+CONFIG_PACKAGE_mtd-utils-ubiattach=y
+CONFIG_PACKAGE_mtd-utils-ubiblock=y
+CONFIG_PACKAGE_mtd-utils-ubicrc32=y
+CONFIG_PACKAGE_mtd-utils-ubidetach=y
+CONFIG_PACKAGE_mtd-utils-ubiformat=y
+CONFIG_PACKAGE_mtd-utils-ubimkvol=y
+CONFIG_PACKAGE_mtd-utils-ubinfo=y
+CONFIG_PACKAGE_mtd-utils-ubinize=y
+CONFIG_PACKAGE_mtd-utils-ubirename=y
+CONFIG_PACKAGE_mtd-utils-ubirmvol=y
+CONFIG_PACKAGE_mtd-utils-ubirsvol=y
+CONFIG_PACKAGE_mtd-utils-ubiupdatevol=y
+# CONFIG_PACKAGE_namei is not set
+CONFIG_PACKAGE_ocf-crypto-headers=y
+CONFIG_PACKAGE_openssl-util=y
+# CONFIG_PACKAGE_owipcalc is not set
+CONFIG_PACKAGE_plc-utils=y
+# CONFIG_PACKAGE_px5g is not set
+# CONFIG_PACKAGE_rename is not set
+# CONFIG_PACKAGE_robocfg is not set
+# CONFIG_PACKAGE_spidev-test is not set
+# CONFIG_PACKAGE_strace is not set
+# CONFIG_PACKAGE_uboot-envtools is not set
+CONFIG_PACKAGE_usb-modeswitch=y
+# CONFIG_PACKAGE_usbreset is not set
+# CONFIG_PACKAGE_uuidd is not set
+# CONFIG_PACKAGE_uuidgen is not set
+# CONFIG_PACKAGE_whereis is not set
+# CONFIG_PACKAGE_xfs-fsck is not set
+# CONFIG_PACKAGE_xfs-growfs is not set
+# CONFIG_PACKAGE_xfs-mkfs is not set
+
+#
+# Maxlinear GPY211
+#
+# CONFIG_PACKAGE_mxl-util is not set
+
+#
+# Multimedia
+#
+# CONFIG_PACKAGE_ffmpeg is not set
+# CONFIG_PACKAGE_ffprobe is not set
+# CONFIG_PACKAGE_ffserver is not set
+
+#
+# Quectel Properties
+#
+# CONFIG_PACKAGE_quectel-CM is not set
+
+#
+# ZyXEL Packages
+#
+CONFIG_PACKAGE_liboutput_redirect=y
+# CONFIG_PACKAGE_librest-c is not set
+CONFIG_PACKAGE_libzcfg_dbg=y
+# CONFIG_PACKAGE_libztr69_common is not set
+# CONFIG_PACKAGE_zylicense is not set
+# CONFIG_PACKAGE_zymultiwan is not set
+# CONFIG_PACKAGE_zyshcmd_wrapper is not set
+
+#
+# LuCI2
+#
+
+#
+# Libraries
+#
+# CONFIG_PACKAGE_libubus is not set
+# CONFIG_PACKAGE_libubus-lua is not set
+
+#
+# System
+#
+# CONFIG_PACKAGE_ubus is not set
+# CONFIG_PACKAGE_ubusd is not set
+
+#
+# Quantenna Packages
+#
+# CONFIG_PACKAGE_call_qcsapi_client is not set
+# CONFIG_PACKAGE_libqcsapi_client is not set
+# CONFIG_PACKAGE_qrpe is not set
+# CONFIG_PACKAGE_qsteer is not set
+# CONFIG_PACKAGE_qsteer_image_source is not set
+# CONFIG_PACKAGE_qtn_image is not set
+# CONFIG_PACKAGE_qtn_image_source is not set
+
+#
+# VPN
+#
+# CONFIG_PACKAGE_strongswan is not set
+
+#
+# Zyxel public package
+#
+CONFIG_PACKAGE_libzcfg_msg=y
+CONFIG_PACKAGE_libzlog=y
+CONFIG_PACKAGE_libzos=y
+
+#
+# Bandwidth Control
+#
+# CONFIG_PACKAGE_libnl-bf is not set
+
+#
+# Mail
+#
+CONFIG_PACKAGE_mailsend=y
+CONFIG_MAILSEND_SSL=y
+
+#
+# Silicon Lab test Packages
+#
+# CONFIG_PACKAGE_Z3GatewayHost is not set
+# CONFIG_PACKAGE_Z3GatewayMqtt is not set
+# CONFIG_PACKAGE_ZigbeeGateway is not set
+# CONFIG_PACKAGE_ZigbeeNcpUpdate is not set
+
+#
+# Development
+#
+# CONFIG_PACKAGE_binutils is not set
+# CONFIG_PACKAGE_gdb is not set
+# CONFIG_PACKAGE_gdbserver is not set
+# CONFIG_PACKAGE_libdmalloc is not set
+# CONFIG_PACKAGE_objdump is not set
+# CONFIG_PACKAGE_trace-cmd is not set
+# CONFIG_PACKAGE_trace-cmd-extra is not set
+# CONFIG_PACKAGE_valgrind is not set
+
+#
+# QCA Proprietary software
+#
+# CONFIG_PACKAGE_qca-cfg80211 is not set
+# CONFIG_PACKAGE_qca-hostap is not set
+# CONFIG_PACKAGE_qca-hostap-lite is not set
+# CONFIG_PACKAGE_qca-spectral is not set
+# CONFIG_PACKAGE_qca-wifi-fw-hw3-10.4-asic is not set
+# CONFIG_PACKAGE_qca-wifi-hk-fw-hw1-10.4-asic is not set
+# CONFIG_PACKAGE_qca-wpa-supplicant is not set
+# CONFIG_PACKAGE_qca-wpa-supplicant-lite is not set
+
+#
+# MTK Properties
+#
+
+#
+# Applications
+#
+# CONFIG_PACKAGE_8021xd is not set
+# CONFIG_PACKAGE_QFlash is not set
+# CONFIG_PACKAGE_ated is not set
+# CONFIG_PACKAGE_btnd is not set
+# CONFIG_PACKAGE_eth_mac is not set
+# CONFIG_PACKAGE_gpio is not set
+# CONFIG_PACKAGE_mii_mgr is not set
+# CONFIG_PACKAGE_mpstat is not set
+# CONFIG_PACKAGE_reg is not set
+# CONFIG_PACKAGE_smtplog is not set
+# CONFIG_PACKAGE_switch-ramips is not set
+# CONFIG_PACKAGE_watchdog is not set
+# CONFIG_PACKAGE_wpa-supplicant-20 is not set
+
+#
+# Drivers
+#
+# CONFIG_PACKAGE_kmod-cfg80211-normal is not set
+# CONFIG_PACKAGE_kmod-hw_kwdg is not set
+# CONFIG_PACKAGE_kmod-hw_wdg is not set
+# CONFIG_PACKAGE_kmod-mtk-mmc is not set
+# CONFIG_PACKAGE_kmod-nf-sc is not set
+# CONFIG_PACKAGE_kmod-rdm is not set
+
+#
+# Libraries
+#
+
+#
+# IPv6
+#
+
+#
+# Firewall
+#
+CONFIG_PACKAGE_ip6tables=y
+
+#
+# MAP-T/MAP-E with IVI
+#
+
+#
+# THC-IPv6 attack and analyzing toolkit
+#
+# CONFIG_PACKAGE_thc-ipv6-address6 is not set
+# CONFIG_PACKAGE_thc-ipv6-alive6 is not set
+# CONFIG_PACKAGE_thc-ipv6-covert-send6 is not set
+# CONFIG_PACKAGE_thc-ipv6-covert-send6d is not set
+# CONFIG_PACKAGE_thc-ipv6-denial6 is not set
+# CONFIG_PACKAGE_thc-ipv6-detect-new-ip6 is not set
+# CONFIG_PACKAGE_thc-ipv6-detect-sniffer6 is not set
+# CONFIG_PACKAGE_thc-ipv6-dnsdict6 is not set
+# CONFIG_PACKAGE_thc-ipv6-dnsrevenum6 is not set
+# CONFIG_PACKAGE_thc-ipv6-dos-new-ip6 is not set
+# CONFIG_PACKAGE_thc-ipv6-dump-router6 is not set
+# CONFIG_PACKAGE_thc-ipv6-exploit6 is not set
+# CONFIG_PACKAGE_thc-ipv6-fake-advertise6 is not set
+# CONFIG_PACKAGE_thc-ipv6-fake-dhcps6 is not set
+# CONFIG_PACKAGE_thc-ipv6-fake-dns6d is not set
+# CONFIG_PACKAGE_thc-ipv6-fake-dnsupdate6 is not set
+# CONFIG_PACKAGE_thc-ipv6-fake-mipv6 is not set
+# CONFIG_PACKAGE_thc-ipv6-fake-mld26 is not set
+# CONFIG_PACKAGE_thc-ipv6-fake-mld6 is not set
+# CONFIG_PACKAGE_thc-ipv6-fake-mldrouter6 is not set
+# CONFIG_PACKAGE_thc-ipv6-fake-router26 is not set
+# CONFIG_PACKAGE_thc-ipv6-fake-router6 is not set
+# CONFIG_PACKAGE_thc-ipv6-fake-solicitate6 is not set
+# CONFIG_PACKAGE_thc-ipv6-flood-advertise6 is not set
+# CONFIG_PACKAGE_thc-ipv6-flood-dhcpc6 is not set
+# CONFIG_PACKAGE_thc-ipv6-flood-mld26 is not set
+# CONFIG_PACKAGE_thc-ipv6-flood-mld6 is not set
+# CONFIG_PACKAGE_thc-ipv6-flood-mldrouter6 is not set
+# CONFIG_PACKAGE_thc-ipv6-flood-router26 is not set
+# CONFIG_PACKAGE_thc-ipv6-flood-router6 is not set
+# CONFIG_PACKAGE_thc-ipv6-flood-solicitate6 is not set
+# CONFIG_PACKAGE_thc-ipv6-fragmentation6 is not set
+# CONFIG_PACKAGE_thc-ipv6-fuzz-ip6 is not set
+# CONFIG_PACKAGE_thc-ipv6-implementation6 is not set
+# CONFIG_PACKAGE_thc-ipv6-implementation6d is not set
+# CONFIG_PACKAGE_thc-ipv6-inverse-lookup6 is not set
+# CONFIG_PACKAGE_thc-ipv6-kill-router6 is not set
+# CONFIG_PACKAGE_thc-ipv6-ndpexhaust6 is not set
+# CONFIG_PACKAGE_thc-ipv6-node-query6 is not set
+# CONFIG_PACKAGE_thc-ipv6-parasite6 is not set
+# CONFIG_PACKAGE_thc-ipv6-passive-discovery6 is not set
+# CONFIG_PACKAGE_thc-ipv6-randicmp6 is not set
+# CONFIG_PACKAGE_thc-ipv6-redir6 is not set
+# CONFIG_PACKAGE_thc-ipv6-rsmurf6 is not set
+# CONFIG_PACKAGE_thc-ipv6-sendpees6 is not set
+# CONFIG_PACKAGE_thc-ipv6-sendpeesmp6 is not set
+# CONFIG_PACKAGE_thc-ipv6-smurf6 is not set
+# CONFIG_PACKAGE_thc-ipv6-thcping6 is not set
+# CONFIG_PACKAGE_thc-ipv6-toobig6 is not set
+# CONFIG_PACKAGE_thc-ipv6-trace6 is not set
+
+#
+# wide-dhcpv6
+#
+CONFIG_PACKAGE_dhcp6c=y
+CONFIG_PACKAGE_dhcp6s=y
+# CONFIG_PACKAGE_6distributed is not set
+# CONFIG_PACKAGE_6in4 is not set
+# CONFIG_PACKAGE_6rd is not set
+# CONFIG_PACKAGE_6relayd is not set
+# CONFIG_PACKAGE_6to4 is not set
+# CONFIG_PACKAGE_ipv6-support is not set
+# CONFIG_PACKAGE_odhcp6c is not set
+CONFIG_PACKAGE_radvd=y
+# CONFIG_PACKAGE_radvdump is not set
+
+#
+# WNC Packages
+#
+# CONFIG_PACKAGE_wnc is not set
+
+#
+# Languages
+#
+
+#
+# Lua
+#
+# CONFIG_PACKAGE_libiwinfo-lua is not set
+# CONFIG_PACKAGE_lua is not set
+# CONFIG_PACKAGE_luac is not set
+
+#
+# Libraries
+#
+
+#
+# Filesystem
+#
+# CONFIG_PACKAGE_libcom_err is not set
+# CONFIG_PACKAGE_libext2fs is not set
+# CONFIG_PACKAGE_libfuse is not set
+# CONFIG_PACKAGE_libsysfs is not set
+
+#
+# Firewall
+#
+CONFIG_PACKAGE_libip4tc=y
+CONFIG_PACKAGE_libip6tc=y
+# CONFIG_PACKAGE_libiptc is not set
+CONFIG_PACKAGE_libxtables=y
+
+#
+# SSL
+#
+# CONFIG_PACKAGE_libcyassl is not set
+# CONFIG_PACKAGE_libmatrixssl is not set
+CONFIG_PACKAGE_libopenssl=y
+
+#
+# Build Options
+#
+# CONFIG_OPENSSL_VERSION_1_0_2n is not set
+# CONFIG_OPENSSL_VERSION_1_1_1b is not set
+# CONFIG_OPENSSL_VERSION_1_1_1n is not set
+CONFIG_OPENSSL_VERSION_1_1_1t=y
+CONFIG_OPENSSL_VERSION="1.1.1t"
+# CONFIG_OPENSSL_WITH_EC2M is not set
+CONFIG_OPENSSL_WITH_DEPRECATED=y
+# CONFIG_OPENSSL_WITH_DTLS is not set
+# CONFIG_OPENSSL_WITH_COMPRESSION is not set
+CONFIG_OPENSSL_WITH_NPN=y
+CONFIG_OPENSSL_WITH_PSK=y
+CONFIG_OPENSSL_WITH_SRP=y
+# CONFIG_OPENSSL_OPTIMIZE_SPEED is not set
+CONFIG_OPENSSL_WITH_ASM=y
+# CONFIG_OPENSSL_NO_DEPRECATED is not set
+CONFIG_OPENSSL_WITH_ERROR_MESSAGES=y
+CONFIG_OPENSSL_WITH_TLS13=y
+CONFIG_OPENSSL_WITH_CMS=y
+CONFIG_OPENSSL_WITH_CHACHA_POLY1305=y
+CONFIG_OPENSSL_PREFER_CHACHA_OVER_GCM=y
+# CONFIG_OPENSSL_WITH_ARIA is not set
+# CONFIG_OPENSSL_WITH_CAMELLIA is not set
+# CONFIG_OPENSSL_WITH_IDEA is not set
+# CONFIG_OPENSSL_WITH_SEED is not set
+# CONFIG_OPENSSL_WITH_SM234 is not set
+# CONFIG_OPENSSL_WITH_BLAKE2 is not set
+# CONFIG_OPENSSL_WITH_MDC2 is not set
+# CONFIG_OPENSSL_WITH_WHIRLPOOL is not set
+# CONFIG_OPENSSL_WITH_RFC3779 is not set
+CONFIG_OPENSSL_ENGINE=y
+# CONFIG_OPENSSL_ENGINE_BUILTIN is not set
+# CONFIG_OPENSSL_WITH_ASYNC is not set
+
+#
+# Protocol Support
+#
+
+#
+# Algorithm Selection
+#
+
+#
+# Less commonly used build options
+#
+
+#
+# Engine/Hardware Support
+#
+CONFIG_PACKAGE_libopenssl-conf=y
+# CONFIG_PACKAGE_libopenssl-devcrypto is not set
+
+#
+# database
+#
+CONFIG_PACKAGE_libsqlite3=y
+CONFIG_PACKAGE_clinkc=y
+CONFIG_PACKAGE_expat=y
+# CONFIG_PACKAGE_glib1 is not set
+CONFIG_PACKAGE_glib2=y
+CONFIG_PACKAGE_libblkid=y
+# CONFIG_PACKAGE_libblobmsg-json is not set
+# CONFIG_PACKAGE_libbsd is not set
+CONFIG_PACKAGE_libcares=y
+# CONFIG_PACKAGE_libcharset is not set
+CONFIG_PACKAGE_libcurl=y
+
+#
+# SSL support
+#
+CONFIG_LIBCURL_OPENSSL=y
+# CONFIG_LIBCURL_NOSSL is not set
+
+#
+# Supported protocols
+#
+# CONFIG_LIBCURL_DICT is not set
+CONFIG_LIBCURL_FILE=y
+CONFIG_LIBCURL_FTP=y
+# CONFIG_LIBCURL_GOPHER is not set
+CONFIG_LIBCURL_HTTP=y
+CONFIG_LIBCURL_COOKIES=y
+# CONFIG_LIBCURL_IMAP is not set
+# CONFIG_LIBCURL_POP3 is not set
+# CONFIG_LIBCURL_RTSP is not set
+# CONFIG_LIBCURL_SMB is not set
+# CONFIG_LIBCURL_SMTP is not set
+# CONFIG_LIBCURL_TELNET is not set
+CONFIG_LIBCURL_TFTP=y
+
+#
+# Miscellaneous
+#
+CONFIG_LIBCURL_PROXY=y
+CONFIG_LIBCURL_CRYPTO_AUTH=y
+# CONFIG_LIBCURL_TLS_SRP is not set
+CONFIG_LIBCURL_THREADED_RESOLVER=y
+CONFIG_LIBCURL_ZLIB=y
+# CONFIG_LIBCURL_UNIX_SOCKETS is not set
+# CONFIG_LIBCURL_LIBCURL_OPTION is not set
+# CONFIG_LIBCURL_VERBOSE is not set
+# CONFIG_LIBCURL_NTLM is not set
+CONFIG_PACKAGE_libedit=y
+# CONFIG_PACKAGE_libevent2 is not set
+# CONFIG_PACKAGE_libevent2-core is not set
+# CONFIG_PACKAGE_libevent2-extra is not set
+# CONFIG_PACKAGE_libevent2-openssl is not set
+# CONFIG_PACKAGE_libevent2-pthreads is not set
+CONFIG_PACKAGE_libeventlog=y
+# CONFIG_PACKAGE_libexif is not set
+# CONFIG_PACKAGE_libfast-classifier is not set
+CONFIG_PACKAGE_libffi=y
+# CONFIG_PACKAGE_libffmpeg-custom is not set
+# CONFIG_PACKAGE_libffmpeg-full is not set
+# CONFIG_PACKAGE_libffmpeg-mini is not set
+# CONFIG_PACKAGE_libflac is not set
+CONFIG_PACKAGE_libiconv=y
+CONFIG_PACKAGE_libiconv-full=y
+# CONFIG_PACKAGE_libid3tag is not set
+CONFIG_PACKAGE_libintl=y
+CONFIG_PACKAGE_libintl-full=y
+# CONFIG_PACKAGE_libiperf is not set
+# CONFIG_PACKAGE_libiw is not set
+# CONFIG_PACKAGE_libiwinfo is not set
+CONFIG_PACKAGE_libjpeg=y
+CONFIG_PACKAGE_libjson=y
+CONFIG_LIBJSON_VERSION_0_13_1=y
+# CONFIG_LIBJSON_VERSION_0_12 is not set
+CONFIG_LIBJSON_VERSION="0.13.1"
+# CONFIG_PACKAGE_libltdl is not set
+# CONFIG_PACKAGE_liblua is not set
+CONFIG_PACKAGE_libmnl=y
+# CONFIG_PACKAGE_libmosquitto-nossl is not set
+# CONFIG_PACKAGE_libmosquitto-ssl is not set
+# CONFIG_PACKAGE_libmount is not set
+# CONFIG_PACKAGE_libmxml is not set
+CONFIG_PACKAGE_libncurses=y
+# CONFIG_PACKAGE_libncursesw is not set
+CONFIG_PACKAGE_libnetfilter-conntrack=y
+CONFIG_PACKAGE_libnetfilter-cthelper=y
+CONFIG_PACKAGE_libnetfilter-cttimeout=y
+# CONFIG_PACKAGE_libnetfilter-log is not set
+CONFIG_PACKAGE_libnetfilter_queue=y
+CONFIG_PACKAGE_libnfnetlink=y
+# CONFIG_PACKAGE_libnl is not set
+CONFIG_PACKAGE_libnl-tiny=y
+# CONFIG_PACKAGE_libogg is not set
+CONFIG_PACKAGE_libpcap=y
+
+#
+# Configuration
+#
+# CONFIG_PCAP_HAS_USB is not set
+CONFIG_PACKAGE_libpopt=y
+# CONFIG_PACKAGE_libqmi is not set
+CONFIG_PACKAGE_libreadline=y
+# CONFIG_PACKAGE_librpc is not set
+# CONFIG_PACKAGE_libsocks is not set
+CONFIG_PACKAGE_libsrtp=y
+# CONFIG_PACKAGE_libstrophe is not set
+# CONFIG_PACKAGE_libubox is not set
+# CONFIG_PACKAGE_libuci is not set
+# CONFIG_PACKAGE_libuci-lua is not set
+CONFIG_PACKAGE_libusb-1.0=y
+CONFIG_PACKAGE_libuuid=y
+# CONFIG_PACKAGE_libvorbis is not set
+CONFIG_PACKAGE_libxml2=y
+CONFIG_PACKAGE_linux-atm=y
+CONFIG_PACKAGE_terminfo=y
+# CONFIG_PACKAGE_uclibcxx is not set
+CONFIG_PACKAGE_zlib=y
+
+#
+# Network
+#
+
+#
+# File Transfer
+#
+CONFIG_PACKAGE_atftp=y
+# CONFIG_PACKAGE_atftpd is not set
+CONFIG_PACKAGE_curl=y
+
+#
+# Firewall
+#
+# CONFIG_PACKAGE_arptables is not set
+CONFIG_PACKAGE_conntrack-tools=y
+CONFIG_PACKAGE_ebtables=y
+# CONFIG_PACKAGE_ebtables-utils is not set
+CONFIG_PACKAGE_iptables=y
+# CONFIG_PACKAGE_iptables-mod-conntrack-extra is not set
+# CONFIG_PACKAGE_iptables-mod-extra is not set
+# CONFIG_PACKAGE_iptables-mod-filter is not set
+# CONFIG_PACKAGE_iptables-mod-hashlimit is not set
+# CONFIG_PACKAGE_iptables-mod-ipopt is not set
+CONFIG_PACKAGE_iptables-mod-iprange=y
+# CONFIG_PACKAGE_iptables-mod-ipsec is not set
+# CONFIG_PACKAGE_iptables-mod-ipset is not set
+# CONFIG_PACKAGE_iptables-mod-led is not set
+# CONFIG_PACKAGE_iptables-mod-nat-extra is not set
+# CONFIG_PACKAGE_iptables-mod-tee is not set
+# CONFIG_PACKAGE_iptables-mod-tproxy is not set
+# CONFIG_PACKAGE_iptables-mod-u32 is not set
+# CONFIG_PACKAGE_iptables-mod-ulog is not set
+# CONFIG_PACKAGE_miniupnpd is not set
+
+#
+# IP Addresses and Names
+#
+CONFIG_PACKAGE_ez-ipupdate=y
+
+#
+# Linux ATM tools
+#
+# CONFIG_PACKAGE_atm-aread is not set
+# CONFIG_PACKAGE_atm-atmaddr is not set
+# CONFIG_PACKAGE_atm-atmdiag is not set
+# CONFIG_PACKAGE_atm-atmdump is not set
+# CONFIG_PACKAGE_atm-atmloop is not set
+# CONFIG_PACKAGE_atm-atmsigd is not set
+# CONFIG_PACKAGE_atm-atmswitch is not set
+# CONFIG_PACKAGE_atm-atmtcp is not set
+# CONFIG_PACKAGE_atm-awrite is not set
+# CONFIG_PACKAGE_atm-bus is not set
+# CONFIG_PACKAGE_atm-debug-tools is not set
+# CONFIG_PACKAGE_atm-diagnostics is not set
+# CONFIG_PACKAGE_atm-esi is not set
+# CONFIG_PACKAGE_atm-ilmid is not set
+# CONFIG_PACKAGE_atm-ilmidiag is not set
+# CONFIG_PACKAGE_atm-lecs is not set
+# CONFIG_PACKAGE_atm-les is not set
+# CONFIG_PACKAGE_atm-mpcd is not set
+# CONFIG_PACKAGE_atm-saaldump is not set
+# CONFIG_PACKAGE_atm-sonetdiag is not set
+# CONFIG_PACKAGE_atm-svc_recv is not set
+# CONFIG_PACKAGE_atm-svc_send is not set
+# CONFIG_PACKAGE_atm-tools is not set
+# CONFIG_PACKAGE_atm-ttcp_atm is not set
+# CONFIG_PACKAGE_atm-zeppelin is not set
+# CONFIG_PACKAGE_br2684ctl is not set
+
+#
+# Routing and Redirection
+#
+# CONFIG_PACKAGE_ecmh is not set
+# CONFIG_PACKAGE_igmpproxy is not set
+CONFIG_PACKAGE_ip=y
+# CONFIG_PACKAGE_lldpd is not set
+# CONFIG_PACKAGE_relayd is not set
+
+#
+# VPN
+#
+CONFIG_PACKAGE_xl2tpd=y
+
+#
+# Web Servers/Proxies
+#
+# CONFIG_PACKAGE_sockd is not set
+# CONFIG_PACKAGE_socksify is not set
+# CONFIG_PACKAGE_uhttpd is not set
+# CONFIG_PACKAGE_uhttpd_debug is not set
+
+#
+# dial-in/up
+#
+# CONFIG_PACKAGE_rp-pppoe-relay is not set
+# CONFIG_PACKAGE_rp-pppoe-server is not set
+# CONFIG_PACKAGE_rp-pppoe-sniff is not set
+# CONFIG_PACKAGE_OWAMP is not set
+CONFIG_PACKAGE_bwm=y
+CONFIG_PACKAGE_chat=y
+# CONFIG_PACKAGE_genl is not set
+# CONFIG_PACKAGE_hostapd is not set
+# CONFIG_PACKAGE_hostapd-mini is not set
+# CONFIG_PACKAGE_ifenslave is not set
+# CONFIG_PACKAGE_iftop is not set
+# CONFIG_PACKAGE_iperf is not set
+# CONFIG_PACKAGE_ipset is not set
+# CONFIG_PACKAGE_iputils-arping is not set
+# CONFIG_PACKAGE_iputils-clockdiff is not set
+# CONFIG_PACKAGE_iputils-ping is not set
+# CONFIG_PACKAGE_iputils-ping6 is not set
+# CONFIG_PACKAGE_iputils-tftpd is not set
+# CONFIG_PACKAGE_iputils-tracepath is not set
+# CONFIG_PACKAGE_iputils-tracepath6 is not set
+# CONFIG_PACKAGE_iputils-traceroute6 is not set
+# CONFIG_PACKAGE_iw is not set
+# CONFIG_PACKAGE_mosquitto-client-nossl is not set
+# CONFIG_PACKAGE_mosquitto-client-ssl is not set
+# CONFIG_PACKAGE_mosquitto-nossl is not set
+CONFIG_PACKAGE_nbtscan=y
+# CONFIG_PACKAGE_p0f is not set
+# CONFIG_PACKAGE_port-mirroring is not set
+CONFIG_PACKAGE_ppp=y
+CONFIG_PACKAGE_ppp-mod-pppoa=y
+CONFIG_PACKAGE_ppp-mod-pppoe=y
+CONFIG_PACKAGE_ppp-mod-pppol2tp=y
+# CONFIG_PACKAGE_ppp-mod-radius is not set
+# CONFIG_PACKAGE_pppdump is not set
+# CONFIG_PACKAGE_pppstats is not set
+# CONFIG_PACKAGE_pptp is not set
+# CONFIG_PACKAGE_pptpd is not set
+# CONFIG_PACKAGE_rssileds is not set
+CONFIG_PACKAGE_samba=y
+# CONFIG_PACKAGE_samba36-client is not set
+# CONFIG_PACKAGE_samba36-server is not set
+# CONFIG_PACKAGE_sendpackets is not set
+# CONFIG_PACKAGE_soloscli is not set
+# CONFIG_PACKAGE_ss is not set
+CONFIG_PACKAGE_tc=y
+CONFIG_PACKAGE_tcpdump=y
+# CONFIG_PACKAGE_tcpdump-mini is not set
+# CONFIG_PACKAGE_wpa-supplicant is not set
+CONFIG_WPA_MSG_MIN_PRIORITY=3
+# CONFIG_DRIVER_WEXT_SUPPORT is not set
+# CONFIG_DRIVER_11N_SUPPORT is not set
+# CONFIG_PACKAGE_wpa-supplicant-mini is not set
+# CONFIG_PACKAGE_wpad is not set
+# CONFIG_PACKAGE_wpad-mini is not set
+# CONFIG_PACKAGE_wpan-tools is not set
+# CONFIG_PACKAGE_yafc is not set
+
+#
+# Zyxel 3rd-party ipk package management
+#
+# CONFIG_PACKAGE_ipk-pkg is not set
+
+#
+# Kernel modules
+#
+
+#
+# Block Devices
+#
+# CONFIG_PACKAGE_kmod-aoe is not set
+# CONFIG_PACKAGE_kmod-ata-core is not set
+# CONFIG_PACKAGE_kmod-block2mtd is not set
+# CONFIG_PACKAGE_kmod-dm is not set
+# CONFIG_PACKAGE_kmod-ide-core is not set
+# CONFIG_PACKAGE_kmod-libsas is not set
+# CONFIG_PACKAGE_kmod-loop is not set
+# CONFIG_PACKAGE_kmod-md-mod is not set
+# CONFIG_PACKAGE_kmod-nbd is not set
+CONFIG_PACKAGE_kmod-scsi-cdrom=y
+CONFIG_PACKAGE_kmod-scsi-core=y
+# CONFIG_PACKAGE_kmod-scsi-generic is not set
+
+#
+# Cryptographic API modules
+#
+# CONFIG_PACKAGE_kmod-crypto-aes is not set
+# CONFIG_PACKAGE_kmod-crypto-arc4 is not set
+# CONFIG_PACKAGE_kmod-crypto-authenc is not set
+# CONFIG_PACKAGE_kmod-crypto-cbc is not set
+# CONFIG_PACKAGE_kmod-crypto-core is not set
+# CONFIG_PACKAGE_kmod-crypto-crc32c is not set
+# CONFIG_PACKAGE_kmod-crypto-deflate is not set
+# CONFIG_PACKAGE_kmod-crypto-des is not set
+# CONFIG_PACKAGE_kmod-crypto-ecb is not set
+# CONFIG_PACKAGE_kmod-crypto-hash is not set
+# CONFIG_PACKAGE_kmod-crypto-hmac is not set
+# CONFIG_PACKAGE_kmod-crypto-hw-geode is not set
+# CONFIG_PACKAGE_kmod-crypto-hw-hifn-795x is not set
+# CONFIG_PACKAGE_kmod-crypto-hw-padlock is not set
+# CONFIG_PACKAGE_kmod-crypto-iv is not set
+# CONFIG_PACKAGE_kmod-crypto-manager is not set
+# CONFIG_PACKAGE_kmod-crypto-md4 is not set
+# CONFIG_PACKAGE_kmod-crypto-md5 is not set
+# CONFIG_PACKAGE_kmod-crypto-michael-mic is not set
+# CONFIG_PACKAGE_kmod-crypto-misc is not set
+# CONFIG_PACKAGE_kmod-crypto-null is not set
+# CONFIG_PACKAGE_kmod-crypto-ocf is not set
+# CONFIG_PACKAGE_kmod-crypto-pcompress is not set
+# CONFIG_PACKAGE_kmod-crypto-rng is not set
+# CONFIG_PACKAGE_kmod-crypto-sha1 is not set
+# CONFIG_PACKAGE_kmod-crypto-test is not set
+# CONFIG_PACKAGE_kmod-crypto-user is not set
+# CONFIG_PACKAGE_kmod-crypto-wq is not set
+# CONFIG_PACKAGE_kmod-crypto-xts is not set
+
+#
+# Filesystems
+#
+# CONFIG_PACKAGE_kmod-fs-autofs4 is not set
+# CONFIG_PACKAGE_kmod-fs-btrfs is not set
+# CONFIG_PACKAGE_kmod-fs-cifs is not set
+CONFIG_PACKAGE_kmod-fs-exfat=y
+# CONFIG_PACKAGE_kmod-fs-exportfs is not set
+# CONFIG_PACKAGE_kmod-fs-ext4 is not set
+CONFIG_PACKAGE_kmod-fs-hfs=y
+CONFIG_PACKAGE_kmod-fs-hfsplus=y
+CONFIG_PACKAGE_kmod-fs-isofs=y
+# CONFIG_PACKAGE_kmod-fs-minix is not set
+# CONFIG_PACKAGE_kmod-fs-msdos is not set
+# CONFIG_PACKAGE_kmod-fs-nfs is not set
+# CONFIG_PACKAGE_kmod-fs-nfs-common is not set
+# CONFIG_PACKAGE_kmod-fs-nfsd is not set
+# CONFIG_PACKAGE_kmod-fs-ntfs is not set
+# CONFIG_PACKAGE_kmod-fs-reiserfs is not set
+# CONFIG_PACKAGE_kmod-fs-udf is not set
+# CONFIG_PACKAGE_kmod-fs-vfat is not set
+# CONFIG_PACKAGE_kmod-fs-xfs is not set
+# CONFIG_PACKAGE_kmod-fuse is not set
+
+#
+# FireWire support
+#
+# CONFIG_PACKAGE_kmod-firewire is not set
+
+#
+# Hardware Monitoring Support
+#
+# CONFIG_PACKAGE_kmod-hwmon-core is not set
+
+#
+# I2C support
+#
+# CONFIG_PACKAGE_kmod-i2c-core is not set
+
+#
+# LED modules
+#
+# CONFIG_PACKAGE_kmod-ledtrig-default-on is not set
+# CONFIG_PACKAGE_kmod-ledtrig-gpio is not set
+# CONFIG_PACKAGE_kmod-ledtrig-heartbeat is not set
+# CONFIG_PACKAGE_kmod-ledtrig-morse is not set
+# CONFIG_PACKAGE_kmod-ledtrig-netdev is not set
+# CONFIG_PACKAGE_kmod-ledtrig-netfilter is not set
+# CONFIG_PACKAGE_kmod-ledtrig-oneshot is not set
+# CONFIG_PACKAGE_kmod-ledtrig-timer is not set
+# CONFIG_PACKAGE_kmod-ledtrig-usbdev is not set
+
+#
+# Libraries
+#
+# CONFIG_PACKAGE_kmod-lib-cordic is not set
+CONFIG_PACKAGE_kmod-lib-crc-ccitt=y
+# CONFIG_PACKAGE_kmod-lib-crc-itu-t is not set
+# CONFIG_PACKAGE_kmod-lib-crc16 is not set
+# CONFIG_PACKAGE_kmod-lib-crc32c is not set
+# CONFIG_PACKAGE_kmod-lib-crc7 is not set
+# CONFIG_PACKAGE_kmod-lib-crc8 is not set
+# CONFIG_PACKAGE_kmod-lib-lzo is not set
+# CONFIG_PACKAGE_kmod-lib-textsearch is not set
+# CONFIG_PACKAGE_kmod-lib-zlib is not set
+
+#
+# Native Language Support
+#
+# CONFIG_PACKAGE_kmod-nls-ascii is not set
+CONFIG_PACKAGE_kmod-nls-base=y
+# CONFIG_PACKAGE_kmod-nls-cp1250 is not set
+# CONFIG_PACKAGE_kmod-nls-cp1251 is not set
+# CONFIG_PACKAGE_kmod-nls-cp437 is not set
+# CONFIG_PACKAGE_kmod-nls-cp775 is not set
+# CONFIG_PACKAGE_kmod-nls-cp850 is not set
+# CONFIG_PACKAGE_kmod-nls-cp852 is not set
+# CONFIG_PACKAGE_kmod-nls-cp866 is not set
+# CONFIG_PACKAGE_kmod-nls-iso8859-1 is not set
+# CONFIG_PACKAGE_kmod-nls-iso8859-13 is not set
+# CONFIG_PACKAGE_kmod-nls-iso8859-15 is not set
+# CONFIG_PACKAGE_kmod-nls-iso8859-2 is not set
+# CONFIG_PACKAGE_kmod-nls-koi8r is not set
+CONFIG_PACKAGE_kmod-nls-utf8=y
+
+#
+# Netfilter Extensions
+#
+# CONFIG_PACKAGE_kmod-arptables is not set
+CONFIG_PACKAGE_kmod-ebtables=y
+# CONFIG_PACKAGE_kmod-ebtables-ipv4 is not set
+# CONFIG_PACKAGE_kmod-ebtables-ipv6 is not set
+# CONFIG_PACKAGE_kmod-ebtables-watchers is not set
+CONFIG_PACKAGE_kmod-ip6tables=y
+CONFIG_PACKAGE_kmod-ipt-core=y
+CONFIG_PACKAGE_kmod-ipt-conntrack=y
+# CONFIG_PACKAGE_kmod-ipt-conntrack-extra is not set
+# CONFIG_PACKAGE_kmod-ipt-debug is not set
+# CONFIG_PACKAGE_kmod-ipt-extra is not set
+# CONFIG_PACKAGE_kmod-ipt-filter is not set
+# CONFIG_PACKAGE_kmod-ipt-hashlimit is not set
+# CONFIG_PACKAGE_kmod-ipt-ipopt is not set
+CONFIG_PACKAGE_kmod-ipt-iprange=y
+# CONFIG_PACKAGE_kmod-ipt-ipsec is not set
+# CONFIG_PACKAGE_kmod-ipt-ipset is not set
+# CONFIG_PACKAGE_kmod-ipt-led is not set
+# CONFIG_PACKAGE_kmod-ipt-nat is not set
+# CONFIG_PACKAGE_kmod-ipt-nat-extra is not set
+# CONFIG_PACKAGE_kmod-ipt-nathelper is not set
+# CONFIG_PACKAGE_kmod-ipt-nathelper-extra is not set
+# CONFIG_PACKAGE_kmod-ipt-queue is not set
+# CONFIG_PACKAGE_kmod-ipt-tee is not set
+# CONFIG_PACKAGE_kmod-ipt-tproxy is not set
+# CONFIG_PACKAGE_kmod-ipt-u32 is not set
+# CONFIG_PACKAGE_kmod-ipt-ulog is not set
+CONFIG_PACKAGE_kmod-nf-conntrack-netlink=y
+CONFIG_PACKAGE_kmod-nfnetlink=y
+# CONFIG_PACKAGE_kmod-nfnetlink-log is not set
+# CONFIG_PACKAGE_kmod-nfnetlink-queue is not set
+
+#
+# Network Devices
+#
+# CONFIG_PACKAGE_kmod-3c59x is not set
+# CONFIG_PACKAGE_kmod-8139cp is not set
+# CONFIG_PACKAGE_kmod-8139too is not set
+# CONFIG_PACKAGE_kmod-atl1 is not set
+# CONFIG_PACKAGE_kmod-atl1c is not set
+# CONFIG_PACKAGE_kmod-atl1e is not set
+# CONFIG_PACKAGE_kmod-atl2 is not set
+# CONFIG_PACKAGE_kmod-b44 is not set
+# CONFIG_PACKAGE_kmod-dm9000 is not set
+# CONFIG_PACKAGE_kmod-dummy is not set
+# CONFIG_PACKAGE_kmod-e100 is not set
+# CONFIG_PACKAGE_kmod-e1000 is not set
+# CONFIG_PACKAGE_kmod-et131x is not set
+# CONFIG_PACKAGE_kmod-gigaset is not set
+# CONFIG_PACKAGE_kmod-hfcmulti is not set
+# CONFIG_PACKAGE_kmod-hfcpci is not set
+# CONFIG_PACKAGE_kmod-ifb is not set
+# CONFIG_PACKAGE_kmod-libphy is not set
+# CONFIG_PACKAGE_kmod-macvlan is not set
+# CONFIG_PACKAGE_kmod-natsemi is not set
+# CONFIG_PACKAGE_kmod-ne2k-pci is not set
+# CONFIG_PACKAGE_kmod-pcnet32 is not set
+# CONFIG_PACKAGE_kmod-r6040 is not set
+# CONFIG_PACKAGE_kmod-r8169 is not set
+# CONFIG_PACKAGE_kmod-sis190 is not set
+# CONFIG_PACKAGE_kmod-sis900 is not set
+# CONFIG_PACKAGE_kmod-skge is not set
+# CONFIG_PACKAGE_kmod-sky2 is not set
+# CONFIG_PACKAGE_kmod-solos-pci is not set
+# CONFIG_PACKAGE_kmod-swconfig is not set
+# CONFIG_PACKAGE_kmod-switch-ip17xx is not set
+# CONFIG_PACKAGE_kmod-tg3 is not set
+# CONFIG_PACKAGE_kmod-tulip is not set
+# CONFIG_PACKAGE_kmod-via-rhine is not set
+# CONFIG_PACKAGE_kmod-via-velocity is not set
+
+#
+# Network Support
+#
+# CONFIG_PACKAGE_kmod-8021q is not set
+# CONFIG_PACKAGE_kmod-appletalk is not set
+CONFIG_PACKAGE_kmod-atm=y
+# CONFIG_PACKAGE_kmod-atmtcp is not set
+# CONFIG_PACKAGE_kmod-ax25 is not set
+# CONFIG_PACKAGE_kmod-bonding is not set
+# CONFIG_PACKAGE_kmod-bridge is not set
+# CONFIG_PACKAGE_kmod-capi is not set
+# CONFIG_PACKAGE_kmod-fast-classifier is not set
+# CONFIG_PACKAGE_kmod-gre is not set
+# CONFIG_PACKAGE_kmod-gre6 is not set
+# CONFIG_PACKAGE_kmod-ip6-tunnel is not set
+# CONFIG_PACKAGE_kmod-ipip is not set
+# CONFIG_PACKAGE_kmod-ipoa is not set
+# CONFIG_PACKAGE_kmod-ipsec is not set
+# CONFIG_PACKAGE_kmod-iptunnel4 is not set
+# CONFIG_PACKAGE_kmod-iptunnel6 is not set
+CONFIG_PACKAGE_kmod-ipv6=y
+# CONFIG_PACKAGE_kmod-isdn4linux is not set
+CONFIG_PACKAGE_kmod-l2tp=y
+# CONFIG_PACKAGE_kmod-l2tp-eth is not set
+# CONFIG_PACKAGE_kmod-l2tp-ip is not set
+# CONFIG_PACKAGE_kmod-llc is not set
+# CONFIG_PACKAGE_kmod-misdn is not set
+# CONFIG_PACKAGE_kmod-mp-alg is not set
+CONFIG_PACKAGE_kmod-ppp=y
+# CONFIG_PACKAGE_kmod-mppe is not set
+# CONFIG_PACKAGE_kmod-netem is not set
+# CONFIG_PACKAGE_kmod-pktgen is not set
+# CONFIG_PACKAGE_kmod-ppp-synctty is not set
+CONFIG_PACKAGE_kmod-pppoa=y
+CONFIG_PACKAGE_kmod-pppoe=y
+CONFIG_PACKAGE_kmod-pppol2tp=y
+CONFIG_PACKAGE_kmod-pppox=y
+# CONFIG_PACKAGE_kmod-pptp is not set
+# CONFIG_PACKAGE_kmod-sched is not set
+# CONFIG_PACKAGE_kmod-sched-connmark is not set
+CONFIG_PACKAGE_kmod-sched-core=y
+# CONFIG_PACKAGE_kmod-sched-esfq is not set
+# CONFIG_PACKAGE_kmod-sctp is not set
+# CONFIG_PACKAGE_kmod-shortcut-fe is not set
+# CONFIG_PACKAGE_kmod-shortcut-fe-cm is not set
+# CONFIG_PACKAGE_kmod-sit is not set
+# CONFIG_PACKAGE_kmod-slip is not set
+# CONFIG_PACKAGE_kmod-stp is not set
+# CONFIG_PACKAGE_kmod-trelay is not set
+# CONFIG_PACKAGE_kmod-tun is not set
+
+#
+# OAM Support
+#
+CONFIG_PACKAGE_kmod-TMS_Module=y
+
+#
+# Other modules
+#
+CONFIG_PACKAGE_kmod-GobiNet=y
+# CONFIG_PACKAGE_kmod-bcma is not set
+# CONFIG_PACKAGE_kmod-bluetooth is not set
+# CONFIG_PACKAGE_kmod-button-hotplug is not set
+# CONFIG_PACKAGE_kmod-eeprom-93cx6 is not set
+# CONFIG_PACKAGE_kmod-eeprom-at24 is not set
+# CONFIG_PACKAGE_kmod-eeprom-at25 is not set
+# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set
+# CONFIG_PACKAGE_kmod-gpio-nxp-74hc164 is not set
+# CONFIG_PACKAGE_kmod-hid is not set
+# CONFIG_PACKAGE_kmod-ikconfig is not set
+# CONFIG_PACKAGE_kmod-input-core is not set
+# CONFIG_PACKAGE_kmod-input-evdev is not set
+# CONFIG_PACKAGE_kmod-input-joydev is not set
+# CONFIG_PACKAGE_kmod-input-polldev is not set
+# CONFIG_PACKAGE_kmod-mmc is not set
+# CONFIG_PACKAGE_kmod-mtdtests is not set
+# CONFIG_PACKAGE_kmod-nand is not set
+# CONFIG_PACKAGE_kmod-nandsim is not set
+# CONFIG_PACKAGE_kmod-pwm is not set
+# CONFIG_PACKAGE_kmod-pwm-gpio is not set
+# CONFIG_PACKAGE_kmod-regmap is not set
+# CONFIG_PACKAGE_kmod-serial-8250 is not set
+# CONFIG_PACKAGE_kmod-softdog is not set
+# CONFIG_PACKAGE_kmod-ssb is not set
+
+#
+# PCMCIA support
+#
+# CONFIG_PACKAGE_kmod-pcmcia-core is not set
+
+#
+# SPI Support
+#
+# CONFIG_PACKAGE_kmod-mmc-spi is not set
+# CONFIG_PACKAGE_kmod-spi-bitbang is not set
+# CONFIG_PACKAGE_kmod-spi-dev is not set
+# CONFIG_PACKAGE_kmod-spi-ks8995 is not set
+
+#
+# Sound Support
+#
+# CONFIG_PACKAGE_kmod-sound-core is not set
+
+#
+# USB Support
+#
+CONFIG_PACKAGE_kmod-usb-acm=y
+# CONFIG_PACKAGE_kmod-usb-atm is not set
+# CONFIG_PACKAGE_kmod-usb-cm109 is not set
+CONFIG_PACKAGE_kmod-usb-core=y
+# CONFIG_PACKAGE_kmod-usb-hid is not set
+CONFIG_PACKAGE_kmod-usb-net=y
+# CONFIG_PACKAGE_kmod-usb-net-asix is not set
+CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y
+# CONFIG_PACKAGE_kmod-usb-net-cdc-ncm is not set
+# CONFIG_PACKAGE_kmod-usb-net-dm9601-ether is not set
+CONFIG_PACKAGE_kmod-usb-net-hso=y
+# CONFIG_PACKAGE_kmod-usb-net-ipheth is not set
+# CONFIG_PACKAGE_kmod-usb-net-kaweth is not set
+# CONFIG_PACKAGE_kmod-usb-net-mcs7830 is not set
+# CONFIG_PACKAGE_kmod-usb-net-pegasus is not set
+# CONFIG_PACKAGE_kmod-usb-net-qmi-wwan is not set
+CONFIG_PACKAGE_kmod-usb-net-rndis=y
+# CONFIG_PACKAGE_kmod-usb-net-sierrawireless is not set
+# CONFIG_PACKAGE_kmod-usb-ohci is not set
+# CONFIG_PACKAGE_kmod-usb-printer is not set
+CONFIG_PACKAGE_kmod-usb-serial=y
+# CONFIG_PACKAGE_kmod-usb-serial-ark3116 is not set
+# CONFIG_PACKAGE_kmod-usb-serial-belkin is not set
+# CONFIG_PACKAGE_kmod-usb-serial-ch341 is not set
+# CONFIG_PACKAGE_kmod-usb-serial-cp210x is not set
+# CONFIG_PACKAGE_kmod-usb-serial-cypress-m8 is not set
+# CONFIG_PACKAGE_kmod-usb-serial-ftdi is not set
+# CONFIG_PACKAGE_kmod-usb-serial-ipw is not set
+# CONFIG_PACKAGE_kmod-usb-serial-keyspan is not set
+# CONFIG_PACKAGE_kmod-usb-serial-mct is not set
+# CONFIG_PACKAGE_kmod-usb-serial-mos7720 is not set
+# CONFIG_PACKAGE_kmod-usb-serial-motorola-phone is not set
+CONFIG_PACKAGE_kmod-usb-serial-option=y
+# CONFIG_PACKAGE_kmod-usb-serial-oti6858 is not set
+# CONFIG_PACKAGE_kmod-usb-serial-pl2303 is not set
+# CONFIG_PACKAGE_kmod-usb-serial-qualcomm is not set
+# CONFIG_PACKAGE_kmod-usb-serial-sierrawireless is not set
+# CONFIG_PACKAGE_kmod-usb-serial-ti-usb is not set
+# CONFIG_PACKAGE_kmod-usb-serial-visor is not set
+CONFIG_PACKAGE_kmod-usb-serial-wwan=y
+CONFIG_PACKAGE_kmod-usb-storage=y
+# CONFIG_PACKAGE_kmod-usb-storage-extras is not set
+# CONFIG_PACKAGE_kmod-usb-test is not set
+# CONFIG_PACKAGE_kmod-usb-uhci is not set
+# CONFIG_PACKAGE_kmod-usb-wdm is not set
+# CONFIG_PACKAGE_kmod-usb-yealink is not set
+# CONFIG_PACKAGE_kmod-usb2 is not set
+# CONFIG_PACKAGE_kmod-usbip is not set
+# CONFIG_PACKAGE_kmod-usbip-client is not set
+# CONFIG_PACKAGE_kmod-usbip-server is not set
+
+#
+# Video Support
+#
+# CONFIG_PACKAGE_kmod-video-core is not set
+
+#
+# Virtualization Support
+#
+
+#
+# Voice over IP
+#
+
+#
+# W1 support
+#
+# CONFIG_PACKAGE_kmod-w1 is not set
+
+#
+# Wireless Drivers
+#
+# CONFIG_PACKAGE_kmod-adm8211 is not set
+# CONFIG_PACKAGE_kmod-ath is not set
+# CONFIG_PACKAGE_kmod-ath5k is not set
+# CONFIG_PACKAGE_kmod-ath9k is not set
+# CONFIG_PACKAGE_kmod-ath9k-common is not set
+# CONFIG_PACKAGE_kmod-ath9k-htc is not set
+# CONFIG_PACKAGE_kmod-b43 is not set
+# CONFIG_PACKAGE_kmod-b43legacy is not set
+# CONFIG_PACKAGE_kmod-brcmfmac is not set
+# CONFIG_PACKAGE_kmod-brcmsmac is not set
+# CONFIG_PACKAGE_kmod-brcmutil is not set
+# CONFIG_PACKAGE_kmod-carl9170 is not set
+# CONFIG_PACKAGE_kmod-cfg80211 is not set
+# CONFIG_PACKAGE_kmod-hostap is not set
+# CONFIG_PACKAGE_kmod-hostap-cs is not set
+# CONFIG_PACKAGE_kmod-hostap-pci is not set
+# CONFIG_PACKAGE_kmod-hostap-plx is not set
+# CONFIG_PACKAGE_kmod-iwl-legacy is not set
+# CONFIG_PACKAGE_kmod-iwl3945 is not set
+# CONFIG_PACKAGE_kmod-iwl4965 is not set
+# CONFIG_PACKAGE_kmod-iwlagn is not set
+# CONFIG_PACKAGE_kmod-lib80211 is not set
+# CONFIG_PACKAGE_kmod-libertas-sd is not set
+# CONFIG_PACKAGE_kmod-libertas-usb is not set
+# CONFIG_PACKAGE_kmod-mac80211 is not set
+# CONFIG_PACKAGE_kmod-mac80211-hwsim is not set
+# CONFIG_PACKAGE_kmod-mwl8k is not set
+# CONFIG_PACKAGE_kmod-net-airo is not set
+# CONFIG_PACKAGE_kmod-net-hermes is not set
+# CONFIG_PACKAGE_kmod-net-hermes-pci is not set
+# CONFIG_PACKAGE_kmod-net-hermes-plx is not set
+# CONFIG_PACKAGE_kmod-net-ipw2100 is not set
+# CONFIG_PACKAGE_kmod-net-ipw2200 is not set
+# CONFIG_PACKAGE_kmod-net-libipw is not set
+# CONFIG_PACKAGE_kmod-net-prism54 is not set
+# CONFIG_PACKAGE_kmod-net-zd1201 is not set
+# CONFIG_PACKAGE_kmod-p54-common is not set
+# CONFIG_PACKAGE_kmod-p54-pci is not set
+# CONFIG_PACKAGE_kmod-p54-usb is not set
+# CONFIG_PACKAGE_kmod-rt2400-pci is not set
+# CONFIG_PACKAGE_kmod-rt2500-pci is not set
+# CONFIG_PACKAGE_kmod-rt2500-usb is not set
+# CONFIG_PACKAGE_kmod-rt2800-lib is not set
+# CONFIG_PACKAGE_kmod-rt2800-pci is not set
+# CONFIG_PACKAGE_kmod-rt2800-usb is not set
+# CONFIG_PACKAGE_kmod-rt2x00-lib is not set
+# CONFIG_PACKAGE_kmod-rt2x00-pci is not set
+# CONFIG_PACKAGE_kmod-rt2x00-usb is not set
+# CONFIG_PACKAGE_kmod-rt61-pci is not set
+# CONFIG_PACKAGE_kmod-rt73-usb is not set
+# CONFIG_PACKAGE_kmod-rtl8180 is not set
+# CONFIG_PACKAGE_kmod-rtl8187 is not set
+# CONFIG_PACKAGE_kmod-zd1211rw is not set
+
+#
+# ZyXEL Kernel Features
+#
+# CONFIG_PACKAGE_kmod-zy_nfhook is not set
+# CONFIG_PACKAGE_kmod-zy_nfhook_dns is not set
+# CONFIG_PACKAGE_kmod-zybwm is not set
+CONFIG_PACKAGE_kmod-zyinetled=y
+
+#
+# ZyXEL Voice (ZyIMS VoIP)
+#
+CONFIG_BUILD_ZYXEL_VOICE_406=y
+CONFIG_BUILD_ZYXEL_VOICE_412=y
+CONFIG_ZYXEL_VOICE_CONFIG_SYS_ZYXEL_ZCFG=y
+# CONFIG_ZYXEL_VOICE_CONFIG_SYS_ZYXEL_CCC is not set
+# CONFIG_ZYXEL_VOICE_CONFIG_SYS_ZYXEL_ZYIMS_CONF is not set
+# CONFIG_ZYXEL_VOICE_CONFIG_SYS_BRCM_CMS is not set
+# CONFIG_ZYXEL_VOICE_CONFIG_SYS_MTK_SNCFG is not set
+# CONFIG_ZYXEL_VOICE_CONFIG_SYS_MTK_TCAPI is not set
+# CONFIG_ZYXEL_VOICE_CONFIG_SYS_OPENWRT_UCI is not set
+CONFIG_BUILD_ZYXEL_VOICE_CONFIG_SYS="zcfg"
+# CONFIG_BUILD_ZYXEL_VOICE_KSOCKET_RTP is not set
+CONFIG_BUILD_ZYXEL_VOICE_SUPPORT_SRTP=y
+# CONFIG_BUILD_ZYXEL_VOICE_SUPPORT_SIPS is not set
+CONFIG_BUILD_ZYXEL_VOICE_EMBEDDED_IVR=y
+CONFIG_BUILD_ZYXEL_VOICE_EARLY_MEDIA=y
+CONFIG_BUILD_ZYXEL_VOICE_MUSIC_ON_HOLD=y
+CONFIG_BUILD_ZYXEL_VOICE_IGNORE_DIRECT_IP=y
+# CONFIG_BUILD_ZYXEL_VOICE_SIP_UNREG_OUT_CALL_TO_SAME_SERVER_SUPPORT is not set
+# CONFIG_BUILD_ZYXEL_VOICE_EMERGENCY_CALL_SUPPORT is not set
+# CONFIG_BUILD_ZYXEL_VOICE_SIP_SUCCESSIVE_REGISTER_SESSION_TIME_GAP_SUPPORT is not set
+# CONFIG_BUILD_ZYXEL_VOICE_AUTO_QOS is not set
+# CONFIG_BUILD_ZYXEL_VOICE_VLAN_ID_MARK is not set
+# CONFIG_BUILD_ZYXEL_VOICE_OPTION_SIPSERVER is not set
+# CONFIG_BUILD_ZYXEL_VOICE_SIP_HEARTBEAT_MECHANISM is not set
+CONFIG_BUILD_ZYXEL_VOICE_RFC3263_DNS_NAPTR_SUPPORT=y
+# CONFIG_BUILD_ZYXEL_VOICE_RFC3611_RTCP_XR is not set
+# CONFIG_BUILD_ZYXEL_VOICE_ZYIMS_KEEPALIVE_WATCHDOG is not set
+# CONFIG_BUILD_ZYXEL_VOICE_ZYIMS_CMD_TEST is not set
+# CONFIG_BUILD_ZYXEL_VOICE_FAX_MODE_G711_PT_DISABLE_T38_CAP is not set
+CONFIG_BUILD_ZYXEL_VOICE_USING_DSP_AND_PHONE_API_FROM_SINGLE_PROCESS=y
+CONFIG_BUILD_ZYXEL_PHONE_FXS_SUPPORT=y
+CONFIG_BUILD_ZYXEL_PHONE_FXS_CH_NUM=2
+# CONFIG_BUILD_ZYXEL_PHONE_FXO_SUPPORT is not set
+# CONFIG_BUILD_ZYXEL_PHONE_DECT_SUPPORT is not set
+# CONFIG_BUILD_ZYXEL_PHONE_GR909_PHONE_LINE_TEST is not set
+# CONFIG_BUILD_ZYXEL_PHONE_VMWI_FUNCTION_DISABLE is not set
+# CONFIG_BUILD_ZYXEL_PHONE_LED_ONLY_GREEN_REG_LED_PER_PORT_OPERATION_SUPPORT is not set
+# CONFIG_BUILD_ZYXEL_PHONE_LED_RED_FAIL_LED_OPERATION_SUPPORT is not set
+# CONFIG_BUILD_ZYXEL_PHONE_LED_AMBER_MWI_LED_IS_COMPOSED_OF_GREEN_AND_RED_LED_OPERATION_SUPPORT is not set
+CONFIG_BUILD_ZYXEL_PHONE_LED_SINGLE_SET_LED_COMMON_USED_BY_SEVERAL_PORTS_OPERATION_SUPPORT=y
+CONFIG_BUILD_ZYXEL_VOICE_CODEC_G729_SUPPORT=y
+# CONFIG_BUILD_ZYXEL_VOICE_CODEC_G726_SUPPORT_G726_32_ONLY is not set
+# CONFIG_BUILD_ZYXEL_VOICE_CONFIG_TR069_FAXT38_ENABLE_MAPPING_TO_FAXMODE is not set
+# CONFIG_BUILD_ZYXEL_VOICE_CONFIG_TR069_SIP_PHONE_MAPPING_BY_STD_PHY_REFERENCE_LIST is not set
+
+#
+# VoIP Region Support
+#
+CONFIG_BUILD_ZYXEL_VOICE_REGION_All=y
+
+#
+# ZyXEL Userspace Features
+#
+
+#
+# romfile
+#
+# CONFIG_ZYXEL_NAT_LOG is not set
+# CONFIG_ZCFG_CONFIG_ENCRYPT is not set
+CONFIG_ZYXEL_MULTI_ROM_FILE=y
+# CONFIG_ZYXEL_HWDEP_ROM_CONVERT is not set
+
+#
+# Cellular WWAN
+#
+
+#
+# WWAN backup interface design
+#
+CONFIG_ZYXEL_WWAN=y
+CONFIG_ZYXEL_PPP_AUTH_MENU_CHAP_PAP_CTL=y
+CONFIG_ZYXEL_WWAN_SERIAL=y
+CONFIG_ZYXEL_WWAN_SERIAL_OPTION=y
+CONFIG_ZYXEL_WWAN_ACM=y
+CONFIG_ZYXEL_WWAN_HSO=y
+CONFIG_ZYXEL_WWAN_ETHER=y
+CONFIG_ZYXEL_WWAN_RNDIS=y
+# CONFIG_ZYXEL_WWAN_NCM is not set
+# CONFIG_ZYXEL_WWAN_QMIWWAN is not set
+# CONFIG_ZYXEL_WWAN_QMIWWAN_USBSERIAL is not set
+CONFIG_ZYXEL_WWAN_GOBINET=y
+# CONFIG_ZYXEL_USB_HW_LIMITATION is not set
+
+#
+# LTE CELLWAN style design
+#
+# CONFIG_ZYXEL_DEFAULT_LOCAL_CERTIFICATE is not set
+# CONFIG_ZYXEL_RETYPE_LOGIN_PASSWORD_BEFORE_APPLY is not set
+# CONFIG_ZYXEL_MQTT_PUBLISHER is not set
+# CONFIG_ZYXEL_NUTTCP is not set
+CONFIG_RILCMD_CBRS_ANTENNA_GAIN=10
+# CONFIG_KERNEL_USB_NET_GOBINET is not set
+# CONFIG_KERNEL_USB_NET_GOBINET_MULTI_APN is not set
+# CONFIG_KERNEL_QUECTEL_1_6_1 is not set
+
+#
+# DLNA
+#
+# CONFIG_ZYXEL_MINIDLNA is not set
+
+#
+# Wlan SSID Priority & IPTV SSID WPS PBC
+#
+# CONFIG_ZYXEL_SSID_PRIORITY is not set
+# CONFIG_ZYXEL_IPTV_SSID_PRIORITY_WPS_PBC is not set
+CONFIG_ZYXEL_WPS_IPTV_GUEST_WIFI_NUM=3
+
+#
+# OneSSID
+#
+CONFIG_ZYXEL_ONESSID=y
+# CONFIG_ZYXEL_MESH_WITHOUT_ONESSID is not set
+
+#
+# Add Preset and Backhaul SSID
+#
+CONFIG_ZYXEL_Add_Preset_Backhaul=y
+
+#
+# EasyMesh
+#
+CONFIG_ZYXEL_EASYMESH=y
+CONFIG_ZYXEL_EASYMESH_ROM_CONVERT=y
+CONFIG_ZYXEL_EASYMESH_R2=y
+# CONFIG_ABPY_CUSTOMIZATION is not set
+
+#
+# SYNC_WIFI_COUNTRYCODE_FROM_MRD
+#
+# CONFIG_ZYXEL_SYNC_WIFI_COUNTRYCODE_FROM_MRD is not set
+
+#
+# WiFiWepWpaMixModeSupport
+#
+# CONFIG_ZYXEL_WIFI_SUPPORT_WEP_WPA_MIXMODE is not set
+
+#
+# OpalExtender
+#
+# CONFIG_ZYXEL_OPAL_EXTENDER is not set
+# CONFIG_ZYXEL_OPAL_EXTENDER_WITH_NPACK is not set
+# CONFIG_ZYXEL_OPAL_EXTENDER_INFORM_GATEWAYINFO is not set
+
+#
+# ZYXEL_EXTENDER_WPS_HWPBC_PRESS_ONCE_AUTO_SELECT
+#
+# CONFIG_ZYXEL_EXTENDER_WPS_HWPBC_PRESS_ONCE_AUTO_SELECT is not set
+
+#
+# ZYXEL_EXTENDER_WPS_HWPBC_PRESS_ONCE_AUTO_SELECT_BY_BACKHAUL
+#
+# CONFIG_ZYXEL_EXTENDER_WPS_HWPBC_PRESS_ONCE_AUTO_SELECT_BY_BACKHAUL is not set
+
+#
+# SteeringLogic
+#
+# CONFIG_ZYSL_DEAUTH_11V_STA is not set
+# CONFIG_ZYSL_DEAUTH_NON_11V_STA is not set
+CONFIG_ZYSL_MULTI_STA_AIR_MONITOR=y
+# CONFIG_ZYSL_SUPPORT_BRCM_WEIGHT_STEER is not set
+CONFIG_MAX_RADIO_PER_DEVICE=0
+CONFIG_MAX_BSS_PER_DEVICE=0
+CONFIG_MAX_CLIENT_PER_DEVICE=0
+
+#
+# BSA
+#
+# CONFIG_BSA_SUPPORT_BCM2_DRIVER is not set
+# CONFIG_BSA_SUPPORT_BCM5_DRIVER is not set
+# CONFIG_BSA_SUPPORT_ECO2_DRIVER is not set
+# CONFIG_BSA_SUPPORT_ECO5_DRIVER is not set
+# CONFIG_BSA_SUPPORT_BCM_MONITOR_MODE is not set
+# CONFIG_BSA_SUPPORT_BCM_MONITOR_MODE_TIMER is not set
+
+#
+# QRPE
+#
+# CONFIG_QRPE_SUPPORT_BCM2_DRIVER is not set
+# CONFIG_QRPE_SUPPORT_BCM5_DRIVER is not set
+# CONFIG_QRPE_SUPPORT_ECO2_DRIVER is not set
+# CONFIG_QRPE_SUPPORT_ECO5_DRIVER is not set
+
+#
+# One Connect
+#
+CONFIG_ZYXEL_ONECONNECT=y
+# CONFIG_ZYXEL_ONECONNECT_VER_24 is not set
+CONFIG_ZYXEL_ONECONNECT_VER_30=y
+# CONFIG_ZYXEL_ONECONNECT_EU is not set
+# CONFIG_ZYXEL_APP_AGENT_VER_24 is not set
+# CONFIG_ZYXEL_APP_AGENT_VER_30 is not set
+# CONFIG_ZYXEL_P0F is not set
+CONFIG_ZYXEL_HOSTPOLLING=y
+# CONFIG_ZYXEL_AP_STEERING is not set
+# CONFIG_ZYXEL_NETPROBE_VER_24 is not set
+CONFIG_ZYXEL_NETPROBE_VER_30=y
+# CONFIG_ZYXEL_ZY1905_VER_24 is not set
+CONFIG_ZYXEL_ZY1905_VER_30=y
+# CONFIG_ZYXEL_ZY1905_VER_30_SUPPORT_FWUPGRADE is not set
+# CONFIG_ZYXEL_ZY1905_VER_30_SUPPORT_RESET_TO_DEFAULT is not set
+# CONFIG_ZYXEL_ONECONNECT_PARENTCTL_OPTION is not set
+
+#
+# DHCPC option
+#
+# CONFIG_ZYXEL_WAN_OPTION_12 is not set
+# CONFIG_YAC_CUSTOMIZE_LED_BEHAVIOR is not set
+# CONFIG_YAC_MESH_CUSTOMZATION is not set
+# CONFIG_ZYXEL_MEMORY_LEAK_DETECT is not set
+# CONFIG_ZYXEL_AVAST_AGENT_SUPPORT is not set
+# CONFIG_ZYXEL_CONFIG_IGNORE_OWNER_CHECK is not set
+# CONFIG_ZYXEL_NO_DH_ALGO_CHECK is not set
+CONFIG_ZYXEL_RESET_WATCHDOG=y
+CONFIG_ZYXEL_MUTI_DEFAULT_GATEWAY=y
+CONFIG_ZYXEL_FIREWALL_INDEPENDENT=y
+CONFIG_ZYXEL_USB_MANAGERMENT=y
+# CONFIG_ZYXEL_MOUNT_NOEXEC is not set
+CONFIG_ZYXEL_ACCOUNT_MANAGEMENT=y
+CONFIG_ZYXEL_ACESS_INTERNET_WHITE_LIST=y
+# CONFIG_ZYXEL_USA_PRODUCT is not set
+# CONFIG_ZYXEL_USA_Generic is not set
+CONFIG_ZYXEL_DNS_TRAFFIC_ROUTE=y
+# CONFIG_ZYXEL_DNS_TRAFFIC_ROUTE_FUZZY_COMPARE is not set
+# CONFIG_ZYXEL_REPLACE_SSID_AMBIGIOUS_CHARACTER is not set
+CONFIG_ZYXEL_VLAN_GROUP=y
+# CONFIG_ZYXEL_VLAN_MULTITAG_RULE is not set
+CONFIG_PRE_SHARED_KEY_LENGTH=10
+CONFIG_SSID_START_MAC_SEQ=2
+CONFIG_SSID_SUFFIX_LEN=4
+# CONFIG_GUEST_SSID_NO_ADD_SUFFIX is not set
+CONFIG_ZYXEL_PASSPHRASE=y
+CONFIG_ZYXEL_WOL=y
+# CONFIG_ZYXEL_RADIO_MAIN_SSID_INDEPENDENT is not set
+# CONFIG_ZYXEL_WIFI_HW_BUTTON_SWITCH is not set
+# CONFIG_ZY_WIFI_ONESSID_SECURITY_SYNC is not set
+# CONFIG_ZY_WIFI_24G_SUPPORT_11AC is not set
+# CONFIG_ZYXEL_WIFI_24G_SUPPORT_11GN is not set
+# CONFIG_ZY_WIFI_5G_SUPPORT_1024QAM is not set
+# CONFIG_WAN_AUTO_DETECT is not set
+# CONFIG_ZYXEL_AUTO_GEN_PRESHARED_KEY_ENCRPT_BY_SHA256 is not set
+# CONFIG_ZYXEL_AUTO_GEN_RANDOM_ADMIN_PASSWORD_ENCRPT_BY_SHA256 is not set
+CONFIG_ZYXEL_HASH_ACCOUNT_PASSWORD_BY_SHA512=y
+CONFIG_ZYXEL_HASH_ACCOUNT_PASSWORD_BY_SHA512_START_VER=0
+CONFIG_ZYXEL_RANDOM_SUPERVISOR_PASSWORD=y
+# CONFIG_ZYXEL_RANDOM_USER_PASSWORD_BY_MAC is not set
+CONFIG_ZYXEL_RANDOM_ADMIN_PASSWORD=y
+CONFIG_ZYXEL_RANDOM_ADMIN_PASSWORD_START_YEAR=2018
+CONFIG_ZYXEL_RANDOM_ADMIN_PASSWORD_START_WEEK=1
+CONFIG_ZYXEL_RANDOM_ADMIN_PASSWORD_NEW_ALGORITHM_START_YEAR=2018
+CONFIG_ZYXEL_RANDOM_ADMIN_PASSWORD_NEW_ALGORITHM_START_WEEK=48
+CONFIG_ZYXEL_RANDOM_SUPERVISOR_PASSWORD_NEW_ALGORITHM_START_YEAR=2100
+CONFIG_ZYXEL_RANDOM_SUPERVISOR_PASSWORD_NEW_ALGORITHM_START_WEEK=48
+CONFIG_ZYXEL_VMG8825_B60C_DDR533MHZ_YEAR_OBM="S19XX"
+CONFIG_ZYXEL_INDEPENDENT_WPS_METHODS=y
+# CONFIG_WPS_WIFID_MSG is not set
+# CONFIG_ZYXEL_SUPERVISOR_LEVEL_HTTPD_LOGIN_DENY is not set
+# CONFIG_ZYXEL_SUPERVISOR_LEVEL_LOGIN_DENY is not set
+# CONFIG_ZYXEL_ADMIN_LEVEL_LOGIN_DENY is not set
+# CONFIG_ZYXEL_USER_LEVEL_LOGIN_DENY is not set
+# CONFIG_ZYXEL_USER_LEVEL_CONSOLE_LOGIN_DENY is not set
+# CONFIG_ZYXEL_ADMIN_LEVEL_CONSOLE_LOGIN_DENY is not set
+# CONFIG_ZyXEL_WEB_REDIRECT is not set
+# CONFIG_ZyXEL_PCP_WEB_REDIRECT is not set
+CONFIG_ZYXEL_LANDING_PAGE_FEATURE=y
+# CONFIG_ZYXEL_PARENTCTL_DNS_BLOCK is not set
+# CONFIG_ZyXEL_PPP_LCP_ECHO is not set
+CONFIG_ZYXEL_PPP_UTILIZE_FILE_PARAM=y
+# CONFIG_ZYXEL_DHCP_OPTION15 is not set
+# CONFIG_ZYXEL_DISABLE_OPTION15_IN_LAN is not set
+# CONFIG_ZyXEL_DHCP_OPTION125 is not set
+CONFIG_ZyXEL_DHCP_OPTION42=y
+CONFIG_ZYXEL_DHCPV6_OPTION64=y
+CONFIG_ZYXEL_FWUPGRADE_DHCP_SUB_OPTION43=y
+# CONFIG_ZYXEL_DOWNGRADE_CHECK_GUI_ACCOUNT is not set
+# CONFIG_ZYXEL_WAN_MAC is not set
+CONFIG_ZYXEL_FIX_WAN_MAC=y
+# CONFIG_ZYXEL_INTFGUP_ACCEPT_BIND_ONLY_WAN is not set
+# CONFIG_ZYXEL_MULTI_WAN is not set
+# CONFIG_ZyXEL_IPP_PRINTSERVER is not set
+# CONFIG_ZYXEL_ZYBTT is not set
+CONFIG_ZYXEL_SAVE_LOG_TO_FLASH=y
+# CONFIG_ZYXEL_SEND_ALL_TPYE_EMAIL_LOG is not set
+# CONFIG_ZyXEL_Online_Firmware_Upgrade is not set
+# CONFIG_ZYXEL_SP_DOMAIN_TIMER is not set
+# CONFIG_SMALL_RAM is not set
+# CONFIG_ZYXEL_WIFI_SUPPORT_WDS is not set
+# CONFIG_ZYXEL_WEB_GUI_SHOW_EASYMESH_TOPOLOGY is not set
+# CONFIG_ZYXEL_WIFI_SUPPORT_WEP_MODE is not set
+# CONFIG_ZYXEL_WIFI_SUPPORT_WPA_ONLY_MODE is not set
+CONFIG_ZYXEL_SUPPORT_WL_WPA2_EAP=y
+# CONFIG_ZYXEL_SUPPORT_8021X is not set
+# CONFIG_ZYXEL_WIFI_WPA3 is not set
+CONFIG_ZYXEL_WIFI_SUPPORT_CHANNEL_SCAN=y
+# CONFIG_ZYXEL_DUMP_AP_CHANNEL_SCAN_CLI is not set
+CONFIG_ZYXEL_DISABLE_WIFI_HW_BTN=y
+# CONFIG_ZYXEL_ACS_WPS_ACTIVATION is not set
+# CONFIG_ZYXEL_GUEST_PSK_DIFF_FROM_MAIN is not set
+# CONFIG_ZYXEL_REVERSE_PORT is not set
+# CONFIG_ZYXEL_IPSEC_VPN is not set
+# CONFIG_ZYXEL_HOMEPLUG_DEVICE_DISCOVER is not set
+CONFIG_SEND_PADT_BEFORE_DISCOVERY=y
+# CONFIG_PPPOE_PASS_THROUGH_WAN_MAC is not set
+# CONFIG_ZYXEL_SUPPORT_TR098_BRCM_BONDING_LINE is not set
+# CONFIG_ZCFG_LOG_USE_DEBUGCFG is not set
+CONFIG_ZLOG_USE_DEBUG=y
+# CONFIG_CORE_DUMP_ZCMD is not set
+# CONFIG_UPNP_SSDP_LIMIT is not set
+# CONFIG_ZYXEL_BLOCK_PACKETS_FROM_CPE_IN_BRIDGE is not set
+# CONFIG_ZYXEL_ECONET_OPERATION_MODE is not set
+# CONFIG_ZYXEL_ECONET_DUAL_BAND_BACKHAUL is not set
+
+#
+# VDSL profile extra support
+#
+# CONFIG_ZYXEL_VDSL_Support_30A is not set
+CONFIG_ZYXEL_VDSL_Support_35B=y
+# CONFIG_ZCFG_RUNNING_WANDEV_INDEX_CUSTOMIZATION is not set
+CONFIG_GENERIC_TR98_LAN_IP_ALIAS=y
+# CONFIG_ZYXEL_SECOND_LAN_IP_ALIAS is not set
+CONFIG_ZYXEL_SUPPORT_TR98_LOGIN_ACCOUNT=y
+# CONFIG_ZYXEL_WEB_GUI_HIDE_CARD is not set
+# CONFIG_ZYXEL_CONTROl_EEE is not set
+# CONFIG_ZYXEL_BLACK_LIST_CHARACTERS_FOR_WIFI_PASSPHRASE is not set
+CONFIG_ZYXEL_TR69_INFORM_PARAMETER=y
+# CONFIG_ZYXEL_REMOVE_VALUECHANGE_FROM_BOOTSTRAP_ROM_CONVERT is not set
+# CONFIG_ZYXEL_LAN_L3_Isolation is not set
+# CONFIG_ZYXEL_SUPPORT_DMZ_MANAGEMENT is not set
+CONFIG_INTERNET_LED_DEPEND_ON_DEFAULT_GW=y
+# CONFIG_ZYXEL_MULTICAST_MODE_FIRST_IN is not set
+# CONFIG_ZYXEL_DUAL_ROUTE_IN_PPPOE is not set
+# CONFIG_ZYXEL_DL_DIAG_CALCULATION is not set
+CONFIG_ZYXEL_DIAG_IPERF_SUPPORT=y
+# CONFIG_ZYXEL_DL_DIAG_HWOFFLOAD is not set
+# CONFIG_ZYXEL_POWER_MANAGEMENT is not set
+# CONFIG_ZYXEL_IPV6_READYLOGO_CONFORMANCE is not set
+# CONFIG_ZYXEL_TR98_IPV6SPECIFIC is not set
+# CONFIG_ZYXEL_OLD_ADVPREFIXLIST is not set
+# CONFIG_ZYXEL_RADVD_OPT is not set
+# CONFIG_ZYXEL_DNS_RELAY is not set
+# CONFIG_ZYXEL_NEIGHBOR_DISCOVERY is not set
+# CONFIG_ZYXEL_IPV6_GLOBAL_ENABLE is not set
+# CONFIG_ZYXEL_IPV6_ECHO_REQUEST_REJECT is not set
+# CONFIG_ZYXEL_IPV6_ULAPREFIX is not set
+# CONFIG_ZYXEL_DHCPV6C_OPTION is not set
+# CONFIG_ZYXEL_DHCPV6C_LAUNCH_WITH_SCRIPT is not set
+# CONFIG_ZYXEL_DHCP_DISCOVER_EXPONENTIAL is not set
+CONFIG_ZYXEL_VPN_CLIENT=y
+CONFIG_ZYXEL_GRE=y
+CONFIG_ZYXEL_PCP=y
+# CONFIG_ZYXEL_WEB_GUI_SHOW_PACKETCAP is not set
+CONFIG_ZYXEL_FW_ID_CHECK_FW_UPGRADE=y
+# CONFIG_ZYXEL_NO_UPGRADE_SAME_FW is not set
+# CONFIG_ZYXEL_FW_ID_CHECK_PREVENT_DOWNGRADE is not set
+CONFIG_ZYXEL_FLASH_ID_CHECK_PREVENT_DOWNGRADE=""
+# CONFIG_ZYXEL_IGNORE_FW_ID_LENGTH_OF_CHECK_FW_UPGRADE is not set
+CONFIG_ZYXEL_WIFI_CHIP_ID_CHECK_PREVENT_DOWNGRADE="0x6715-[ABYO.3]b1"
+# CONFIG_ZYXEL_FW_SIGNATURE_SUPPORT is not set
+# CONFIG_ZYXEL_FW_MULTI_SIGNATURE_SUPPORT is not set
+# CONFIG_ZYXEL_DISK_MOUNT_AND_FIRMWARE_UPGRADE is not set
+CONFIG_ZYXEL_MODEL_ID_CHECK_FW_UPGRADE=y
+# CONFIG_ZYXEL_ZYSH_IPERF is not set
+CONFIG_ZYXEL_ZYCLI_REBOOT=y
+# CONFIG_ZYXEL_ZYCLI_HIDE_EDIT_INTF is not set
+# CONFIG_ZYXEL_ZYCLI_RESET_DEFAULT_REBOOT is not set
+# CONFIG_ZYXEL_ZYCLI_ROUTE is not set
+# CONFIG_ZYXEL_ZYCLI_ARP is not set
+# CONFIG_ZYXEL_ENABLE_STP is not set
+# CONFIG_ZYXEL_ZYCLI_SUPERVISOR_IPTABLES is not set
+# CONFIG_ZYXEL_ZYCLI_SUPERVISOR_TCPDUMP is not set
+# CONFIG_ZYXEL_BLOCK_239_255_255_250 is not set
+CONFIG_ZYXEL_SUPPORT_DEVINFO_PROCSTATUS_PROC=y
+# CONFIG_ZYXEL_PROCNUMBEROFENTRIES_INCLUDE_KTHREADS is not set
+# CONFIG_ZYXEL_TR069_EXCLUDE_NONMGMTWAN_IP_CHANGE_IN_1BOOT is not set
+# CONFIG_ZYXEL_TR69_REMOTE_MANAGE_SEPARATE_PARAMETER is not set
+# CONFIG_ZYXEL_FIX_TR69_LEASETIMEREMAINING_UPDATE is not set
+# CONFIG_ZYXEL_SKIP_LOG is not set
+# CONFIG_ZYXEL_IPV6_IANA_IAPD is not set
+CONFIG_ZYXEL_IPV6_MAP=y
+# CONFIG_ZYXEL_WIFI_SingleSKU is not set
+# CONFIG_ZYXEL_SET_SOCKOPT is not set
+CONFIG_ZYXEL_WIFI_NUM_OF_24G_SSID_INTERFACE=4
+CONFIG_ZYXEL_WIFI_NUM_OF_5G_SSID_INTERFACE=6
+# CONFIG_ZYXEL_WLAN_SCHEDULER is not set
+# CONFIG_ZYXEL_WLAN_SCHEDULER_AUTO_SWITCH_RADIO_ON is not set
+# CONFIG_ZYXEL_TR69_URL_PATH_MAC is not set
+# CONFIG_ZYXEL_ELIMINATE_DHCP_LEASE is not set
+# CONFIG_ZYXEL_ACL_HIGH_THAN_REMOMGMT is not set
+# CONFIG_ZYXEL_WLAN_MAXBITRATE is not set
+# CONFIG_ZYXEL_ISOLATED_PUBLIC_LAN is not set
+# CONFIG_ZYXEL_IPV6_UPLOAD_DIAG_ENABLE is not set
+# CONFIG_ZYXEL_DHCPV6S_LEASE is not set
+CONFIG_ZYXEL_REMOTE_ACCESS_PRIVILEGE=y
+CONFIG_ZYXEL_REMOTE_ACCESS_PRIVILEGE_ROM_CONVERT=y
+# CONFIG_ZYXEL_QUICK_STARTUP is not set
+# CONFIG_ZYXEL_SPI_NAND_CTRL_ECC is not set
+# CONFIG_ZYXEL_REMOTE_ACCOUNT_ACCESS_PRIVILEGE is not set
+CONFIG_ZYXEL_REMOMGMT_SEPARATE_LAN_WLAN_PRIVILEGE=y
+# CONFIG_ZYXEL_CUSTOMIZATION_LOGO is not set
+CONFIG_ZYXEL_SIP_ALG_REMOVE_CONNTRACK_WHEN_INSERT_REMOVE=y
+# CONFIG_ZYXEL_REMOMGMT_ONLY_HTTPS_ALLOWS_FOR_WLAN_CONNECT is not set
+# CONFIG_ZYXEL_FLOW_CONTROl_RGMII5_QTN is not set
+# CONFIG_ZYXEL_ADMIN_GUI_BASIC_VIEW is not set
+# CONFIG_ZYXEL_CLI_IDLE_TIMEOUT is not set
+# CONFIG_ZYXEL_SFP_LINKUP_DELAYTIMES is not set
+# CONFIG_ZYXEL_SIP_DELAYTIMES is not set
+# CONFIG_ZYXEL_TR69_DATA_USAGE is not set
+# CONFIG_ZYXEL_OPAL_BRIDGE_ACSPARAMETERS_HIDDEN is not set
+# CONFIG_ZYXEL_TR143_DIAG_ENHANCEMENT is not set
+# CONFIG_ZYXEL_IGNORE_PASSWORD_CHK_IN_SECURITY_FILTER_TBL is not set
+# CONFIG_ZYXEL_HTTPDIAG_SPECIFIED_INTERFACE is not set
+# CONFIG_ZYXEL_TR69_SUPPLEMENTAL_ACS is not set
+# CONFIG_ZYXEL_FQ_CODEL is not set
+# CONFIG_ZYXEL_IPPASS_RM_MULTI_WAN_SUPPORT is not set
+# CONFIG_ZYXEL_WIFI_LOG_AUTH_FAIL is not set
+# CONFIG_ZYXEL_FAKE_IP_169_254_X_X is not set
+# CONFIG_ZYXEL_G729_AND_LOGIN_PRIVILEGE_CONVERT is not set
+# CONFIG_ZYXEL_HIDE_USB_PAGE_IN_GUI is not set
+# CONFIG_ZYXEL_ADMIN_HIDE_FTP_SNMP_SSH_PORT_NUMBER is not set
+# CONFIG_ZYXEL_HIDE_URL_KEYWORD is not set
+# CONFIG_ZYXEL_AUTO_REMOVE_INTFGUP_CRIT_OPT60_WIFI_INTF is not set
+# CONFIG_ZYXEL_DISABLE_PMF_ROM_CONVERT is not set
+# CONFIG_ZYXEL_ECONET_CALA_DATA_RE_WRITE_TO_FLASH is not set
+CONFIG_ZYXEL_TR69_RELAUNCH=y
+# CONFIG_ZYXEL_TR69_CERT_MTD is not set
+# CONFIG_ZYXEL_SUPPORT_SPEEDTEST_BY_PKTGEN is not set
+# CONFIG_ZYXEL_BANDWIDTH_IMPROVEMENT is not set
+# CONFIG_ZYXEL_NAT_PORTFORWARD_SOURCE_IP_SUBNETMASK is not set
+# CONFIG_ZXYEL_TCP_PURE_ACK_FILTER is not set
+# CONFIG_ZYXEL_ROMCONVERT_GUI_VOIP_SHOW_IOP_FLAGS_IGNORE_CHECK_CONTACT_URL_IN_REGISTER_200OK is not set
+# CONFIG_ZYXEL_CHANNEL_SKIP_LIST_ROM_CONVERT is not set
+# CONFIG_ZXYEL_GUEST_AP_SESSION_CTL is not set
+# CONFIG_ZYXEL_SUPPORT_NESSUS is not set
+CONFIG_ZYXEL_HTTP_DIGEST_AUTH_WITH_HEX_CNONCE=y
+# CONFIG_ZYXEL_DISABLE_FORCE_SHOW_SKIP_BTN_IN_CHG_DEF_PWD_PAGE is not set
+# CONFIG_ZYXEL_REGISTRATION_ID_WITH_MAC_ADDR is not set
+# CONFIG_ZYXEL_FORCE_PON_SN_VENDORID_TO_ZYXE is not set
+# CONFIG_ZYXEL_SEND_NEW_CONNECTION_NOTIFICATION is not set
+# CONFIG_ZYXEL_PERIODICALLY_CHANGE_PASSWORD is not set
+# CONFIG_ZYXEL_SUPPORT_RDPAWAN_CONFIGURE is not set
+# CONFIG_ZYXEL_SUPPORT_BBF247 is not set
+# CONFIG_ZYXEL_LOG_FILTER is not set
+# CONFIG_ZYXEL_SEND_EMAIL_WHEN_LOG_ADD is not set
+# CONFIG_ZYXEL_WLAN_BLOCK_OPEN is not set
+# CONFIG_ZYXEL_SUPPORT_G988_IGMP_WHITE_LIST is not set
+# CONFIG_ZYXEL_VPNLITE is not set
+# CONFIG_ZYXEL_AUTO_GEN_CERT is not set
+# CONFIG_ZYXEL_ADVANCED_INFO is not set
+# CONFIG_ZYXEL_LANHOSTS_CHECK_MACTABLE is not set
+# CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND is not set
+# CONFIG_ZYXEL_DEFAULT_ENVRAM_VALUE_RECOMMIT is not set
+# CONFIG_ZYXEL_IGMP_SNOOPING_STATUS is not set
+# CONFIG_ZYXEL_MCAST_STATUS is not set
+# CONFIG_ZYXEL_CONFIGURABLE_WWANBACKUP_WAIT_TIME is not set
+# CONFIG_ZYXEL_RESTFUL_API_REMOMGMT is not set
+# CONFIG_ZYXEL_PARTIAL_RESET is not set
+# CONFIG_ZYXEL_DEFAULT_ADMIN_PASSWORD_AS_PSK is not set
+# CONFIG_ZYXEL_CUSTOMIZATION_QOS_RULE_WITH_SCRIPT is not set
+# CONFIG_ZYXEL_CURL_DISABLE_PROGRESS_METER is not set
+# CONFIG_ZYXEL_ADVANCE_SMB_PRIVILEGE is not set
+# CONFIG_ZYXEL_ECONET_IPERF3_SUPPORT is not set
+
+#
+# Hide parameters for TR181
+#
+# CONFIG_ZYXEL_HIDE_X_ZYXEL_8021AG_FOR_TR181 is not set
+# CONFIG_ZYXEL_HIDE_X_ZYXEL_8023AH_FOR_TR181 is not set
+# CONFIG_ZYXEL_HIDE_X_ZYXEL_GUI_CUSTOMIZATION_FOR_TR181 is not set
+# CONFIG_ZYXEL_SUPPORT_ROVER_APP is not set
+# CONFIG_ZYXEL_AUTO_INTF_GRP_QOS_PRI_ADJUSTMENT is not set
+
+#
+# ZyXEL Kernel Features
+#
+# CONFIG_KERNEL_ZYXEL_NF_GUEST_AP_SESSION_CTL is not set
+# CONFIG_KERNEL_ZYXEL_NF_SESSION_RSV is not set
+CONFIG_KERNEL_ZYXEL_NF_SESSION_CTL=y
+# CONFIG_KERNEL_ZYXEL_PPTP_SUPPORT is not set
+# CONFIG_KERNEL_ZYXEL_AVAST_AGENT_SUPPORT is not set
+# CONFIG_KERNEL_ZYXEL_RS_TRY_5_TIMES is not set
+# CONFIG_KERNEL_ZYXEL_PPTPD_RELAY is not set
+# CONFIG_KERNEL_ZYXEL_EOGRE_SUPPORT is not set
+# CONFIG_KERNEL_ZYXEL_SUPPORT_USB_FALL_BACK_2_0 is not set
+CONFIG_KERNEL_PRINTK_CONSOLE_DBG_LEVEL=7
+CONFIG_KERNEL_NETFILTER_XT_CONNMARK=y
+CONFIG_KERNEL_NETFILTER_XT_TARGET_CONNMARK=y
+CONFIG_KERNEL_NETFILTER_XT_MATCH_CONNMARK=y
+CONFIG_KERNEL_ZYXEL_EXT_MARK_DEBUG=y
+CONFIG_KERNEL_ZYXEL_EXT_MARK=y
+CONFIG_KERNEL_NETFILTER_XT_CONNZEXTMARK=y
+CONFIG_KERNEL_NETFILTER_XT_MATCH_CONNZEXTMARK=y
+CONFIG_KERNEL_NETFILTER_XT_TARGET_CONNZEXTMARK=y
+CONFIG_KERNEL_ZLD_SKB_ZLD_CB=y
+CONFIG_KERNEL_SBG_SKB_MARK=y
+CONFIG_KERNEL_NETFILTER_XT_ZEXTMARK=y
+CONFIG_KERNEL_NETFILTER_XT_MATCH_ZEXTMARK=y
+CONFIG_KERNEL_NETFILTER_XT_TARGET_ZEXTMARK=y
+# CONFIG_KERNEL_NETFILTER_NETLINK_QUEUE_FIX_CLASH is not set
+CONFIG_KERNEL_BRIDGE_EBT_ZEXTMARK=y
+CONFIG_KERNEL_BRIDGE_EBT_ZEXTMARK_T=y
+CONFIG_KERNEL_BRIDGE_EBT_NFQUEUE=y
+# CONFIG_KERNEL_ZYXEL_ALLOW_BR_GROUP_FWD is not set
+# CONFIG_KERNEL_ZYXEL_KF_IVI is not set
+# CONFIG_KERNEL_ZYXEL_IVI is not set
+CONFIG_KERNEL_ZYXEL_L2TP_SUPPORT=y
+# CONFIG_KERNEL_MSTC_GPON is not set
+# CONFIG_KERNEL_MSTC_TRANSCEIVER is not set
+# CONFIG_KERNEL_ZYXEL_RECORD_CALL_TRACE is not set
+# CONFIG_KERNEL_ZYXEL_DEC_AND_GZIP_CORE is not set
+# CONFIG_KERNEL_BRIDGE_EBT_DHCPOPT is not set
+# CONFIG_KERNEL_ARP_PROTECT is not set
+# CONFIG_KERNEL_NETFILTER_CTURLREDIRECT302 is not set
+# CONFIG_KERNEL_ZYXEL_BAD_BLOCK_UNMARK is not set
+# CONFIG_KERNEL_ZYXEL_BAD_BLOCK_WORKAROUND is not set
+# CONFIG_KERNEL_DNSWEBURL_SUPPORT is not set
+# CONFIG_KERNEL_ZYXEL_ADD_RT_AFTER_DAD is not set
+CONFIG_KERNEL_BCM_CPEROUTER=y
+# CONFIG_KERNEL_BCM_HNDROUTER is not set
+CONFIG_KERNEL_BCM_PKTFWD=y
+CONFIG_KERNEL_BCM_PKTFWD_FLCTL=y
+
+#
+# ZyXEL WEB GUI
+#
+# CONFIG_ZyXEL_HTTP_CGI_ENC is not set
+CONFIG_ZyXEL_WEB_GUI_HIDE_802_1x=y
+# CONFIG_ZyXEL_WEB_GUI_HIDE_CFM is not set
+# CONFIG_ZyXEL_WEB_GUI_HIDE_DSL is not set
+# CONFIG_ZyXEL_WEB_GUI_HIDE_ETHWAN is not set
+# CONFIG_ZYXEL_WEB_GUI_HIDE_MESH is not set
+# CONFIG_ZyXEL_WEB_GUI_HIDE_IGMP_MLD is not set
+# CONFIG_ZyXEL_WEB_GUI_SHOW_IGMP_VERSION is not set
+# CONFIG_ZyXEL_WEB_GUI_HIDE_Mcast is not set
+# CONFIG_ZyXEL_WEB_GUI_HIDE_OAM is not set
+# CONFIG_ZYXEL_WEB_GUI_HIDE_FIREWALL is not set
+CONFIG_ZyXEL_WEB_GUI_SHOW_WWAN=y
+# CONFIG_ZyXEL_WEB_GUI_SHOW_PON is not set
+# CONFIG_ZyXEL_WEB_GUI_SHOW_ONU_SETUP is not set
+# CONFIG_ZyXEL_WEB_GUI_SHOW_CCWAN is not set
+# CONFIG_ZyXEL_WEB_GUI_SHOW_XDSL_PROFILE is not set
+# CONFIG_ZyXEL_WEB_GUI_SHOW_GPON_STATUS is not set
+# CONFIG_ZYXEL_WEB_GUI_SHOW_SKIP_CHANGE_PASSWD is not set
+# CONFIG_ZyXEL_WEB_GUI_SINGLE_IGMP_MLD is not set
+# CONFIG_ZyXEL_WEB_GUI_HIDE_VLAN_GROUP is not set
+# CONFIG_ZyXEL_WEB_GUI_HIDE_STB_VENDOR_ID is not set
+# CONFIG_ZyXEL_WEB_GUI_HIDE_WAKE_ON_LAN is not set
+CONFIG_ZyXEL_WEB_GUI_SHOW_IGMP_MLD_SNOOPING=y
+# CONFIG_ZYXEL_WEB_GUI_SHOW_ENABLE_ONLINE_FW_UPGRADE is not set
+# CONFIG_ZYXEL_WEB_GUI_ONLINE_FW_UPGRADE_VIA_URL is not set
+# CONFIG_ZyXEL_WEB_GUI_WLAN_DFS_CHAN_CTL is not set
+# CONFIG_ZYXEL_SHOW_QOS_MONITOR is not set
+# CONFIG_ZYXEL_WEB_GUI_SYS_INFO_PAGE_SHOW_VOIP_INFO is not set
+# CONFIG_ZYXEL_WEB_GUI_ETH_UNI is not set
+# CONFIG_ZYXEL_WEB_GUI_ECONET_QoS_STYLE is not set
+# CONFIG_ZYXEL_WEB_GUI_TRAFFIC_STATUS_FOR_ECONET is not set
+CONFIG_ZYXEL_WEB_GUI_SHOW_ZYEE=y
+CONFIG_ZYXEL_SUPPORT_PPPOE_MTU_1500=y
+# CONFIG_ZYXEL_WEB_GUI_NETWORK_TOPOLOGY is not set
+# CONFIG_ZYXEL_LED_SWITCH_ACTIVE is not set
+# CONFIG_ZYXEL_WEB_GUI_WLAN_HIDE_RATE_LIMIT is not set
+# CONFIG_ZyXEL_WEB_GUI_HIDE_SP_DOMAIN is not set
+# CONFIG_ZYXEL_WEB_GUI_SUPPORT_PAGE_SUBJECT_PATH is not set
+CONFIG_ZYXEL_WEB_GUI_NUM_OF_WAN_INTF=8
+# CONFIG_ZYXEL_WEB_GUI_SHOW_QOS_CLS_TARGET_INTF is not set
+# CONFIG_ZYXEL_WEB_GUI_SHOW_SAVE_PASSWORD_DIALOGUE is not set
+# CONFIG_ZYXEL_WEB_GUI_SHOW_MAC_ADDR_TABLE is not set
+# CONFIG_ZYXEL_WEB_GUI_WEP_ENABLE is not set
+# CONFIG_ZYXEL_WEB_GUI_INDEX_SHOW_STATUS is not set
+CONFIG_ZYXEL_WEB_GUI_WIFI_SHOW_FLAG=0x0
+# CONFIG_ZyXEL_WEB_GUI_MGMT_SET_BIND_INTF_BY_SERVICE is not set
+CONFIG_ZYXEL_WEB_GUI_SHOW_USB_SERVICE=y
+# CONFIG_ZYXEL_WEB_WIRELESS_NEW_VERSION_ONE is not set
+# CONFIG_ZYXEL_WEB_NETWORK_MAP_NEW_STYLE is not set
+# CONFIG_ZYXEL_POWERMONITOR_ENABLE is not set
+# CONFIG_ZYXEL_GUIVUE_CONNECTIVITY_CARDPAGE_DETAIL_INFO is not set
+# CONFIG_ZYXEL_GUIVUE_USB_INFO_SHOW_SYSINFO is not set
+# CONFIG_ZYXEL_GUIVUE_HTTP_REDIRECT_TO_HTTPS is not set
+# CONFIG_ZYXEL_GUIVUE_SHOW_ALLWIFI_CHANNEL is not set
+# CONFIG_ZYXEL_WEB_GUI_TR69_SINGLE_WAN is not set
+# CONFIG_ZYXEL_WEB_GUI_DISABLE_WAN_ADD_BUTTON is not set
+CONFIG_ZYXEL_SFP_POWER_MGMT=y
+CONFIG_ZYXEL_WIFI_KEY_REMINDER=y
+CONFIG_ZyXEL_WEB_GUI_VPN_CONFIG_ENABLE=y
+CONFIG_ZyXEL_WEB_GUI_VPN_CONFIG_HIDE_PPTP=y
+# CONFIG_ZyXEL_WEB_GUI_VPN_CONFIG_HIDE_L2TP is not set
+# CONFIG_ZYXEL_WEB_GUI_HIDE_QOS_DEFAULT_QUEUE is not set
+# CONFIG_ZYXEL_WEB_GUI_LOGIN_WITH_RANDOM_CODE is not set
+# CONFIG_ZYXEL_WEB_GUI_HOST_PRIORITY_STATICIP is not set
+# CONFIG_ZYXEL_WEB_GUI_SHOW_WIFI_HOST_DETAILS is not set
+# CONFIG_ZYXEL_WEB_GUI_QOS_HIDE_POLICER_SETUP is not set
+# CONFIG_ZYXEL_WEB_GUI_WAN_HIDE_FULLCONE_NAT is not set
+# CONFIG_ZYXEL_WEB_GUI_DIAGNOSTIC_HIDE_8021AG is not set
+# CONFIG_ZYXEL_WEB_GUI_WAN_HIDE_DHCPC is not set
+# CONFIG_ZYXEL_WEB_GUI_WIRELESS_HIDE_MAXUPDOWNSTREAM is not set
+# CONFIG_ZYXEL_WEB_GUI_WIRELESS_HIDE_ENCRYPTION_TIMER is not set
+# CONFIG_ZYXEL_WEB_GUI_WPS_HIDE_METHOD2PIN_METHOD3 is not set
+# CONFIG_ZYXEL_WEB_GUI_ROUTING_HIDE_RIP is not set
+# CONFIG_ZYXEL_WEB_GUI_WLAN_DFS_SW is not set
+# CONFIG_ZYXEL_WEB_GUI_WIFI_COUNTRYCODE_SELECT is not set
+# CONFIG_ZYXEL_WEB_GUI_SHOW_MESH_ROLE_SELECT_OPTIONS is not set
+# CONFIG_ZYXEL_WEB_GUI_USER_ACCOUNT_HIDE_PARENTCTLCARD is not set
+# CONFIG_ZYXEL_WEB_GUI_USER_ACCOUNT_HIDE_GUEST_WIFI is not set
+# CONFIG_ZYXEL_WEB_GUI_QOS_HIDE_SHAPER_WAN_INTERFACE is not set
+# CONFIG_ZYXEL_WEB_GUI_ALLOW_PPPUSERNAME_EMPTY is not set
+# CONFIG_ZYXEL_WEB_GUI_SELECT_DUAL_BANG_PER_WIFI_PAGE is not set
+
+#
+# Home Cyber Security
+#
+# CONFIG_ZYXEL_HOME_CYBER_SECURITY_FSECURE is not set
+
+#
+# Manufacture feature 
+#
+CONFIG_APPS_VOIP_AUTO_TEST=y
+# CONFIG_MINI_BOOT is not set
+# CONFIG_ZYXEL_WEB_GUI_SPEED_TEST is not set
+
+#
+# Customization
+#
+
+#
+# Sunrise
+#
+# CONFIG_SUNRISE_XTUR_CUSTOMIZATION is not set
+# CONFIG_SUNRISE_STB_PROVISION is not set
+CONFIG_SUNRISE_RELEASE_DHCP_PPP_BEFORE_IFDOWN=y
+# CONFIG_SUNRISE_LOCK_ACSURL is not set
+# CONFIG_SUNRISE_DHCP_FORCE_RENEW is not set
+# CONFIG_SUNRISE_DHCP_OPTION58_OPTION59 is not set
+# CONFIG_SUNRISE_TR98_CUSTOMIZATION is not set
+# CONFIG_SUNRISE_TR69_CUSTOMIZATION is not set
+# CONFIG_BUILD_CUSTOMIZATION_SUNRISE is not set
+# CONFIG_SUNRISE_TR69_WAN_CUSTOMIZATION is not set
+# CONFIG_SUNRISE_RANDOM_PASSWORD is not set
+# CONFIG_SUNRISE_FIREWALL_CUSTOMIZATION is not set
+# CONFIG_SUNRISE_VLANHUNT_CUSTOMIZATION is not set
+# CONFIG_SUNRISE_WAN_AUTO_DETECT_CUSTOMIZATION is not set
+# CONFIG_SUNRISE_FIXED_WANDEV_INDEX_CUSTOMIZATION is not set
+# CONFIG_SUNRISE_BRIDGE_INDEX_CUSTOMIZATION is not set
+# CONFIG_ABWW_IPTV_WPS_PBC_BEHAVIOR is not set
+# CONFIG_ABWW_STB_PROVISION_Y2020 is not set
+# CONFIG_ABWW_GUEST_WIFI_CUSTOMIZATION is not set
+# CONFIG_ABWW_ZERO_TOUCH_L3_FIBER_QOS_DEACTIVE is not set
+# CONFIG_ABWW_AVOID_AAAA_DNS_QUERY_FORWARD_LAN_TO_WAN is not set
+# CONFIG_ABWW_SHOW_USB_PARTITION_INFOR is not set
+# CONFIG_ABWW_HIDE_GUEST23_WIFI_FOR_ACS is not set
+# CONFIG_ABWW_OMCI_CWMP_WITH_SPECIFIC_MAC_ADDR is not set
+# CONFIG_ABWW_STATIC_DNS_CUSTOMIZATION is not set
+# CONFIG_ABWW_WEB_GUI_IPERF is not set
+# CONFIG_ABWW_CUSTOMIZATION is not set
+# CONFIG_ABWW_CHECK_BAD_BLOCK is not set
+
+#
+# Elisa
+#
+# CONFIG_ELISA_DEFAULT_TR69_USERNAME_PASSWD is not set
+# CONFIG_ELISA_DEFAULT_LOGIN_PASSWORD is not set
+# CONFIG_ELISA_CUSTOMIZATION is not set
+# CONFIG_ELISA_WAN_AUTO_DETECT is not set
+# CONFIG_ELISA_CLEAN_ROMD_EVERYTIME_DURING_BOOT_UP is not set
+# CONFIG_ELISA_ISOLATE_LAN_PORT is not set
+# CONFIG_ELISA_NETWORKMAP_CUSTOMIZATION is not set
+# CONFIG_ELISA_NAT_PORTFORWARD_CUSTOMIZATION is not set
+# CONFIG_ELISA_TR69_WANDSL_CUSTOMIZATION is not set
+# CONFIG_ZYXEL_DSL_AVERAGE_SIGNAL_ATTEN is not set
+# CONFIG_ZYXEL_SYNC_CCWAN_TO_ALL_DEFGW is not set
+
+#
+# SuperOnline
+#
+# CONFIG_SUPERONLINE_CUSTOMIZATION is not set
+# CONFIG_SOL_TR69_CUSTOMIZATION is not set
+# CONFIG_SOL_TR69_AUTO_REDOWNLOAD_FW is not set
+# CONFIG_SOL_TR69_AUTO_CHANGE_DHCP_POOL is not set
+# CONFIG_SOL_TR69_FIREWALL_CONTROL is not set
+# CONFIG_SOL_TR69_3G_Backup is not set
+# CONFIG_SOL_TR69_TRUSTDOMAIN is not set
+# CONFIG_SOL_TR69_LOGINACCOUNT is not set
+# CONFIG_SOL_TR69_NO_LAN_HOST is not set
+
+#
+# ZYXEL_RUNNINGWAN_CUSTOMIZATION
+#
+# CONFIG_ZYXEL_RUNNINGWAN_CUSTOMIZATION is not set
+
+#
+# Telkom
+#
+# CONFIG_TELKOM_CUSTOMIZATION is not set
+# CONFIG_TELKOM_FIREWALL is not set
+
+#
+# OSK
+#
+# CONFIG_ABUE_CUSTOMIZATION is not set
+
+#
+# Codetel
+#
+# CONFIG_CODETEL_CUSTOMIZATION is not set
+
+#
+# Claro
+#
+# CONFIG_CLARO_CUSTOMIZATION is not set
+
+#
+# Puerto Rico
+#
+# CONFIG_PUERTO_RICO_CUSTOMIZATION is not set
+
+#
+# VMG3926-B10A/VMG3925-B10B Generic
+#
+CONFIG_SAME_FW_FOR_TWO_BOARD=y
+
+#
+# ACEN
+#
+# CONFIG_ACEN_CUSTOMIZATION is not set
+# CONFIG_ACEN_ITALY_DONT_DELETE_HOST_BEFORE_LEASE_EXPIRED is not set
+# CONFIG_ACEN_ENCRYPTED_IMAGE is not set
+# CONFIG_ZCFG_NEW_PWD_RULE_FOR_ADMIN_PSK_ACEN_ITALY is not set
+# CONFIG_ZYXEL_ACEN_WEB_GUI_MESH_TOPOLOGY is not set
+
+#
+# Solarus
+#
+# CONFIG_SOLARUS_CUSTOMIZATION is not set
+
+#
+# CBT
+#
+# CONFIG_CBT_CUSTOMIZATION is not set
+# CONFIG_CBT_PUBLIC_LAN is not set
+
+#
+# EPB
+#
+# CONFIG_EPB_CUSTOMIZATION is not set
+
+#
+# Oi
+#
+# CONFIG_OI_CUSTOMIZATION is not set
+# CONFIG_OI_HOTSPOT_ENABLE is not set
+# CONFIG_OI_WAN_MAC_FOR_VMG3625 is not set
+
+#
+# Tiscali
+#
+# CONFIG_TISCALI_CUSTOMIZATION is not set
+# CONFIG_ZYXEL_VMG8924_B10D_TISCALI_ISOLATE_DMZ is not set
+# CONFIG_ZYXEL_VMG8825_T50K_TISCALI_ISOLATE_DMZ is not set
+
+#
+# ABWP
+#
+# CONFIG_ABWP_CUSTOMIZATION is not set
+
+#
+# ABXM
+#
+# CONFIG_ABXM_CUSTOMIZATION is not set
+
+#
+# ACBD
+#
+# CONFIG_ACBD_CUSTOMIZATION is not set
+
+#
+# TSF
+#
+# CONFIG_TSF_CUSTOMIZATION is not set
+
+#
+# ABWO
+#
+# CONFIG_ABWO_CUSTOMIZATION is not set
+
+#
+# YAC
+#
+# CONFIG_YAC_CUSTOMIZATION is not set
+
+#
+# YAB
+#
+# CONFIG_YAB_CUSTOMIZATION is not set
+
+#
+# YAD
+#
+# CONFIG_YAD_CUSTOMIZATION is not set
+# CONFIG_YAD_NMAP_SCAN_CUSTOMIZATION is not set
+# CONFIG_YAD_INTERNET_BRIDGE_LED_CUSTOMIZATION is not set
+# CONFIG_YAD_ACCOUNT_CUSTOMIZATION is not set
+# CONFIG_YAD_PARENT_CONTROL_CUSTOMIZATION is not set
+
+#
+# Motive
+#
+# CONFIG_MOTIVE_SHORTEN_TR69_RESPONSE_TIME is not set
+
+#
+# BRAZIL
+#
+# CONFIG_BRAZIL_CUSTOMIZATION is not set
+
+#
+# MILLENICOM
+#
+# CONFIG_MILLENICOM_CUSTOMIZATION is not set
+
+#
+# ALGAR
+#
+# CONFIG_ALGAR_CUSTOMIZATION is not set
+
+#
+# SHATEL
+#
+# CONFIG_SHATEL_CUSTOMIZATION is not set
+
+#
+# ISKON
+#
+# CONFIG_USE_OLD_VOIP_PREFIX is not set
+# CONFIG_ISKON_GUI_CUSTOMIZATION is not set
+# CONFIG_ISKON_CUSTOMIZATION is not set
+# CONFIG_ISKON_CUSTOMIZATION_Motorola_VIP1003 is not set
+
+#
+# CAT
+#
+# CONFIG_CAT_CUSTOMIZATION is not set
+
+#
+# Hawaiian Telcom
+#
+# CONFIG_HAWAIIAN_TELCOM is not set
+
+#
+# ABNL
+#
+# CONFIG_ABNL_CUSTOMIZATION is not set
+
+#
+# TIM
+#
+# CONFIG_TIM_Y2015_CUSTOMIZATION is not set
+# CONFIG_ABOG_CUSTOMIZATION is not set
+# CONFIG_TIM_CUSTOMIZATION is not set
+
+#
+# T-Mobile NL
+#
+
+#
+# APP
+#
+# CONFIG_ZYXEL_APP_HOME_PAGE_DISPLAY_MESH_STATUS is not set
+# CONFIG_ZYXEL_APP_SUPPORT_MESH is not set
+# CONFIG_ZYXEL_APP_SUPPORT_Send_Feedback is not set
+# CONFIG_ZYXEL_APP_SUPPORT_Parental_Control is not set
+# CONFIG_ZYXEL_APP_SUPPORT_Diagnosis is not set
+# CONFIG_ZYXEL_APP_SUPPORT_Speed_Test is not set
+
+#
+# TT
+#
+# CONFIG_ZYXEL_TT_CUSTOMIZATION is not set
+
+#
+# Cetin
+#
+# CONFIG_ABQA_CUSTOMIZATION is not set
+# CONFIG_BRIDGE_VLAN_COUNTER is not set
+
+#
+# OTN
+#
+# CONFIG_ABVG_CUSTOMIZATION is not set
+
+#
+# Starry
+#
+# CONFIG_STARRY_CUSTOMIZATION is not set
+# CONFIG_ZYXEL_DETECT_WAN_IP_CONFLICT is not set
+
+#
+# GFiber
+#
+# CONFIG_GFIBER_CUSTOMIZATION is not set
+
+#
+# WIND Greece
+#
+# CONFIG_WIND_GREECE_GUI_CUSTOMIZATION is not set
+# CONFIG_WIND_GREECE_CUSTOMIZATION is not set
+# CONFIG_WIND_Greece_DHCPv6_Client_NTP_Option is not set
+
+#
+# PPPoE Service
+#
+# CONFIG_ZYXEL_PPPoE_SERVICE_OPTION is not set
+
+#
+# TT
+#
+# CONFIG_TT_HGW is not set
+# CONFIG_TT_CUSTOMIZATION is not set
+# CONFIG_ZYXEL_SUPPORT_LIFEMOTE is not set
+CONFIG_X_ZYXEL_SUPPORT_LIFEMOTE=y
+# CONFIG_ZYXEL_SUPPORT_QUANTWIFI is not set
+# CONFIG_TT_DSL_BINDING is not set
+# CONFIG_ZYXEL_TTNET_FIREWALL_WANINTERFACE is not set
+# CONFIG_MSTC_TTNET_MULTI_USER is not set
+# CONFIG_MSTC_RETAIL_MULTI_USER is not set
+# CONFIG_SUPERVISOR_USE_ZYSH is not set
+# CONFIG_TT_PORTMIRROR is not set
+# CONFIG_TT_PORTMIRROR_E is not set
+# CONFIG_TT_PACKETCAPTURE is not set
+# CONFIG_ZYXEL_TT_PARTIAL_RESTORE is not set
+# CONFIG_ZYXEL_TTNET_TR69ALG is not set
+# CONFIG_ZYXEL_TTNET_EDNS is not set
+# CONFIG_ZYXEL_TT_WPSSETUPLOCK is not set
+# CONFIG_TENDER_TT_FEATURE is not set
+# CONFIG_TT_CUSTOMIZATION_TR069 is not set
+CONFIG_ZYXEL_CONFIG_MAX_WLAN_CLIENT=y
+# CONFIG_ZYXEL_TR140 is not set
+# CONFIG_ZYXEL_PPP_OTHER_DOMAIN is not set
+# CONFIG_ZYXEL_CUSTOMIZATION_DEVICELOG is not set
+# CONFIG_ZYXEL_TT_DUAL_MANAGEMENT is not set
+# CONFIG_ZYXEL_TT_MGMTPORT_SEPARETE is not set
+# CONFIG_MSTC_TTNET_REMOTEMGMT_FEATURE is not set
+# CONFIG_MSTC_CBT_REMOTE_ACCESS is not set
+# CONFIG_MSTC_TRUSTDOMAIN is not set
+# CONFIG_MSTC_IPTABLE_GROUP is not set
+# CONFIG_NORWAY_CUSTOMIZATION is not set
+# CONFIG_MSTC_SERVICE_ROUTE is not set
+# CONFIG_SUPPORT_HTTPD_SSL is not set
+# CONFIG_DMP_X_5067F0_IPV6_1 is not set
+# CONFIG_SUPPORT_SSHD is not set
+# CONFIG_MSTC_ACCESSSERVICE is not set
+# CONFIG_ZYXEL_IGMPDIAG is not set
+# CONFIG_ZYXEL_CUSTOMIZATION_SYSLOG is not set
+# CONFIG_ZYXEL_TTNET_NTP_MULTIWAN is not set
+
+#
+# NN FLOWER SPECIFIC CAPABILITY
+#
+# CONFIG_NN_FLOWER_SPECIFIC_CAPABILITY is not set
+
+#
+# ABXA Customization
+#
+# CONFIG_ABXA_CUSTOMIZATION is not set
+# CONFIG_ABXA_GUI_CUSTOMIZATION is not set
+
+#
+# ABUU Customization
+#
+# CONFIG_ABUU_CUSTOMIZATION is not set
+# CONFIG_ABUU_CUSTOMIZATION_MULTIPLE_CONFIG is not set
+# CONFIG_ABUU_CUSTOMIZATION_WLAN_SCHEDULER is not set
+# CONFIG_ABUU_CUSTOMIZATION_QOS is not set
+# CONFIG_ABUU_CUSTOMIZATION_DSL_TROUBLE_SHOOTING is not set
+
+#
+# ABWJ Customization
+#
+# CONFIG_ABWJ_CUSTOMIZATION is not set
+
+#
+# ABYM Customization
+#
+# CONFIG_ABYM_CUSTOMIZATION is not set
+
+#
+# CTB Customization
+#
+# CONFIG_CTB_CUSTOMIZATION is not set
+
+#
+# IPV6 Customization
+#
+# CONFIG_ZYXEL_WAN_DHCPV6_MODE is not set
+# CONFIG_ZYXEL_PD_TYPE is not set
+
+#
+# Malaysia Customization
+#
+# CONFIG_ZYXEL_ERROR_RESPOND_WITH_DUPLEX_PARAMETER_IN_ONE_REQUEST is not set
+# CONFIG_ZYXEL_ZTR69_ACS_UPLOAD_CONFIG_COMMAND_URL_IS_DATAPATH is not set
+# CONFIG_ZYXEL_IP_UNNUMBER is not set
+# CONFIG_ZYXEL_FEATURE_PROGRESS_STATUS_WITH_FIRMWARE_UPGRADE is not set
+# CONFIG_ZYXEL_SHOW_CPU_MEMORY_USAGE_BAR_INDICATORS is not set
+# CONFIG_ABWU_CUSTOMIZATION is not set
+# CONFIG_ZYXEL_REDUCE_BOOT_UP_TIME is not set
+# CONFIG_ZYXEL_KEEP_5G_MAIN_SSID_UP is not set
+# CONFIG_ZYXEL_SET_CONNECTIONID_FROM_ACS is not set
+
+#
+# Hide parameters for ACS
+#
+# CONFIG_ZYXEL_HIDE_VOCIESERVICE_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_DSL_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_ATM_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_PTM_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_USB_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_X_ZYXEL_GPON_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_X_ZYXEL_GPON_INFO_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_X_ZYXEL_8021AG_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_X_ZYXEL_8023AH_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_X_ZYXEL_VCAUTOHUNT_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_X_ZYXEL_WWAN_BACKUP_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_X_ZYXEL_GUI_CUSTOMIZATION_FOR_ACS is not set
+# CONFIG_ZYXEL_HIDE_FAP_FOR_ACS is not set
+
+#
+# ABZQ Customization
+#
+# CONFIG_ABZQ_CUSTOMIZATION is not set
+# CONFIG_ABZQ_CUSTOMIZATION_SUPPORT_WIFI_COUNTER_PER_SSID is not set
+# CONFIG_ABZQ_CUSTOMIZATION_SUPPORT_WIFI_CHANNEL_HOPPING is not set
+# CONFIG_ABZQ_CUSTOMIZATION_SUPPORT_FIREWALL_MAC_DEST_FILTER is not set
+# CONFIG_ABZQ_CUSTOMIZATION_SUPPORT_TR69_PRIVATE_NAME_HEADER is not set
+# CONFIG_ABZQ_CUSTOMIZATION_SUPPORT_ABZQ_ACS_SERVER is not set
+# CONFIG_ABZQ_CUSTOMIZATION_SUPERVISOR_USE_ZYSH is not set
+# CONFIG_ABZQ_CUSTOMIZATION_DNS_RESPONSE is not set
+
+#
+# Romfile Checksum default file
+#
+# CONFIG_ZYXEL_ROMFILE_CHECKSUM_DEFAULT_FILE is not set
+
+#
+# ABVE Customization
+#
+# CONFIG_ABVE_CUSTOMIZATION is not set
+
+#
+# ACAU CUSTOMIZATION
+#
+# CONFIG_ACAU_CUSTOMIZATION is not set
+
+#
+# ABYY Customization
+#
+# CONFIG_ABYY_CUSTOMIZATION is not set
+
+#
+# ACBF Customization
+#
+# CONFIG_ACBF_CUSTOMIZATION is not set
+
+#
+# XXXX Customization
+#
+# CONFIG_XXXX_CUSTOMIZATION is not set
+
+#
+# AAAA Customization
+#
+# CONFIG_AAAA_CUSTOMIZATION is not set
+
+#
+# CAAAC CUSTOMIZATION
+#
+# CONFIG_CAAAC_HW_NAT_QDMA_LAN_CUSTOMIZATION is not set

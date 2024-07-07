@@ -1,0 +1,15 @@
+Index: pure-ftpd-1.0.30/src/ftpd.c
+===================================================================
+--- pure-ftpd-1.0.30.orig/src/ftpd.c	2021-11-04 15:34:31.923924475 +0800
++++ pure-ftpd-1.0.30/src/ftpd.c	2021-11-04 15:35:48.480077991 +0800
+@@ -5809,7 +5809,9 @@
+ #ifndef DONT_LOG_IP
+     for (;;) {
+         int eai;
+-        
++#if 1	//To avoid error 425, some of gcc module will caused getnameinfo return error.	
++        resolve_hostnames = 0;
++#endif
+         if ((eai = getnameinfo
+              ((struct sockaddr *) &peer, STORAGE_LEN(peer), host,
+               sizeof host, NULL, (size_t) 0U, 

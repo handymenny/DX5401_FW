@@ -1,0 +1,655 @@
+Index: dnsmasq-2.67/src/dnsmasq.c
+===================================================================
+--- dnsmasq-2.67.orig/src/dnsmasq.c
++++ dnsmasq-2.67/src/dnsmasq.c
+@@ -83,9 +83,12 @@ int main (int argc, char **argv)
+   read_opts(argc, argv, compile_opts);
+   
+ #ifdef ZYXEL_PATCH /* register to zyxel zcfg, by charisse*/
+-  dnsmasq_eid_register();  
++  dnsmasq_eid_register();
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++  readDhcpAclPoolFile();
+ #endif
+-    
++#endif
++
+   if (daemon->edns_pktsz < PACKETSZ)
+     daemon->edns_pktsz = PACKETSZ;
+   /* CVE-2017-14491 
+Index: dnsmasq-2.67/src/dnsmasq.h
+===================================================================
+--- dnsmasq-2.67.orig/src/dnsmasq.h
++++ dnsmasq-2.67/src/dnsmasq.h
+@@ -1356,7 +1356,11 @@ void slaac_ping_reply(struct in6_addr *s
+ #endif
+ 
+ /* extern.c */
+-#ifdef ZYXEL_PATCH 
++#ifdef ZYXEL_PATCH
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++#define DHCP_OPTION_LENGTH      64
++#define DHCP_ACL_DEFAULT_NAME       "br0"
++#endif
+ struct CritDhcpInfo{
+ 	char *ifname;
+ 	char *oui, *serial, *pclass;
+Index: dnsmasq-2.67/src/extern.c
+===================================================================
+--- dnsmasq-2.67.orig/src/extern.c
++++ dnsmasq-2.67/src/extern.c
+@@ -25,6 +25,63 @@ int chkClose(int fd, const char *func, c
+ #include "zcfg_debug.h"
+ #include "zcfg_msg.h"
+ 
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++#define COMPARE_OPTION_60				( 1 << 0x0 )
++#define COMPARE_OP61_IAID				( 1 << 0x1 )
++#define COMPARE_OP61_DUID_TYPE		( 1 << 0x2 )
++#define COMPARE_OP61_ENTERPRISE		( 1 << 0x3 )
++#define COMPARE_OP61_HW_TYPE			( 1 << 0x4 )
++#define COMPARE_OP61_TIME				( 1 << 0x5 )
++#define COMPARE_OP61_MAC_ADDR		( 1 << 0x6 )
++#define COMPARE_OP61_ID_DUID			( 1 << 0x7 )
++#define COMPARE_OP125_ENTERPRISE		( 1 << 0x8 )
++#define COMPARE_OP125_OUI				( 1 << 0x9 )
++#define COMPARE_OP125_PCLASS			( 1 << 0xa )
++#define COMPARE_OP125_MODEL			( 1 << 0xb )
++#define COMPARE_OP125_SERIAL			( 1 << 0xc )
++#define COMPARE_VLAN					( 1 << 0xd )
++
++#define COMPARE_OPTION_61				(COMPARE_OP61_IAID | COMPARE_OP61_DUID_TYPE | COMPARE_OP61_ENTERPRISE | COMPARE_OP61_HW_TYPE | COMPARE_OP61_TIME | COMPARE_OP61_MAC_ADDR | COMPARE_OP61_ID_DUID)
++#define COMPARE_OPTION_125			(COMPARE_OP125_ENTERPRISE | COMPARE_OP125_OUI | COMPARE_OP125_PCLASS | COMPARE_OP125_MODEL | COMPARE_OP125_SERIAL)
++
++#define OPTION61_IAID_LENGTH			4
++#define OPTION61_DUID_LENGTH			2
++#define OPTION61_HDTYPE_LENGTH		2
++#define OPTION61_TIME_LENGTH			4
++#define OPTION61_MAC_LENGTH			6
++#define OPTION61_ENTERPRISE_LENGTH	4
++#define DHCP_OPTION_OFFSET				8
++
++struct DhcpOp61Info{
++	unsigned int uOp61Iaid;
++	unsigned int uOp61DuidType;
++	unsigned int uOp61Enterprise;
++	unsigned int uOp61HwType;
++	unsigned int uOp61Time;
++	unsigned int uOp61MacAddr[OPTION61_MAC_LENGTH];
++	char cOp61IdORDudi[DHCP_OPTION_LENGTH];
++};
++
++struct DhcpAclPoolInfo{
++	int iPoolIndex;
++	int iOp60VenderPolicy;
++	char cOp60Vender [DHCP_OPTION_LENGTH];
++	unsigned int uOp61IdentifierPolicy;
++	struct DhcpOp61Info op61Info;
++	unsigned int uOp125Enterprise;
++	char cOp125Oui [DHCP_OPTION_LENGTH];
++	char cOp125Pclass [DHCP_OPTION_LENGTH];
++	char cOp125Model [DHCP_OPTION_LENGTH];
++	int iOp125SerialPolicy;
++	char cOp125Serial [DHCP_OPTION_LENGTH];
++	int iVlan;
++	unsigned int iBitMask;
++	struct DhcpAclPoolInfo *pNext;
++};
++
++struct DhcpAclPoolInfo *pAclHead = NULL;
++#endif
++
+ int checkSocketAlive(int sock)
+ {
+ 	int error_code = -1, retval;
+@@ -450,4 +507,441 @@ void sendCritMessageToESMD(struct CritDh
+ 		my_syslog(MS_DHCP | LOG_DEBUG, "%s esmd reply=%d", __func__, ret);
+ }
+ 
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++void readDhcpAclPoolFile (void)
++{
++	FILE *pFile;
++
++	if ( ( pFile = fopen(DHCP_ACL_POOL_FILE_NAME, "r") ) != NULL )
++	{
++		int i, iIndex;
++		char cValue[3] = {0}, cInfo[256] = {0}, *pValue;
++		struct DhcpAclPoolInfo *pCurrent = NULL, *pTail = NULL;
++
++		while ( (fgets(cInfo, 255, pFile)) != NULL )
++		{
++			if ( strncmp(cInfo, "Pool:", 5) == 0 )
++			{
++				pCurrent = (struct DhcpAclPoolInfo *)malloc(sizeof(struct DhcpAclPoolInfo));
++				memset (pCurrent, 0, sizeof(struct DhcpAclPoolInfo));
++
++				if ( pAclHead == NULL )
++				{
++					pAclHead = pCurrent;
++				}
++				else
++				{
++					pTail->pNext = pCurrent;
++				}
++
++				pTail = pCurrent;
++			}
++			else if (pCurrent)
++			{
++				pValue = cInfo + 2;
++				pValue [strlen(pValue) - 1] = '\0';
++
++				switch (cInfo[0])
++				{
++					case DHCP_ACL_POOL_INDEX_OP60_VENDER_POLICY:
++						pCurrent->iBitMask |= COMPARE_OPTION_60;
++						pCurrent->iOp60VenderPolicy = atoi(pValue);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP60_VENDER:
++						pCurrent->iBitMask |= COMPARE_OPTION_60;
++						strncpy (pCurrent->cOp60Vender, pValue, DHCP_OPTION_LENGTH);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP61_IAID:
++						pCurrent->iBitMask |= COMPARE_OP61_IAID;
++						pCurrent->op61Info.uOp61Iaid = atoi(pValue);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP61_DUIDTYPE:
++						pCurrent->iBitMask |= COMPARE_OP61_DUID_TYPE;
++						pCurrent->op61Info.uOp61DuidType = atoi(pValue);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP61_ENTERPRISE:
++						pCurrent->iBitMask |= COMPARE_OP61_ENTERPRISE;
++						pCurrent->op61Info.uOp61Enterprise = atoi(pValue);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP61_HWTYPE:
++						pCurrent->iBitMask |= COMPARE_OP61_HW_TYPE;
++						pCurrent->op61Info.uOp61HwType = atoi(pValue);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP61_TIME:
++						pCurrent->iBitMask |= COMPARE_OP61_TIME;
++						pCurrent->op61Info.uOp61Time = atoi(pValue);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP61_MAC:
++						pCurrent->iBitMask |= COMPARE_OP61_MAC_ADDR;
++
++						for ( i = 0 ; i < OPTION61_MAC_LENGTH ; i++ )
++						{
++							iIndex = i << 1;
++
++							cValue[0] = pValue [iIndex];
++							cValue[1] = pValue [iIndex + 1];
++							cValue[2] = '\0';
++
++							pCurrent->op61Info.uOp61MacAddr[i] = strtol ( cValue, NULL, 16 );
++						}
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP61_ID_POLICY:
++						pCurrent->iBitMask |= COMPARE_OP61_ID_DUID;
++						pCurrent->uOp61IdentifierPolicy = atoi(pValue);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP61_IDENTIFIER:
++					case DHCP_ACL_POOL_INDEX_OP61_OTHERDUID:
++						pCurrent->iBitMask |= COMPARE_OP61_ID_DUID;
++						strncpy (pCurrent->op61Info.cOp61IdORDudi, pValue, DHCP_OPTION_LENGTH);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP125_ENTERPRISE:
++						pCurrent->iBitMask |= COMPARE_OP125_ENTERPRISE;
++						pCurrent->uOp125Enterprise = atoi(pValue);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP125_OUI:
++						pCurrent->iBitMask |= COMPARE_OP125_OUI;
++						strncpy (pCurrent->cOp125Oui, pValue, DHCP_OPTION_LENGTH);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP125_PCLASS:
++						pCurrent->iBitMask |= COMPARE_OP125_PCLASS;
++						strncpy (pCurrent->cOp125Pclass, pValue, DHCP_OPTION_LENGTH);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP125_MODEL:
++						pCurrent->iBitMask |= COMPARE_OP125_MODEL;
++						strncpy (pCurrent->cOp125Model, pValue, DHCP_OPTION_LENGTH);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP125_SERAIL_POLICY:
++						pCurrent->iBitMask |= COMPARE_OP125_SERIAL;
++						pCurrent->iOp125SerialPolicy = atoi(pValue);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_OP125_SERAIL:
++						pCurrent->iBitMask |= COMPARE_OP125_SERIAL;
++						strncpy (pCurrent->cOp125Serial, pValue, DHCP_OPTION_LENGTH);
++					break;
++
++					case DHCP_ACL_POOL_INDEX_VLAN:
++						pCurrent->iBitMask |= COMPARE_VLAN;
++						pCurrent->iVlan = atoi(pValue);
++					break;
++				}
++			}
++		}
++
++		fclose(pFile);
++	}
++
++	return;
++}
++
++int compareOption61Data (struct DhcpOp61Info *pPacketInfo, struct DhcpAclPoolInfo *pAclInfo)
++{
++	int i;
++
++	if ( ((pAclInfo->iBitMask & COMPARE_OP61_IAID) && (pPacketInfo->uOp61Iaid != pAclInfo->op61Info.uOp61Iaid))
++		|| ((pAclInfo->iBitMask & COMPARE_OP61_DUID_TYPE) && (pPacketInfo->uOp61DuidType != pAclInfo->op61Info.uOp61DuidType)))
++	{
++		return 0;
++	}
++
++	switch (pPacketInfo->uOp61DuidType)
++	{
++		case OPTION61_DUID_LLT:
++		{
++			if ( ((pAclInfo->iBitMask & COMPARE_OP61_HW_TYPE) && (pPacketInfo->uOp61HwType != pAclInfo->op61Info.uOp61HwType))
++				|| ((pAclInfo->iBitMask & COMPARE_OP61_TIME) && (pPacketInfo->uOp61Time != pAclInfo->op61Info.uOp61Time )) )
++			{
++				return 0;
++			}
++
++			if ( pAclInfo->iBitMask & COMPARE_OP61_MAC_ADDR )
++			{
++				for ( i = 0 ; i < OPTION61_MAC_LENGTH ; i++ )
++				{
++					if ( pPacketInfo->uOp61MacAddr[i] != pAclInfo->op61Info.uOp61MacAddr[i] )
++					{
++						return 0;
++					}
++				}
++			}
++
++			break;
++		}
++
++		case OPTION61_DUID_EN:
++		{
++			if ( (pAclInfo->iBitMask & COMPARE_OP61_ENTERPRISE) && (pPacketInfo->uOp61Enterprise != pAclInfo->op61Info.uOp61Enterprise) )
++			{
++				return 0;
++			}
++
++			if ( pAclInfo->iBitMask & COMPARE_OP61_ID_DUID )
++			{
++				if ( strcmp (pPacketInfo->cOp61IdORDudi, pAclInfo->op61Info.cOp61IdORDudi) == 0 )
++				{
++					if ( pAclInfo->uOp61IdentifierPolicy == DHCP_ACL_OPTION_POLICY_EXCLUDE )
++					{
++						return 0;
++					}
++				}
++				else if ( pAclInfo->uOp61IdentifierPolicy == DHCP_ACL_OPTION_POLICY_INCLUDE )
++				{
++					return 0;
++				}
++			}
++
++			break;
++		}
++
++		case OPTION61_DUID_LL:
++		{
++			if ((pAclInfo->iBitMask & COMPARE_OP61_HW_TYPE) && (pPacketInfo->uOp61HwType != pAclInfo->op61Info.uOp61HwType))
++			{
++				return 0;
++			}
++
++			if ( pAclInfo->iBitMask & COMPARE_OP61_MAC_ADDR )
++			{
++				for ( i = 0 ; i < OPTION61_MAC_LENGTH ; i++ )
++				{
++					if ( pPacketInfo->uOp61MacAddr[i] != pAclInfo->op61Info.uOp61MacAddr[i] )
++					{
++						return 0;
++					}
++				}
++			}
++
++			break;
++		}
++
++		case OPTION61_DUID_OTHER:
++		{
++			if ( pAclInfo->iBitMask & COMPARE_OP61_ID_DUID )
++			{
++				if ( strcmp (pPacketInfo->cOp61IdORDudi, pAclInfo->op61Info.cOp61IdORDudi) != 0 )
++				{
++					return 0;
++				}
++			}
++
++			break;
++		}
++	}
++
++	return 1;
++}
++
++void getOption61Data (unsigned char *clid, int clid_len, struct DhcpOp61Info *op61Info)
++{
++	int i, iLength;
++	unsigned char *opt_test, *opt_duid;
++
++	opt_test = ++clid;
++
++	for ( i = 0 ; i < OPTION61_IAID_LENGTH ; i++, opt_test++ )
++	{
++		op61Info->uOp61Iaid = op61Info->uOp61Iaid << DHCP_OPTION_OFFSET;
++		op61Info->uOp61Iaid += *opt_test;
++	}
++
++	opt_duid = opt_test;
++
++	for ( i = 0 ; i < OPTION61_DUID_LENGTH ; i++, opt_test++ )
++	{
++		op61Info->uOp61DuidType = op61Info->uOp61DuidType  << DHCP_OPTION_OFFSET;
++		op61Info->uOp61DuidType  += *opt_test;
++	}
++
++	switch ( op61Info->uOp61DuidType )
++	{
++		case OPTION61_DUID_LLT:
++		{
++			for ( i = 0 ; i < OPTION61_HDTYPE_LENGTH ; i++, opt_test++ )
++			{
++				op61Info->uOp61HwType = op61Info->uOp61HwType << DHCP_OPTION_OFFSET;
++				op61Info->uOp61HwType += *opt_test;
++			}
++
++			for ( i = 0 ; i < OPTION61_TIME_LENGTH ; i++, opt_test++ )
++			{
++				op61Info->uOp61Time = op61Info->uOp61Time << DHCP_OPTION_OFFSET;
++				op61Info->uOp61Time += *opt_test;
++			}
++
++			for ( i = 0 ; i < OPTION61_MAC_LENGTH ; i++, opt_test++ )
++			{
++				op61Info->uOp61MacAddr[i] = *opt_test;
++			}
++
++			break;
++		}
++
++		case OPTION61_DUID_EN:
++		{
++			for ( i = 0 ; i < OPTION61_ENTERPRISE_LENGTH ; i++, opt_test++ )
++			{
++				op61Info->uOp61Enterprise = op61Info->uOp61Enterprise << DHCP_OPTION_OFFSET;
++				op61Info->uOp61Enterprise += *opt_test;
++			}
++
++			iLength = clid_len - OPTION61_IAID_LENGTH - OPTION61_DUID_LENGTH - OPTION61_ENTERPRISE_LENGTH - 1;
++
++			for ( i = 0 ; i < iLength ; i++, opt_test++ )
++			{
++				op61Info->cOp61IdORDudi[i] = *opt_test;
++			}
++
++			op61Info->cOp61IdORDudi[i] = '\0';
++
++			break;
++		}
++
++		case OPTION61_DUID_LL:
++		{
++			for ( i = 0 ; i < OPTION61_HDTYPE_LENGTH ; i++, opt_test++ )
++			{
++				op61Info->uOp61HwType = op61Info->uOp61HwType << DHCP_OPTION_OFFSET;
++				op61Info->uOp61HwType += *opt_test;
++			}
++
++			for ( i = 0 ; i < OPTION61_MAC_LENGTH ; i++, opt_test++ )
++			{
++				op61Info->uOp61MacAddr[i] = *opt_test;
++			}
++
++			break;
++		}
++
++		default: // other
++		{
++			op61Info->uOp61DuidType = OPTION61_DUID_OTHER;
++
++			iLength = clid_len - OPTION61_IAID_LENGTH - 1;
++
++			for ( i = 0 ; i < iLength ; i++, opt_duid++ )
++			{
++				op61Info->cOp61IdORDudi[i] = *opt_duid;
++			}
++
++			op61Info->cOp61IdORDudi[i] = '\0';
++
++			break;
++		}
++	}
++
++	return;
++}
++
++int compareDhcpAclOption (char *cOp60Vender, unsigned char *clid, int clid_len,
++	unsigned int iEnterpries, char *cOp125Oui, char *cOp125Pclass, char *cOp125Model, char *cOp125Serial, char *iface_name)
++{
++	int iUsePool, iGetOp61Data = 0;
++	struct DhcpAclPoolInfo *pCurrent;
++	struct DhcpOp61Info op61Info = {0};
++
++	/* Only support default bridge */
++	if ( strcmp (iface_name, DHCP_ACL_DEFAULT_NAME) != 0 )
++	{
++		return 0;
++	}
++
++	for ( pCurrent = pAclHead ; pCurrent ; pCurrent = pCurrent->pNext )
++	{
++		iUsePool = 0;
++
++		if ( pCurrent->iBitMask & COMPARE_OPTION_60 )
++		{
++			if ( cOp60Vender && strstr (cOp60Vender, pCurrent->cOp60Vender) != 0 )
++			{
++				if ( pCurrent->iOp60VenderPolicy == DHCP_ACL_OPTION_POLICY_EXCLUDE )
++				{
++					continue;
++				}
++			}
++			else if ( pCurrent->iOp60VenderPolicy == DHCP_ACL_OPTION_POLICY_INCLUDE )
++			{
++				continue;
++			}
++
++			iUsePool = 1;
++		}
++
++		if ( pCurrent->iBitMask & COMPARE_OPTION_61 )
++		{
++			if ( clid == NULL )
++			{
++				continue;
++			}
++
++			if ( iGetOp61Data == 0 )
++			{
++				iGetOp61Data = 1;
++
++				getOption61Data (clid, clid_len, &op61Info);
++			}
++
++			if ( compareOption61Data (&op61Info, pCurrent) == 0 )
++			{
++				continue;
++			}
++
++			iUsePool = 1;
++		}
++
++		if ( pCurrent->iBitMask & COMPARE_OPTION_125 )
++		{
++			if ( ((pCurrent->iBitMask & COMPARE_OP125_ENTERPRISE) && (iEnterpries != pCurrent->uOp125Enterprise))
++				|| ((pCurrent->iBitMask & COMPARE_OP125_OUI) && (strcmp (cOp125Oui, pCurrent->cOp125Oui) != 0))
++				|| ((pCurrent->iBitMask & COMPARE_OP125_PCLASS) && (strcmp (cOp125Pclass, pCurrent->cOp125Pclass) != 0))
++				|| ((pCurrent->iBitMask & COMPARE_OP125_MODEL) && (strcmp (cOp125Model, pCurrent->cOp125Model) != 0)) )
++			{
++				continue;
++			}
++
++			if ( pCurrent->iBitMask & COMPARE_OP125_SERIAL )
++			{
++				if ( strcmp (cOp125Serial, pCurrent->cOp125Serial) == 0 )
++				{
++					if ( pCurrent->iOp125SerialPolicy == DHCP_ACL_OPTION_POLICY_EXCLUDE )
++					{
++						continue;
++					}
++				}
++				else if ( pCurrent->iOp125SerialPolicy == DHCP_ACL_OPTION_POLICY_INCLUDE )
++				{
++					continue;
++				}
++			}
++
++			iUsePool = 1;
++		}
++
++		if ( pCurrent->iBitMask & COMPARE_VLAN != 0 )
++		{
++
++		}
++
++		if ( iUsePool != 0 )
++		{
++			return 1;
++		}
++	}
++
++	return 0;
++}
++#endif
+ #endif
+Index: dnsmasq-2.67/src/rfc2131.c
+===================================================================
+--- dnsmasq-2.67.orig/src/rfc2131.c
++++ dnsmasq-2.67/src/rfc2131.c
+@@ -15,6 +15,9 @@
+ */
+ 
+ #include "dnsmasq.h"
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++#include "zcfg_common.h"
++#endif
+ 
+ #ifdef HAVE_DHCP
+ 
+@@ -147,8 +150,15 @@ size_t dhcp_reply(struct dhcp_context *c
+   struct dhcp_netid known_id, iface_id, cpewan_id;
+   struct dhcp_opt *o;
+   unsigned char pxe_uuid[17];
++#if !defined(CONFIG_ABZQ_CUSTOMIZATION)
+   unsigned char *oui = NULL, *serial = NULL, *class = NULL;
++#else
++  unsigned char *oui = NULL, *serial = NULL, *class = NULL, *model = NULL;
++#endif
+ #ifdef ZYXEL_PATCH
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++  unsigned int iEnterpries = 0;
++#endif
+   char *vendor_class_ptr = NULL;
+   struct dhcp_ifname *ifname;
+ #endif
+@@ -208,13 +218,24 @@ size_t dhcp_reply(struct dhcp_context *c
+ 	  for (offset = 0; offset < (len - 5); offset += elen + 5)
+ 	    {
+ 	      elen = option_uint(opt, offset + 4 , 1);
++#if !defined(CONFIG_ABZQ_CUSTOMIZATION)
+ 		  if (option_uint(opt, offset, 4) == BRDBAND_FORUM_IANA && offset + elen + 5 <= len)
++#else
++          iEnterpries = option_uint(opt, offset, 4);
++        if (offset + elen + 5 <= len)
++#endif
+ 		{
+ 		  unsigned char *x = option_ptr(opt, offset + 5);
+ 		  unsigned char *y = option_ptr(opt, offset + elen + 5);
+ 		  oui = option_find1(x, y, 1, 1);
++#if !defined(CONFIG_ABZQ_CUSTOMIZATION)
+ 		  serial = option_find1(x, y, 2, 1);
+ 		  class = option_find1(x, y, 3, 1);
++#else
++		  class = option_find1(x, y, 2, 1);
++		  model = option_find1(x, y, 3, 1);
++		  serial = option_find1(x, y, 4, 1);
++#endif
+ 		  
+ 		  /* If TR069-id is present set the tag "cpewan-id" to facilitate echoing 
+ 		     the gateway id back. Note that the device class is optional */
+@@ -1053,7 +1074,52 @@ size_t dhcp_reply(struct dhcp_context *c
+       memcpy(req_options, option_ptr(opt, 0), option_len(opt));
+       req_options[option_len(opt)] = OPTION_END;
+     }
+-  
++
++#ifdef CONFIG_ABZQ_CUSTOMIZATION
++	char cOp60Vender [DHCP_OPTION_LENGTH] = {0};
++	char cOp125Oui [DHCP_OPTION_LENGTH] = {0};
++	char cOp125Pclass [DHCP_OPTION_LENGTH] = {0};
++	char cOp125Model [DHCP_OPTION_LENGTH] = {0};
++	char cOp125Serial [DHCP_OPTION_LENGTH] = {0};
++
++	strncpy (cOp60Vender, vendor_class_ptr, vendor_class_len);
++
++	if (oui)
++	{
++		strncpy (cOp125Oui, option_ptr(oui, 0), option_len(oui));
++	}
++
++	if (class)
++	{
++		strncpy (cOp125Pclass, option_ptr(class, 0), option_len(class));
++	}
++
++	if (model)
++	{
++		strncpy (cOp125Model, option_ptr(model, 0), option_len(model));
++	}
++
++	if (serial)
++	{
++		strncpy (cOp125Serial, option_ptr(serial, 0), option_len(serial));
++	}
++
++	if ( compareDhcpAclOption (cOp60Vender, clid, clid_len, iEnterpries, cOp125Oui, cOp125Pclass, cOp125Model, cOp125Serial, iface_name) == 1 )
++	{
++		struct dhcp_netid *pNode;
++
++		for (pNode = tagif_netid ; pNode ; pNode = pNode->next)
++		{
++			if ( strcmp(pNode->net, DHCP_ACL_DEFAULT_NAME) == 0 )
++			{
++				pNode->net = DHCP_ACL_POOL_NAME;
++
++				break;
++			}
++		}
++	}
++#endif
++
+   switch (mess_type)
+     {
+     case DHCPDECLINE:

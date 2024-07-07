@@ -1,0 +1,122 @@
+From patchwork Wed May  4 17:31:55 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: hanishkvc@gmail.com
+X-Patchwork-Id: 1626476
+Return-Path: <devel-bounces@uclibc-ng.org>
+X-Original-To: incoming@patchwork.ozlabs.org
+Delivered-To: patchwork-incoming@bilbo.ozlabs.org
+Authentication-Results: ozlabs.org;
+ spf=none (no SPF record) smtp.mailfrom=uclibc-ng.org (client-ip=89.238.66.15;
+ helo=helium.openadk.org; envelope-from=devel-bounces@uclibc-ng.org;
+ receiver=<UNKNOWN>)
+Received: from helium.openadk.org (helium.openadk.org [89.238.66.15])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest
+ SHA256)
+	(No client certificate requested)
+	by bilbo.ozlabs.org (Postfix) with ESMTPS id 4KtkRD6ZFXz9sFx
+	for <incoming@patchwork.ozlabs.org>; Thu,  5 May 2022 03:32:06 +1000 (AEST)
+Received: from helium.openadk.org (localhost [IPv6:::1])
+	by helium.openadk.org (Postfix) with ESMTP id 5C9C831E0852;
+	Wed,  4 May 2022 19:31:59 +0200 (CEST)
+Received: from helium.openadk.org (localhost [IPv6:::1])
+	by helium.openadk.org (Postfix) with ESMTP id 5E52B31E006C
+	for <devel@uclibc-ng.org>; Wed,  4 May 2022 19:31:55 +0200 (CEST)
+MIME-Version: 1.0
+From: hanishkvc@gmail.com
+To: devel@uclibc-ng.org
+Date: Wed, 04 May 2022 17:31:55 -0000
+Message-ID: <165168551538.1938924.9621767759870407450@helium.openadk.org>
+In-Reply-To: <YnImj4m0vWKCeEqC@waldemar-brodkorb.de>
+References: <YnImj4m0vWKCeEqC@waldemar-brodkorb.de>
+User-Agent: HyperKitty on https://mailman.openadk.org/
+Message-ID-Hash: MLHJZPARNTO4GZCR6RUQNTVB3FWWR5QX
+X-Message-ID-Hash: MLHJZPARNTO4GZCR6RUQNTVB3FWWR5QX
+X-MailFrom: hanishkvc@gmail.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency;
+ loop; banned-address; member-moderation; nonmember-moderation; administrivia;
+ implicit-dest; max-recipients; max-size; news-moderation; no-subject;
+ digests; suspicious-header
+X-Mailman-Version: 3.3.3
+Precedence: list
+Subject: [uclibc-ng-devel] Re: (fwd) Fwd: [ICS-VU-638779,
+ CERT/CC VU#473698] Predictable DNS Transaction IDs in uClibc,
+ uClibc-ng [labs-advisory@nozominetworks.com]
+List-Id: uClibc-ng Development <devel.uclibc-ng.org>
+Archived-At: 
+ <https://uclibc-ng.org/mailman3/hyperkitty/list/devel@uclibc-ng.org/message/MLHJZPARNTO4GZCR6RUQNTVB3FWWR5QX/>
+List-Archive: 
+ <https://uclibc-ng.org/mailman3/hyperkitty/list/devel@uclibc-ng.org/>
+List-Help: <mailto:devel-request@uclibc-ng.org?subject=help>
+List-Owner: <mailto:devel-owner@uclibc-ng.org>
+List-Post: <mailto:devel@uclibc-ng.org>
+List-Subscribe: <mailto:devel-join@uclibc-ng.org>
+List-Unsubscribe: <mailto:devel-leave@uclibc-ng.org>
+
+Hi All,
+
+As mentioned in my previous message, attached is a patch which uses /dev/urandom to generate a random id for dns query id field. However if it is not able to access urandom file, then it falls back to the old logic of simple incrementing counter. Have done some minimal test on my linux system and it seems to be working fine.
+
+diff --git a/libc/inet/resolv.c b/libc/inet/resolv.c
+index 92a65d0dc..c37f6fab7 100644
+--- a/libc/inet/resolv.c
++++ b/libc/inet/resolv.c
+@@ -255,6 +255,7 @@ Domain name in a message can be represented as either:
+ #include <sys/stat.h>
+ #include <sys/param.h>
+ #include <bits/uClibc_mutex.h>
++#include <fcntl.h>
+ #include "internal/parse_config.h"
+ 
+ /* poll() is not supported in kernel <= 2.0, therefore if __NR_poll is
+@@ -1045,6 +1046,20 @@ static int __decode_answer(const unsigned char *message, /* packet */
+ 	return i + RRFIXEDSZ + a->rdlength;
+ }
+ 
++
++uint16_t dnsrand_next(int urand_fd, int def_value) {
++	if (urand_fd == -1) return def_value;
++	uint16_t val;
++	if(read(urand_fd, &val, 2) != 2) return def_value;
++	return val;
++}
++
++int dnsrand_setup(int *urand_fd, int def_value) {
++	*urand_fd = open("/dev/urandom", O_RDONLY);
++	if (*urand_fd == -1) return def_value;
++	return dnsrand_next(*urand_fd, def_value);
++}
++
+ /* On entry:
+  *  a.buf(len) = auxiliary buffer for IP addresses after first one
+  *  a.add_count = how many additional addresses are there already
+@@ -1070,6 +1085,7 @@ int __dns_lookup(const char *name,
+ 	/* Protected by __resolv_lock: */
+ 	static int last_ns_num = 0;
+ 	static uint16_t last_id = 1;
++	static int urand_fd = -1;
+ 
+ 	int i, j, fd, rc;
+ 	int packet_len;
+@@ -1149,7 +1165,7 @@ int __dns_lookup(const char *name,
+ 		}
+ 		/* first time? pick starting server etc */
+ 		if (local_ns_num < 0) {
+-			local_id = last_id;
++			local_id = dnsrand_setup(&urand_fd, last_id);
+ /*TODO: implement /etc/resolv.conf's "options rotate"
+  (a.k.a. RES_ROTATE bit in _res.options)
+ 			local_ns_num = 0;
+@@ -1159,8 +1175,9 @@ int __dns_lookup(const char *name,
+ 		}
+ 		if (local_ns_num >= __nameservers)
+ 			local_ns_num = 0;
+-		local_id++;
++		local_id = dnsrand_next(urand_fd, local_id++);
+ 		local_id &= 0xffff;
++		DPRINTF("uClibc:DBUG:local_id:0x%hx\n", local_id);
+ 		/* write new values back while still under lock */
+ 		last_id = local_id;
+ 		last_ns_num = local_ns_num;

@@ -1,0 +1,19 @@
+Index: dnsmasq-2.78/src/rfc2131.c
+===================================================================
+--- dnsmasq-2.78.orig/src/rfc2131.c
++++ dnsmasq-2.78/src/rfc2131.c
+@@ -2594,9 +2594,14 @@ static void do_options(struct dhcp_conte
+                  ntohl(context->local.s_addr));
+   }
+ 
++/* Remove the domain name displayed on the LAN PC and the web page. If domain name 
++	is deleted from the dnsmasq.conf, the dnsmasq process will be terminated. 
++	Therefore, domain name can only be removed from the part of the code that constitutes options ,that is option15 */
++#if !defined(ZYXEL_DISABLE_OPTION15_IN_LAN)
+   if (domain && in_list(req_options, OPTION_DOMAINNAME) &&
+       !option_find2(OPTION_DOMAINNAME))
+     option_put_string(mess, end, OPTION_DOMAINNAME, domain, null_term);
++#endif
+ 
+   /* Note that we ignore attempts to set the fqdn using --dhc-option=81,<name> */
+   if (hostname) {

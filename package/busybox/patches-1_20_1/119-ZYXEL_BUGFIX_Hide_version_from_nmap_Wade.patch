@@ -1,0 +1,13 @@
+Index: busybox-1_20_1/libbb/login.c
+===================================================================
+--- busybox-1_20_1.orig/libbb/login.c	2012-05-28 08:48:55.000000000 +0800
++++ busybox-1_20_1/libbb/login.c	2021-01-15 13:15:29.551189202 +0800
+@@ -13,7 +13,7 @@
+ /* After libbb.h, since it needs sys/types.h on some systems */
+ #include <sys/utsname.h>
+ 
+-#define LOGIN " login: "
++#define LOGIN " Username: "
+ 
+ static const char fmtstr_d[] ALIGN1 = "%A, %d %B %Y";
+ static const char fmtstr_t[] ALIGN1 = "%H:%M:%S";

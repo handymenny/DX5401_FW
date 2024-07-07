@@ -1,0 +1,78 @@
+Index: linux-4.1.52/drivers/mtd/nand/brcmnand/brcmnand.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/nand/brcmnand/brcmnand.c
++++ linux-4.1.52/drivers/mtd/nand/brcmnand/brcmnand.c
+@@ -2618,6 +2618,19 @@ static int brcmnand_init_cs(struct brcmn
+ 	if (brcmnand_setup_dev(host))
+ 		return -ENXIO;
+ 
++#if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
++	if (ctrl->nand_version >= 0x0701) {
++		u16 offs;
++		u32 value;
++		#define PARTIAL_PAGE_EN ( 1 << 26 )
++		ctrl->cs_offsets = brcmnand_cs_offsets_v71;
++		offs = brcmnand_cs_offset(ctrl, host->cs, BRCMNAND_CS_ACC_CONTROL);
++		value = nand_readreg(ctrl, offs);
++		value |= PARTIAL_PAGE_EN;
++		nand_writereg(ctrl, offs, value); /* bit 26 setting=1 to enable partial page programming */
++	}
++#endif
++
+ 	chip->ecc.size = host->hwcfg.sector_size_1k ? 1024 : 512;
+ 	/* only use our internal HW threshold */
+ 	mtd->bitflip_threshold = 1;
+@@ -2782,6 +2795,7 @@ static ssize_t nand_parameter_set(struct
+ {
+     char input[PROC_CMD_MAX_LEN];
+     int i;
++    u32 value = 0;
+ 
+     if (len > PROC_CMD_MAX_LEN)
+         len = PROC_CMD_MAX_LEN;
+@@ -2792,14 +2806,15 @@ static ssize_t nand_parameter_set(struct
+     if (copy_from_user(input, buff, len) != 0)
+         return -EFAULT;
+ 
++	sscanf(input, "%d", &value);
+ 	if (strncmp((file->f_path.dentry->d_iname), "writeFailCount", sizeof("writeFailCount")) == 0){
+-		nandWriteFailCounter++;
+-		printk("nandWriteFailCounter will change to %d\n", nandWriteFailCounter);
++		nandWriteFailCounter = value;
++		printk("nandWriteFailCount will change to %d\n", nandWriteFailCounter);
+ 
+ 	}
+ 	else if (strncmp((file->f_path.dentry->d_iname), "badBlockCount", sizeof("badBlockCount")) == 0){
+-		nandbadBlockCounter++;
+-		printk("nandbadBlockCounter will change to %d\n", nandbadBlockCounter);
++		nandbadBlockCounter = value;
++		printk("nandbadBlockCount will change to %d\n", nandbadBlockCounter);
+ 	}
+ 	else
+ 		return -EFAULT;
+Index: linux-4.1.52/drivers/mtd/ubi/build.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/ubi/build.c
++++ linux-4.1.52/drivers/mtd/ubi/build.c
+@@ -56,7 +56,7 @@
+ #if defined(CONFIG_BCM_KF_UBI)
+ /* Minimum Bad Erase Blocks per MTD partition */
+ #if defined(CONFIG_ZYXEL_BAD_BLOCK_WORKAROUND)
+-#define  BRCM_MIN_BEB_PER_MTDPART 8
++#define  BRCM_MIN_BEB_PER_MTDPART 11
+ #else
+ #define  BRCM_MIN_BEB_PER_MTDPART 4
+ #endif
+Index: linux-4.1.52/drivers/mtd/ubi/io.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/ubi/io.c
++++ linux-4.1.52/drivers/mtd/ubi/io.c
+@@ -233,6 +233,8 @@ static int verify_write_data(struct ubi_
+ 	err = mtd_read(ubi->mtd, addr, len, &read, buf1);
+ 	if (err && !mtd_is_bitflip(err)){
+ 		ubi_err(ubi, "error %d while reading %d bytes from PEB %d:%d, read %zd bytes", err, len, pnum, offset, read);
++		ubi_err(ubi, "This is bitflips error, change error from %d to %d for mark block as bad !", err, -EIO);
++		err = -EIO;
+ 		goto out_free;
+ 	}
+ 

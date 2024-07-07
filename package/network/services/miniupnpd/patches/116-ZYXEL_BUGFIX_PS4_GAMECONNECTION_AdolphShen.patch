@@ -1,0 +1,77 @@
+Index: miniupnpd-1.6.20110730/upnpdescgen.c
+===================================================================
+--- miniupnpd-1.6.20110730.orig/upnpdescgen.c	2011-05-28 05:47:13.000000000 +0800
++++ miniupnpd-1.6.20110730/upnpdescgen.c	2021-03-03 09:51:27.041756291 +0800
+@@ -8,6 +8,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <stdbool.h>
+ 
+ #include "config.h"
+ #ifdef ENABLE_EVENTS
+@@ -845,6 +846,29 @@
+ 	int top;
+ 	const char * eltname, *s;
+ 	char c;
++	/*to resolve destiny 2 error code :cabage*/
++	FILE *pppfp = NULL;
++	char defaultGateway[256] = {0};
++	bool isppp = false;
++
++	pppfp = popen("route", "r");
++	if(pppfp != NULL)
++	{
++		
++		while ((fgets(defaultGateway, 255, pppfp)) != NULL)
++		{
++			if (strstr(defaultGateway, "default") != NULL)
++			{
++				if (strstr(defaultGateway, "ppp") != NULL)
++				{
++					printf("PPP conection type\n");
++					isppp = true;
++				}
++			}
++		}
++	}
++	pclose(pppfp);
++	
+ 	struct {
+ 		unsigned short i;
+ 		unsigned short j;
+@@ -866,7 +890,13 @@
+ 				str = strcat_char(str, len, tmplen, '<');
+ 				str = strcat_str(str, len, tmplen, eltname+1);
+ 				str = strcat_char(str, len, tmplen, '>');
+-				str = strcat_str(str, len, tmplen, p[i].data);
++				if(strstr(eltname,"serviceType") && isppp){
++					/*to resolve destiny 2 error code :cabage*/
++					str = strcat_str(str, len, tmplen, SERVICE_TYPE_WANPPPC);
++					printf("PPP conection packet\n");
++				}else{
++					str = strcat_str(str, len, tmplen, p[i].data);
++				}
+ 				str = strcat_char(str, len, tmplen, '<');
+ 				str = strcat_str(str, len, tmplen, eltname);
+ 				str = strcat_char(str, len, tmplen, '>');
+Index: miniupnpd-1.6.20110730/upnpurns.h
+===================================================================
+--- miniupnpd-1.6.20110730.orig/upnpurns.h	2011-05-13 23:32:53.000000000 +0800
++++ miniupnpd-1.6.20110730/upnpurns.h	2021-03-03 09:51:29.394424183 +0800
+@@ -16,6 +16,7 @@
+ #define DEVICE_TYPE_WAN     "urn:schemas-upnp-org:device:WANDevice:2"
+ #define DEVICE_TYPE_WANC    "urn:schemas-upnp-org:device:WANConnectionDevice:2"
+ #define SERVICE_TYPE_WANIPC "urn:schemas-upnp-org:service:WANIPConnection:2"
++#define SERVICE_TYPE_WANPPPC "urn:schemas-upnp-org:service:WANPPPConnection:2"
+ #define SERVICE_ID_WANIPC   "urn:upnp-org:serviceId:WANIPConn1"
+ #else
+ /* IGD v1 */
+@@ -23,6 +24,7 @@
+ #define DEVICE_TYPE_WAN     "urn:schemas-upnp-org:device:WANDevice:1"
+ #define DEVICE_TYPE_WANC    "urn:schemas-upnp-org:device:WANConnectionDevice:1"
+ #define SERVICE_TYPE_WANIPC "urn:schemas-upnp-org:service:WANIPConnection:1"
++#define SERVICE_TYPE_WANPPPC "urn:schemas-upnp-org:service:WANPPPConnection:1"
+ #define SERVICE_ID_WANIPC   "urn:upnp-org:serviceId:WANIPConn1"
+ #endif
+ 

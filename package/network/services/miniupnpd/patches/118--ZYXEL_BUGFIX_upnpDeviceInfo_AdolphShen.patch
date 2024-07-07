@@ -1,0 +1,22 @@
+Index: miniupnpd-1.6.20110730/upnpdescgen.c
+===================================================================
+--- miniupnpd-1.6.20110730.orig/upnpdescgen.c	2021-03-19 14:17:26.925909053 +0800
++++ miniupnpd-1.6.20110730/upnpdescgen.c	2021-03-19 14:18:00.304527809 +0800
+@@ -136,7 +136,7 @@
+ /* 0 */
+ 	{root_device, INITHELPER(1,2)},
+ 	{"specVersion", INITHELPER(3,2)},
+-	{"URLBase","http://10.0.0.138:5000"},
++	{"/URLBase","http://10.0.0.138:5000"},
+ #if defined(ENABLE_L3F_SERVICE) || defined(HAS_DUMMY_SERVICE) || defined(ENABLE_DP_SERVICE)
+ 	{"device", INITHELPER(5,13)},
+ #else
+@@ -877,7 +877,7 @@
+ 	Infofp = fopen("/tmp/miniupnpDeviceInfo", "r");
+ 	if(Infofp!=NULL){
+ 		fgets(buf, sizeof(buf), Infofp);
+-		sscanf(buf,"%s(zyxel)%s(zyxel)%[^\n]",ZyXELserialNumber,ZyXELmodelname,ZyXELhost);
++		sscanf(buf,"%s %s %[^\n]",ZyXELserialNumber,ZyXELmodelname,ZyXELhost);
+ 		fclose(Infofp);
+ 	}
+ 	

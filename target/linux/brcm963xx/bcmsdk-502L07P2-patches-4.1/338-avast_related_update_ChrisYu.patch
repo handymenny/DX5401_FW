@@ -1,0 +1,89 @@
+Index: linux-4.1.52/Kconfig.zyxel
+===================================================================
+--- linux-4.1.52.orig/Kconfig.zyxel
++++ linux-4.1.52/Kconfig.zyxel
+@@ -15,6 +15,9 @@ config ZYXEL_NF_SESSION_CTL
+ config ZYXEL_PPTP_SUPPORT
+ 		bool "Support PPTP VPN"
+ 
++config ZYXEL_AVAST_AGENT_SUPPORT
++        bool "Support Avast security agent"
++        
+ config MSTC_GPON
+ 	bool "Support MSTC Patch"
+ 
+Index: linux-4.1.52/include/uapi/linux/if_link.h
+===================================================================
+--- linux-4.1.52.orig/include/uapi/linux/if_link.h
++++ linux-4.1.52/include/uapi/linux/if_link.h
+@@ -15,7 +15,7 @@ struct rtnl_link_stats {
+ 	__u32	rx_dropped;		/* no space in linux buffers	*/
+ 	__u32	tx_dropped;		/* no space available in linux	*/
+ 	__u32	multicast;		/* multicast packets received	*/
+-#if defined(CONFIG_BCM_KF_EXTSTATS)
++#if defined(CONFIG_BCM_KF_EXTSTATS) && !defined(CONFIG_ZYXEL_AVAST_AGENT_SUPPORT)
+ 	__u32   tx_multicast_packets;  /* multicast packets transmitted */
+ 	__u32   rx_multicast_bytes;  /* multicast bytes recieved */ 
+ 	__u32   tx_multicast_bytes;  /* multicast bytes transmitted */
+@@ -46,6 +46,16 @@ struct rtnl_link_stats {
+ 	/* for cslip etc */
+ 	__u32	rx_compressed;
+ 	__u32	tx_compressed;
++#if defined(CONFIG_BCM_KF_EXTSTATS) && defined(CONFIG_ZYXEL_AVAST_AGENT_SUPPORT)
++	__u32   tx_multicast_packets;  /* multicast packets transmitted */
++	__u32   rx_multicast_bytes;  /* multicast bytes recieved */ 
++	__u32   tx_multicast_bytes;  /* multicast bytes transmitted */
++	__u32   rx_broadcast_packets;  /* broadcast packets recieved */
++	__u32   tx_broadcast_packets;  /* broadcast packets transmitted */
++	/* NOTE: Unicast packets are not counted but are instead calculated as needed
++	using total - (broadcast + multicast) */
++	__u32   rx_unknown_packets;  /* unknown protocol packets recieved */
++#endif		
+ };
+ 
+ /* The main device statistics structure */
+Index: linux-4.1.52/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+===================================================================
+--- linux-4.1.52.orig/include/uapi/linux/netfilter/nfnetlink_conntrack.h
++++ linux-4.1.52/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+@@ -51,12 +51,18 @@ enum ctattr_type {
+ 	CTA_SECCTX,
+ 	CTA_TIMESTAMP,
+ 	CTA_MARK_MASK,
++#ifdef CONFIG_ZYXEL_AVAST_AGENT_SUPPORT
++	CTA_LABELS,
++	CTA_LABELS_MASK,
++#endif	
+ #ifdef CONFIG_ZYXEL_EXT_MARK
+ 	CTA_ZEXTMARK,  // zyxel jessy 20180621
+ 	CTA_ZEXTMARK_MASK,  // zyxel jessy 20180621
+ #endif
++#ifndef CONFIG_ZYXEL_AVAST_AGENT_SUPPORT
+ 	CTA_LABELS,
+ 	CTA_LABELS_MASK,
++#endif	
+ #if defined(CONFIG_BCM_KF_DPI) && defined(CONFIG_BCM_DPI_MODULE)
+ 	CTA_DPI,
+ #endif
+Index: linux-4.1.52/include/uapi/linux/rtnetlink.h
+===================================================================
+--- linux-4.1.52.orig/include/uapi/linux/rtnetlink.h
++++ linux-4.1.52/include/uapi/linux/rtnetlink.h
+@@ -304,13 +304,16 @@ enum rtattr_type_t {
+ 	RTA_MP_ALGO, /* no longer used */
+ 	RTA_TABLE,
+ 	RTA_MARK,
+-#ifdef CONFIG_ZYXEL_EXT_MARK
++#if defined(CONFIG_ZYXEL_EXT_MARK) && !defined(CONFIG_ZYXEL_AVAST_AGENT_SUPPORT)
+ 	RTA_ZEXTMARK,
+ #endif
+ 	RTA_MFC_STATS,
+ 	RTA_VIA,
+ 	RTA_NEWDST,
+ 	RTA_PREF,
++#if defined(CONFIG_ZYXEL_EXT_MARK) && defined(CONFIG_ZYXEL_AVAST_AGENT_SUPPORT)
++	RTA_ZEXTMARK,
++#endif		
+ 	__RTA_MAX
+ };
+ 

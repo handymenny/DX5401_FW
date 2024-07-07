@@ -1,0 +1,17 @@
+Index: busybox-1_20_1/networking/ping.c
+===================================================================
+--- busybox-1_20_1.orig/networking/ping.c
++++ busybox-1_20_1/networking/ping.c
+@@ -1288,10 +1288,10 @@ static int common_ping_main(int opt, cha
+ 		skbmark = (uint32_t)atoll(str_m);
+ 	}
+ 	if (opt & OPT_z) { // -z
+-		sendzcfgmsg = 0;
++		sendzcfgmsg = 1;
+ 	}
+ 	else{
+-		sendzcfgmsg = 1;
++		sendzcfgmsg = 0;
+ 	}
+ #endif
+ 		

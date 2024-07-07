@@ -1,0 +1,861 @@
+Index: miniupnpd-1.6.20110730/miniupnpd.c
+===================================================================
+--- miniupnpd-1.6.20110730.orig/miniupnpd.c	2011-05-28 06:11:06.000000000 +0800
++++ miniupnpd-1.6.20110730/miniupnpd.c	2021-03-31 19:51:46.985013695 +0800
+@@ -927,10 +927,10 @@
+ 	else
+ 	{
+ #ifdef USE_DAEMON
+-		if(daemon(0, 0)<0) {
++		/*if(daemon(0, 0)<0) {
+ 			perror("daemon()");
+ 		}
+-		pid = getpid();
++		pid = getpid();*/
+ #else
+ 		pid = daemonize();
+ #endif
+Index: miniupnpd-1.6.20110730/upnpdescgen.c
+===================================================================
+--- miniupnpd-1.6.20110730.orig/upnpdescgen.c	2021-03-31 19:49:00.280710999 +0800
++++ miniupnpd-1.6.20110730/upnpdescgen.c	2021-03-31 19:51:25.811409820 +0800
+@@ -126,6 +126,170 @@
+ static const char root_device[] = 
+ 	"root xmlns=\"urn:schemas-upnp-org:device-1-0\"";
+ 
++
++static const struct XMLElt PPProotDesc[] =
++{
++/* 0 */
++	{root_device, INITHELPER(1,2)},
++	{"specVersion", INITHELPER(3,2)},
++#if defined(ENABLE_L3F_SERVICE) || defined(HAS_DUMMY_SERVICE) || defined(ENABLE_DP_SERVICE)
++	{"device", INITHELPER(5,13)},
++#else
++	{"device", INITHELPER(5,12)},
++#endif
++	{"/major", "1"},
++	{"/minor", "0"},
++/* 5 */
++	{"/deviceType", DEVICE_TYPE_IGD},
++		/* urn:schemas-upnp-org:device:InternetGatewayDevice:1 or 2 */
++	{"/friendlyName", ROOTDEV_FRIENDLYNAME},	/* required */
++	{"/manufacturer", ROOTDEV_MANUFACTURER},		/* required */
++/* 8 */
++	{"/manufacturerURL", ROOTDEV_MANUFACTURERURL},	/* optional */
++	{"/modelDescription", ROOTDEV_MODELDESCRIPTION}, /* recommended */
++	{"/modelName", ROOTDEV_MODELNAME},	/* required */
++	{"/modelNumber", modelnumber},
++	{"/modelURL", ROOTDEV_MODELURL},
++	{"/serialNumber", serialnumber},
++	{"/UDN", uuidvalue},	/* required */
++	/* see if /UPC is needed. */
++#ifdef ENABLE_6FC_SERVICE
++#define SERVICES_OFFSET 63
++#else
++#define SERVICES_OFFSET 58
++#endif
++#if defined(ENABLE_L3F_SERVICE) || defined(HAS_DUMMY_SERVICE) || defined(ENABLE_DP_SERVICE)
++	/* here we dening Services for the root device :
++	 * L3F and DUMMY and DeviceProtection */
++#ifdef ENABLE_L3F_SERVICE
++#define NSERVICES1 1
++#else
++#define NSERVICES1 0
++#endif
++#ifdef HAS_DUMMY_SERVICE
++#define NSERVICES2 1
++#else
++#define NSERVICES2 0
++#endif
++#ifdef ENABLE_DP_SERVICE
++#define NSERVICES3 1
++#else
++#define NSERVICES3 0
++#endif
++#define NSERVICES (NSERVICES1+NSERVICES2+NSERVICES3)
++	{"serviceList", INITHELPER(SERVICES_OFFSET,NSERVICES)},
++	{"deviceList", INITHELPER(18,1)},
++	{"/presentationURL", presentationurl},	/* recommended */
++#else
++	{"deviceList", INITHELPER(18,1)},
++	{"/presentationURL", presentationurl},	/* recommended */
++	{0,0},
++#endif
++/* 18 */
++	{"device", INITHELPER(19,13)},
++/* 19 */
++	{"/deviceType", DEVICE_TYPE_WAN}, /* required */
++		/* urn:schemas-upnp-org:device:WANDevice:1 or 2 */
++	{"/friendlyName", WANDEV_FRIENDLYNAME},
++	{"/manufacturer", WANDEV_MANUFACTURER},
++	{"/manufacturerURL", WANDEV_MANUFACTURERURL},
++	{"/modelDescription" , WANDEV_MODELDESCRIPTION},
++	{"/modelName", WANDEV_MODELNAME},
++	{"/modelNumber", WANDEV_MODELNUMBER},
++	{"/modelURL", WANDEV_MODELURL},
++	{"/serialNumber", serialnumber},
++	{"/UDN", uuidvalue},
++	{"/UPC", WANDEV_UPC},
++/* 30 */
++	{"serviceList", INITHELPER(32,1)},
++	{"deviceList", INITHELPER(38,1)},
++/* 32 */
++	{"service", INITHELPER(33,5)},
++/* 33 */
++	{"/serviceType",
++			"urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1"},
++	/*{"/serviceId", "urn:upnp-org:serviceId:WANCommonInterfaceConfig"}, */
++	{"/serviceId", "urn:upnp-org:serviceId:WANCommonIFC1"}, /* required */
++	{"/controlURL", WANCFG_CONTROLURL},
++	{"/eventSubURL", WANCFG_EVENTURL},
++	{"/SCPDURL", WANCFG_PATH},
++/* 38 */
++	{"device", INITHELPER(39,12)},
++/* 39 */
++	{"/deviceType", DEVICE_TYPE_WANC},
++		/* urn:schemas-upnp-org:device:WANConnectionDevice:1 or 2 */
++	{"/friendlyName", WANCDEV_FRIENDLYNAME},
++	{"/manufacturer", WANCDEV_MANUFACTURER},
++	{"/manufacturerURL", WANCDEV_MANUFACTURERURL},
++	{"/modelDescription", WANCDEV_MODELDESCRIPTION},
++	{"/modelName", WANCDEV_MODELNAME},
++	{"/modelNumber", WANCDEV_MODELNUMBER},
++	{"/modelURL", WANCDEV_MODELURL},
++	{"/serialNumber", serialnumber},
++	{"/UDN", uuidvalue},
++	{"/UPC", WANCDEV_UPC},
++#ifdef ENABLE_6FC_SERVICE
++	{"serviceList", INITHELPER(51,2)},
++#else
++	{"serviceList", INITHELPER(51,1)},
++#endif
++/* 51 */
++	{"service", INITHELPER(53,5)},
++	{"service", INITHELPER(58,5)},
++/* 53 */
++	{"/serviceType", SERVICE_TYPE_WANPPPC},
++		/* urn:schemas-upnp-org:service:WANIPConnection:2 for v2 */
++	{"/serviceId", SERVICE_ID_WANIPC},
++		/* urn:upnp-org:serviceId:WANIPConn1 or 2 */
++	{"/controlURL", WANIPC_CONTROLURL},
++	{"/eventSubURL", WANIPC_EVENTURL},
++	{"/SCPDURL", WANIPC_PATH},
++#ifdef ENABLE_6FC_SERVICE
++/* 58 */
++	{"/serviceType", "urn:schemas-upnp-org:service:WANIPv6FirewallControl:1"},
++	{"/serviceId", "urn:upnp-org:serviceId:WANIPv6FC1"},
++	{"/controlURL", WANIP6FC_CONTROLURL},
++	{"/eventSubURL", WANIP6FC_EVENTURL},
++	{"/SCPDURL", WANIP6FC_PATH},
++#endif
++/* 58 / 63 = SERVICES_OFFSET*/
++#if defined(HAS_DUMMY_SERVICE) || defined(ENABLE_L3F_SERVICE) || defined(ENABLE_DP_SERVICE)
++	{"service", INITHELPER(SERVICES_OFFSET+2,5)},
++	{"service", INITHELPER(SERVICES_OFFSET+7,5)},
++#endif
++#ifdef HAS_DUMMY_SERVICE
++/* 60 / 65 = SERVICES_OFFSET+2 */
++	{"/serviceType", "urn:schemas-dummy-com:service:Dummy:1"},
++	{"/serviceId", "urn:dummy-com:serviceId:dummy1"},
++	{"/controlURL", "/dummy"},
++	{"/eventSubURL", "/dummy"},
++	{"/SCPDURL", DUMMY_PATH},
++#endif
++#ifdef ENABLE_L3F_SERVICE
++/* 60 / 65 = SERVICES_OFFSET+2 */
++	{"/serviceType", "urn:schemas-upnp-org:service:Layer3Forwarding:1"},
++	{"/serviceId", "urn:upnp-org:serviceId:Layer3Forwarding1"},
++	{"/controlURL", L3F_CONTROLURL}, /* The Layer3Forwarding service is only */
++	{"/eventSubURL", L3F_EVENTURL}, /* recommended, not mandatory */
++	{"/SCPDURL", L3F_PATH},
++#endif
++#ifdef ENABLE_DP_SERVICE
++/* InternetGatewayDevice v2 : 
++ * it is RECOMMEDED that DeviceProtection service is implemented and applied.
++ * If DeviceProtection is not implemented and applied, it is RECOMMENDED
++ * that control points are able to access only actions and parameters defined
++ * as Public role. */
++/* 65 / 70 = SERVICES_OFFSET+7 */
++	{"/serviceType", "urn:schemas-upnp-org:service:DeviceProtection:1"},
++	{"/serviceId", "urn:upnp-org:serviceId:DeviceProtection1"},
++	{"/controlURL", DP_CONTROLURL},
++	{"/eventSubURL", DP_EVENTURL},
++	{"/SCPDURL", DP_PATH},
++#endif
++	{0, 0}
++};
++
++
+ /* root Description of the UPnP Device 
+  * fixed to match UPnP_IGD_InternetGatewayDevice 1.0.pdf 
+  * Needs to be checked with UPnP-gw-InternetGatewayDevice-v2-Device.pdf
+@@ -136,7 +300,6 @@
+ /* 0 */
+ 	{root_device, INITHELPER(1,2)},
+ 	{"specVersion", INITHELPER(3,2)},
+-	{"/URLBase","http://10.0.0.138:5000"},
+ #if defined(ENABLE_L3F_SERVICE) || defined(HAS_DUMMY_SERVICE) || defined(ENABLE_DP_SERVICE)
+ 	{"device", INITHELPER(5,13)},
+ #else
+@@ -847,41 +1010,6 @@
+ 	int top;
+ 	const char * eltname, *s;
+ 	char c;
+-	/*identify pppoe or ipoe*/
+-	FILE *pppfp = NULL;
+-	char defaultGateway[256] = {0};
+-	bool isppp = false;
+-
+-	pppfp = popen("route", "r");
+-	if(pppfp != NULL)
+-	{
+-		
+-		while ((fgets(defaultGateway, 255, pppfp)) != NULL)
+-		{
+-			if (strstr(defaultGateway, "default") != NULL)
+-			{
+-				if (strstr(defaultGateway, "ppp") != NULL)
+-				{
+-					printf("PPP conection type\n");
+-					isppp = true;
+-				}
+-			}
+-		}
+-	}
+-	pclose(pppfp);
+-	/*for modulename & serialNumber*/
+-	FILE *Infofp = NULL;
+-	char buf[128]={'\0'};
+-	char ZyXELserialNumber[128] = {'\0'},ZyXELmodelname[128] = {'\0'},ZyXELhost[128] = {'\0'};
+-	
+-	Infofp = fopen("/tmp/miniupnpDeviceInfo", "r");
+-	if(Infofp!=NULL){
+-		fgets(buf, sizeof(buf), Infofp);
+-		sscanf(buf,"%s %s %[^\n]",ZyXELserialNumber,ZyXELmodelname,ZyXELhost);
+-		fclose(Infofp);
+-	}
+-	
+-	
+ 	struct {
+ 		unsigned short i;
+ 		unsigned short j;
+@@ -903,18 +1031,7 @@
+ 				str = strcat_char(str, len, tmplen, '<');
+ 				str = strcat_str(str, len, tmplen, eltname+1);
+ 				str = strcat_char(str, len, tmplen, '>');
+-				if(strstr(eltname,"modelName")!=NULL){
+-					str = strcat_str(str, len, tmplen, ZyXELmodelname);
+-				}else if(strstr(eltname,"serialNumber")!=NULL){
+-					str = strcat_str(str, len, tmplen, ZyXELserialNumber);
+-				}else if(strstr(eltname,"modelName")!=NULL && isppp){
+-					str = strcat_str(str, len, tmplen, SERVICE_TYPE_WANPPPC);
+-				}else if(strstr(eltname,"URLBase")!=NULL){
+-					str = strcat_str(str, len, tmplen, ZyXELhost);
+-				}
+-				else{ 
+-					str = strcat_str(str, len, tmplen, p[i].data);
+-				}
++				str = strcat_str(str, len, tmplen, p[i].data);
+ 				str = strcat_char(str, len, tmplen, '<');
+ 				str = strcat_str(str, len, tmplen, eltname);
+ 				str = strcat_char(str, len, tmplen, '>');
+@@ -976,7 +1093,30 @@
+ 	* len = strlen(xmlver);
+ 	/*strcpy(str, xmlver); */
+ 	memcpy(str, xmlver, *len + 1);
+-	str = genXML(str, len, &tmplen, rootDesc);
++	
++	FILE *connectionFP = NULL;
++	char buf[128]={'\0'};
++	bool ppp=false;
++	connectionFP =fopen("/tmp/upnpConnection","r");
++	if(connectionFP != NULL){
++		fgets(buf, sizeof(buf), connectionFP);
++		printf("buf: %s\n",buf);
++		//if(!strncmp("pppoe",buf,sizeof(buf)-1)){
++		if(!strncmp("pppoe",buf,5)){
++			printf("%d %s\n", __LINE__, __func__);
++			ppp=true;
++		}
++	}
++	fclose(connectionFP );	
++	
++	if(ppp){
++		printf("pppoe desc\n");
++		str = genXML(str, len, &tmplen, PPProotDesc);
++	}else{
++		printf("ipoe desc\n");
++		str = genXML(str, len, &tmplen, rootDesc);
++	}
++	
+ 	str[*len] = '\0';
+ 	return str;
+ }
+Index: miniupnpd-1.6.20110730/upnpsoap.c
+===================================================================
+--- miniupnpd-1.6.20110730.orig/upnpsoap.c	2021-03-31 19:49:00.256723019 +0800
++++ miniupnpd-1.6.20110730/upnpsoap.c	2021-03-31 19:51:41.178073038 +0800
+@@ -15,6 +15,7 @@
+ #include <arpa/inet.h>
+ #include <netinet/in.h>
+ #include <netdb.h>
++#include <stdbool.h>
+ 
+ #include "config.h"
+ #include "upnpglobalvars.h"
+@@ -31,6 +32,7 @@
+ BuildSendAndCloseSoapResp(struct upnphttp * h,
+                           const char * body, int bodylen)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	static const char beforebody[] =
+ 		"<?xml version=\"1.0\"?>\r\n"
+ 		"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" "
+@@ -59,18 +61,43 @@
+ static void
+ GetConnectionTypeInfo(struct upnphttp * h, const char * action)
+ {
+-	static const char resp[] =
++	printf("%d %s\n", __LINE__, __func__);
++	static const char resp[] ="";
++	FILE *connectionFP = NULL;
++	char buf[128]={'\0'};
++	bool ppp=false;
++	connectionFP =fopen("/tmp/upnpConnection","r");
++	if(connectionFP != NULL){
++		fgets(buf, sizeof(buf), connectionFP);
++		if(!strncmp("pppoe",buf,5)){
++			ppp=true;
++		}
++	}
++	fclose(connectionFP );	
++	
++	if(ppp){
++		static const char resp[] =
++		"<u:GetConnectionTypeInfoResponse "
++		"xmlns:u=\"" SERVICE_TYPE_WANPPPC "\">"
++		"<NewConnectionType>IP_Routed</NewConnectionType>"
++		"<NewPossibleConnectionTypes>IP_Routed</NewPossibleConnectionTypes>"
++		"</u:GetConnectionTypeInfoResponse>";
++	}else{
++		static const char resp[] =
+ 		"<u:GetConnectionTypeInfoResponse "
+ 		"xmlns:u=\"" SERVICE_TYPE_WANIPC "\">"
+ 		"<NewConnectionType>IP_Routed</NewConnectionType>"
+ 		"<NewPossibleConnectionTypes>IP_Routed</NewPossibleConnectionTypes>"
+ 		"</u:GetConnectionTypeInfoResponse>";
++	}
++	
+ 	BuildSendAndCloseSoapResp(h, resp, sizeof(resp)-1);
+ }
+ 
+ static void
+ GetTotalBytesSent(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	int r;
+ 
+ 	static const char resp[] =
+@@ -93,6 +120,7 @@
+ static void
+ GetTotalBytesReceived(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	int r;
+ 
+ 	static const char resp[] =
+@@ -115,6 +143,7 @@
+ static void
+ GetTotalPacketsSent(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	int r;
+ 
+ 	static const char resp[] =
+@@ -137,6 +166,7 @@
+ static void
+ GetTotalPacketsReceived(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	int r;
+ 
+ 	static const char resp[] =
+@@ -159,6 +189,7 @@
+ static void
+ GetCommonLinkProperties(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	/* WANAccessType : set depending on the hardware :
+ 	 * DSL, POTS (plain old Telephone service), Cable, Ethernet */
+ 	static const char resp[] =
+@@ -199,6 +230,7 @@
+ static void
+ GetStatusInfo(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	static const char resp[] =
+ 		"<u:%sResponse "
+ 		"xmlns:u=\"%s\">"
+@@ -217,21 +249,67 @@
+ 
+ 	status = get_wan_connection_status_str(ext_if_name);
+ 	uptime = (time(NULL) - startup_time);
+-	bodylen = snprintf(body, sizeof(body), resp,
++	
++	FILE *connectionFP = NULL;
++	char buf[128]={'\0'};
++	bool ppp=false;
++	connectionFP =fopen("/tmp/upnpConnection","r");
++	if(connectionFP != NULL){
++		fgets(buf, sizeof(buf), connectionFP);
++		if(!strncmp("pppoe",buf,5)){
++			ppp=true;
++		}
++	}
++	fclose(connectionFP );	
++	
++	if(ppp){
++		bodylen = snprintf(body, sizeof(body), resp,
++		action, SERVICE_TYPE_WANPPPC,
++		status, (long)uptime, action);
++	}else{
++		bodylen = snprintf(body, sizeof(body), resp,
+ 		action, SERVICE_TYPE_WANIPC,
+-		status, (long)uptime, action);	
++		status, (long)uptime, action);
++	}
++	
++		
+ 	BuildSendAndCloseSoapResp(h, body, bodylen);
+ }
+ 
+ static void
+ GetNATRSIPStatus(struct upnphttp * h, const char * action)
+ {
+-	static const char resp[] =
++	printf("%d %s\n", __LINE__, __func__);
++	static const char resp[] ="";
++	
++	FILE *connectionFP = NULL;
++	char buf[128]={'\0'};
++bool ppp=false;
++	connectionFP =fopen("/tmp/upnpConnection","r");
++	if(connectionFP != NULL){
++		fgets(buf, sizeof(buf), connectionFP);
++		if(!strncmp("pppoe",buf,5)){
++			ppp=true;
++		}
++	}
++	fclose(connectionFP );	
++	
++	if(ppp){
++		static const char resp[] =
++		"<u:GetNATRSIPStatusResponse "
++		"xmlns:u=\"" SERVICE_TYPE_WANPPPC "\">"
++		"<NewRSIPAvailable>0</NewRSIPAvailable>"
++		"<NewNATEnabled>1</NewNATEnabled>"
++		"</u:GetNATRSIPStatusResponse>";
++	}else{
++		static const char resp[] =
+ 		"<u:GetNATRSIPStatusResponse "
+ 		"xmlns:u=\"" SERVICE_TYPE_WANIPC "\">"
+ 		"<NewRSIPAvailable>0</NewRSIPAvailable>"
+ 		"<NewNATEnabled>1</NewNATEnabled>"
+ 		"</u:GetNATRSIPStatusResponse>";
++	}
++	
+ 	/* 2.2.9. RSIPAvailable
+ 	 * This variable indicates if Realm-specific IP (RSIP) is available
+ 	 * as a feature on the InternetGatewayDevice. RSIP is being defined
+@@ -246,6 +324,7 @@
+ static void
+ GetExternalIPAddress(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	static const char resp[] =
+ 		"<u:%sResponse "
+ 		"xmlns:u=\"%s\">"
+@@ -282,9 +361,34 @@
+ 		}
+ 	}
+ #endif
+-	bodylen = snprintf(body, sizeof(body), resp,
++
++FILE *connectionFP = NULL;
++	char buf[128]={'\0'};
++	bool ppp=false;
++	connectionFP =fopen("/tmp/upnpConnection","r");
++	if(connectionFP != NULL){
++		printf("%d %s\n", __LINE__, __func__);
++		fgets(buf, sizeof(buf), connectionFP);
++		if(!strncmp("pppoe",buf,5)){
++			printf("%d %s\n", __LINE__, __func__);
++			ppp=true;
++		}
++	}
++	fclose(connectionFP );	
++	
++	if(ppp){
++		printf("ppp in extip\n");
++		bodylen = snprintf(body, sizeof(body), resp,
++	              action, SERVICE_TYPE_WANPPPC,
++				  ext_ip_addr, action);
++	}else{
++		printf("ipoe in extip\n");
++		bodylen = snprintf(body, sizeof(body), resp,
+ 	              action, SERVICE_TYPE_WANIPC,
+ 				  ext_ip_addr, action);
++	}
++
++	
+ 	BuildSendAndCloseSoapResp(h, body, bodylen);
+ }
+ 
+@@ -293,11 +397,35 @@
+ static void
+ AddPortMapping(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	int r;
+-
+-	static const char resp[] =
++	static const char resp[] ="";
++	
++	FILE *connectionFP = NULL;
++	char buf[128]={'\0'};
++	bool ppp=false;
++	connectionFP =fopen("/tmp/upnpConnection","r");
++	if(connectionFP != NULL){
++		fgets(buf, sizeof(buf), connectionFP);
++		if(!strncmp("pppoe",buf,5)){
++			ppp=true;
++		}
++	}
++	fclose(connectionFP );	
++	
++	if(ppp){
++		printf("ppp in add\n");
++		static const char resp[] =
++		"<u:AddPortMappingResponse "
++		"xmlns:u=\"" SERVICE_TYPE_WANPPPC "\"/>";
++	}else{
++		printf("ip in add\n");
++		static const char resp[] =
+ 		"<u:AddPortMappingResponse "
+ 		"xmlns:u=\"" SERVICE_TYPE_WANIPC "\"/>";
++	}
++	
++	
+ 
+ 	struct NameValueParserData data;
+ 	char * int_ip, * int_port, * ext_port, * protocol, * desc;
+@@ -444,6 +572,7 @@
+ static void
+ AddAnyPortMapping(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	int r;
+ 	static const char resp[] =
+ 		"<u:%sResponse "
+@@ -547,13 +676,38 @@
+ 	}
+ 
+ 	ClearNameValueList(&data);
++	
++	FILE *connectionFP = NULL;
++	char buf[128]={'\0'};
++	bool ppp=false;
+ 
+ 	switch(r)
+ 	{
+ 	case 0:	/* success */
++		
++	connectionFP =fopen("/tmp/upnpConnection","r");
++	if(connectionFP != NULL){
++		fgets(buf, sizeof(buf), connectionFP);
++		if(!strncmp("pppoe",buf,5)){
++			ppp=true;
++		}
++	}
++	fclose(connectionFP );	
++	
++	if(ppp){
++		printf("pppoe desc in addportmap\n");
++		bodylen = snprintf(body, sizeof(body), resp,
++		              action, SERVICE_TYPE_WANPPPC,
++					  eport, action);
++					  
++	}else{
++		printf("ipoe desc in addportmap\n");
+ 		bodylen = snprintf(body, sizeof(body), resp,
+ 		              action, SERVICE_TYPE_WANIPC,
+ 					  eport, action);
++					  
++	}
++		
+ 		BuildSendAndCloseSoapResp(h, body, bodylen);
+ 		break;
+ 	case -2:	/* already redirected */
+@@ -570,6 +724,7 @@
+ static void
+ GetSpecificPortMappingEntry(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	int r;
+ 
+ 	static const char resp[] =
+@@ -634,10 +789,31 @@
+ 		syslog(LOG_INFO, "%s: rhost='%s' %s %s found => %s:%u desc='%s'",
+ 		       action,
+ 		       r_host, ext_port, protocol, int_ip, (unsigned int)iport, desc);
+-		bodylen = snprintf(body, sizeof(body), resp,
++		
++		FILE *connectionFP = NULL;
++		char buf[128]={'\0'};
++		bool ppp=false;
++		connectionFP =fopen("/tmp/upnpConnection","r");
++		if(connectionFP != NULL){
++			fgets(buf, sizeof(buf), connectionFP);
++			if(!strncmp("pppoe",buf,5)){
++				ppp=true;
++			}
++		}
++		fclose(connectionFP );	
++		
++		if(ppp){
++			bodylen = snprintf(body, sizeof(body), resp,
++				action, SERVICE_TYPE_WANPPPC,
++				(unsigned int)iport, int_ip, desc, leaseduration,
++				action);
++		}else{
++			bodylen = snprintf(body, sizeof(body), resp,
+ 				action, SERVICE_TYPE_WANIPC,
+ 				(unsigned int)iport, int_ip, desc, leaseduration,
+ 				action);
++		}
++		
+ 		BuildSendAndCloseSoapResp(h, body, bodylen);
+ 	}
+ 
+@@ -647,12 +823,34 @@
+ static void
+ DeletePortMapping(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	int r;
+ 
+-	static const char resp[] =
++	static const char resp[] ="";
++	FILE *connectionFP = NULL;
++	char buf[128]={'\0'};
++	bool ppp=false;
++	connectionFP =fopen("/tmp/upnpConnection","r");
++	if(connectionFP != NULL){
++		fgets(buf, sizeof(buf), connectionFP);
++		if(!strncmp("pppoe",buf,5)){
++			ppp=true;
++		}
++	}
++	fclose(connectionFP );	
++	
++	if(ppp){
++		static const char resp[] =
++		"<u:DeletePortMappingResponse "
++		"xmlns:u=\"" SERVICE_TYPE_WANPPPC "\">"
++		"</u:DeletePortMappingResponse>";
++	}else{
++		static const char resp[] =
+ 		"<u:DeletePortMappingResponse "
+ 		"xmlns:u=\"" SERVICE_TYPE_WANIPC "\">"
+ 		"</u:DeletePortMappingResponse>";
++	}
++	
+ 
+ 	struct NameValueParserData data;
+ 	const char * r_host, * ext_port, * protocol;
+@@ -708,11 +906,33 @@
+ static void
+ DeletePortMappingRange(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	int r = -1;
+-	static const char resp[] =
++	static const char resp[] ="";
++	FILE *connectionFP = NULL;
++	char buf[128]={'\0'};
++	bool ppp=false;
++	connectionFP =fopen("/tmp/upnpConnection","r");
++	if(connectionFP != NULL){
++		fgets(buf, sizeof(buf), connectionFP);
++		if(!strncmp("pppoe",buf,5)){
++			ppp=true;
++		}
++	}
++	fclose(connectionFP );	
++	
++	if(ppp){
++		static const char resp[] =
++		"<u:DeletePortMappingRangeResponse "
++		"xmlns:u=\"" SERVICE_TYPE_WANPPPC "\">"
++		"</u:DeletePortMappingRangeResponse>";
++	}else{
++		static const char resp[] =
+ 		"<u:DeletePortMappingRangeResponse "
+ 		"xmlns:u=\"" SERVICE_TYPE_WANIPC "\">"
+ 		"</u:DeletePortMappingRangeResponse>";
++	}
++	
+ 	struct NameValueParserData data;
+ 	const char * protocol;
+ 	unsigned short startport, endport;
+@@ -754,6 +974,7 @@
+ static void
+ GetGenericPortMappingEntry(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	int r;
+ 	
+ 	static const char resp[] =
+@@ -807,10 +1028,31 @@
+ 	{
+ 		int bodylen;
+ 		char body[2048];
+-		bodylen = snprintf(body, sizeof(body), resp,
++		
++		FILE *connectionFP = NULL;
++		char buf[128]={'\0'};
++		bool ppp=false;
++		connectionFP =fopen("/tmp/upnpConnection","r");
++		if(connectionFP != NULL){
++			fgets(buf, sizeof(buf), connectionFP);
++			if(!strncmp("pppoe",buf,5)){
++				ppp=true;
++			}
++		}
++		fclose(connectionFP );	
++		
++		if(ppp){
++			bodylen = snprintf(body, sizeof(body), resp,
++			action, SERVICE_TYPE_WANPPPC, rhost,
++			(unsigned int)eport, protocol, (unsigned int)iport, iaddr, desc,
++		    leaseduration, action);
++		}else{
++			bodylen = snprintf(body, sizeof(body), resp,
+ 			action, SERVICE_TYPE_WANIPC, rhost,
+ 			(unsigned int)eport, protocol, (unsigned int)iport, iaddr, desc,
+ 		    leaseduration, action);
++		}
++		
+ 		BuildSendAndCloseSoapResp(h, body, bodylen);
+ 	}
+ 
+@@ -821,6 +1063,7 @@
+ static void
+ GetListOfPortMappings(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	static const char resp_start[] =
+ 		"<u:%sResponse "
+ 		"xmlns:u=\"%s\">"
+@@ -909,8 +1152,27 @@
+ 		SoapError(h, 501, "ActionFailed");
+ 		return;
+ 	}
+-	bodylen = snprintf(body, bodyalloc, resp_start,
++	
++	FILE *connectionFP = NULL;
++	char buf[128]={'\0'};
++	bool ppp=false;
++	connectionFP =fopen("/tmp/upnpConnection","r");
++	if(connectionFP != NULL){
++		fgets(buf, sizeof(buf), connectionFP);
++		if(!strncmp("pppoe",buf,5)){
++			ppp=true;
++		}
++	}
++	fclose(connectionFP );	
++	
++	if(ppp){
++		bodylen = snprintf(body, bodyalloc, resp_start,
++	              action, SERVICE_TYPE_WANPPPC);
++	}else{
++		bodylen = snprintf(body, bodyalloc, resp_start,
+ 	              action, SERVICE_TYPE_WANIPC);
++	}
++	
+ 	memcpy(body+bodylen, list_start, sizeof(list_start));
+ 	bodylen += (sizeof(list_start) - 1);
+ 
+@@ -963,6 +1225,7 @@
+ static void
+ SetDefaultConnectionService(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	static const char resp[] =
+ 		"<u:SetDefaultConnectionServiceResponse "
+ 		"xmlns:u=\"urn:schemas-upnp-org:service:Layer3Forwarding:1\">"
+@@ -981,6 +1244,7 @@
+ static void
+ GetDefaultConnectionService(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	static const char resp[] =
+ 		"<u:%sResponse "
+ 		"xmlns:u=\"urn:schemas-upnp-org:service:Layer3Forwarding:1\">"
+@@ -1003,6 +1267,7 @@
+ static void
+ SetConnectionType(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	const char * connection_type;
+ 	struct NameValueParserData data;
+ 
+@@ -1018,6 +1283,7 @@
+ static void
+ RequestConnection(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	SoapError(h, 606, "Action not authorized");
+ }
+ 
+@@ -1025,6 +1291,7 @@
+ static void
+ ForceTermination(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	SoapError(h, 606, "Action not authorized");
+ }
+ 
+@@ -1039,6 +1306,7 @@
+ static void
+ QueryStateVariable(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	static const char resp[] =
+         "<u:%sResponse "
+         "xmlns:u=\"%s\">"
+@@ -1111,6 +1379,7 @@
+ static void
+ GetFirewallStatus(struct upnphttp * h, const char * action)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	static const char resp[] =
+ 		"<u:%sResponse "
+ 		"xmlns:u=\"%s\">"
+@@ -1130,6 +1399,7 @@
+ static int
+ CheckStatus(struct upnphttp * h)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	if (!ipv6fc_firewall_enabled)
+ 	{
+ 		SoapError(h, 702, "FirewallDisabed");
+@@ -1147,6 +1417,7 @@
+ static int
+ DataVerification(struct upnphttp * h, char * int_ip, unsigned short * int_port, const char * protocol, char * leaseTime)
+ {
++	printf("%d %s\n", __LINE__, __func__);
+ 	//int n;
+ 	// **  Internal IP can't be wildcarded
+ 	if (!int_ip)

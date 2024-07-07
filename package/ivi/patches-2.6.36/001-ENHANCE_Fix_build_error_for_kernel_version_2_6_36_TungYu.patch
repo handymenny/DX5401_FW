@@ -1,0 +1,317 @@
+Index: ivi-1.0/ivi_map.c
+===================================================================
+--- ivi-1.0.orig/ivi_map.c	2020-05-21 06:51:30.831039491 +0000
++++ ivi-1.0/ivi_map.c	2020-07-28 07:10:21.672144206 +0000
+@@ -81,10 +81,11 @@
+ 	int ret = 0;
+ 	int hash;
+ 	struct map_tuple *iter;
++	struct hlist_node *temp;
+ 
+ 	hash = port_hashfn(port);
+ 	if (!hlist_empty(&list->in_chain[hash])) {
+-		hlist_for_each_entry(iter, &list->in_chain[hash], in_node) {
++		hlist_for_each_entry(iter, temp, &list->in_chain[hash], in_node) {
+ 			if (iter->newport == port) {
+ 				ret = 1;
+ 				break;
+@@ -129,6 +130,7 @@
+ {
+ 	struct map_tuple *iter, *i0;
+ 	struct hlist_node *loop, *l0;
++	struct hlist_node *temp, *t0;
+ 	struct timeval now;
+ 	time_t delta;
+ 	int i, flag;	
+@@ -137,7 +139,7 @@
+ 	spin_lock_bh(&list->lock);
+ 	// Iterate all the map_tuple through out_chain only, in_chain contains the same info.
+ 	for (i = 0; i < IVI_HTABLE_SIZE; i++) {
+-		hlist_for_each_entry_safe(iter, loop, &list->out_chain[i], out_node) {
++		hlist_for_each_entry_safe(iter, loop, temp, &list->out_chain[i], out_node) {
+ 			delta = now.tv_sec - iter->timer.tv_sec;
+ 			if (delta >= list->timeout) {
+ #ifdef IVI_DEBUG_MAP
+@@ -150,7 +152,7 @@
+ 				list->size--;
+ 
+ 				flag = 0; // indicating whether list->port_num needs to be substracted by 1.
+- 				hlist_for_each_entry_safe(i0, l0, &list->in_chain[port_hashfn(iter->newport)], in_node) {
++ 				hlist_for_each_entry_safe(i0, l0, t0, &list->in_chain[port_hashfn(iter->newport)], in_node) {
+  					if (i0->newport == iter->newport) {
+ #ifdef IVI_DEBUG_MAP
+  						printk(KERN_INFO "refresh_map_list: newport %d is still used by someone(" NIP4_FMT ":%d -> " NIP4_FMT "). port_num is still %d\n", iter->newport, NIP4(i0->oldaddr), i0->oldport, NIP4(i0->dstaddr), list->port_num);
+@@ -178,12 +180,13 @@
+ {
+ 	struct map_tuple *iter;
+ 	struct hlist_node *loop;
++	struct hlist_node *temp;
+ 	int i;
+ 	
+ 	spin_lock_bh(&list->lock);
+ 	// Iterate all the map_tuple through out_chain only, in_chain contains the same info.
+ 	for (i = 0; i < IVI_HTABLE_SIZE; i++) {
+-		hlist_for_each_entry_safe(iter, loop, &list->out_chain[i], out_node) {		
++		hlist_for_each_entry_safe(iter, loop, temp, &list->out_chain[i], out_node) {
+ 			hlist_del(&iter->out_node);
+ 			hlist_del(&iter->in_node);
+ 			hlist_del(&iter->dest_node);
+@@ -208,6 +211,7 @@
+ 	struct map_tuple *multiplex_state;
+ 	struct map_tuple *iter;
+ 	struct hlist_node *loop;
++	struct hlist_node *temp;
+ 		
+ 	*newp = 0;
+ 	reusing = 0;
+@@ -222,7 +226,7 @@
+ 	
+ 	hash = v4addr_port_hashfn(oldaddr, oldp);
+ 	if (!hlist_empty(&list->out_chain[hash])) {
+-		hlist_for_each_entry(iter, &list->out_chain[hash], out_node) {
++		hlist_for_each_entry(iter, temp, &list->out_chain[hash], out_node) {
+ 			if (iter->oldport == oldp && iter->oldaddr == oldaddr) {
+ 				if (iter->dstaddr == dstaddr) {	
+ 					retport = iter->newport;
+@@ -247,7 +251,7 @@
+ 	if (retport == 0 && reusing == 0) {		
+ 		__be16 rover_j, rover_k;	
+ 		int dsthash, i, rand_j, chance;
+-		struct hlist_node *loop0;
++		struct hlist_node *loop0, *temp0;
+ 		
+ 		status = 0;
+ 		chance = UDP_MAX_LOOP_NUM;
+@@ -267,14 +271,14 @@
+ 		
+ 		for (i = 0; i < 31 && chance > 0; i++) {		
+ 			if (!hlist_empty(&list->dest_chain[hash])) {
+-				hlist_for_each_entry_safe(multiplex_state, loop0, &list->dest_chain[hash], dest_node) {
++				hlist_for_each_entry_safe(multiplex_state, loop0, temp0, &list->dest_chain[hash], dest_node) {
+ 					retport = multiplex_state->newport;
+ 					status = 1;
+ 					
+ 					/* don't worry:) we have to check whether this port has been multiplexed by another 
+ 					   connection with the same destination */
+ 					if (!hlist_empty(&list->dest_chain[dsthash])) {
+-						hlist_for_each_entry_safe(iter, loop, &list->dest_chain[dsthash], dest_node) {
++						hlist_for_each_entry_safe(iter, loop, temp, &list->dest_chain[dsthash], dest_node) {
+ 							if (iter->dstaddr == dstaddr && iter->newport == retport) {
+ 								status = 0; // this port cannot be multiplexed
+ 								break;
+@@ -388,6 +392,7 @@
+ int get_inflow_map_port(struct map_list *list, __be16 newp, __be32 dstaddr, __be32* oldaddr, __be16 *oldp)
+ {
+ 	struct map_tuple *iter;
++	struct hlist_node *temp;
+ 	int ret, hash;
+ 		
+ 	refresh_map_list(list);
+@@ -398,7 +403,7 @@
+ 	*oldaddr = 0;
+ 	
+ 	hash = port_hashfn(newp);
+-	hlist_for_each_entry(iter, &list->in_chain[hash], in_node) {
++	hlist_for_each_entry(iter, temp, &list->in_chain[hash], in_node) {
+ 		if (iter->newport == newp && iter->dstaddr == dstaddr) {
+ 			*oldaddr = iter->oldaddr;
+ 			*oldp = iter->oldport;
+Index: ivi-1.0/ivi_map_tcp.c
+===================================================================
+--- ivi-1.0.orig/ivi_map_tcp.c	2020-05-21 06:51:30.831039491 +0000
++++ ivi-1.0/ivi_map_tcp.c	2020-07-28 07:09:45.888657793 +0000
+@@ -791,7 +791,8 @@
+ void refresh_tcp_map_list(int threshold)
+ {
+ 	PTCP_STATE_CONTEXT iter, i0;
+-	struct hlist_node *loop;
++	struct hlist_node *loop, *l0;
++	struct hlist_node *temp;
+ 	struct timeval now;
+ 	time_t delta;
+ 	int i, flag;
+@@ -800,7 +801,7 @@
+ 	spin_lock_bh(&tcp_list.lock);
+ 	// Iterate all the map_tuple through out_chain only, in_chain contains the same info.
+ 	for (i = 0; i < IVI_HTABLE_SIZE; i++) {
+-		hlist_for_each_entry_safe(iter, loop, &tcp_list.out_chain[i], out_node) {
++		hlist_for_each_entry_safe(iter, loop, temp, &tcp_list.out_chain[i], out_node) {
+ 			delta = now.tv_sec - iter->StateSetTime.tv_sec;
+ 			//if (delta >= iter->StateTimeOut || iter->Status == TCP_STATUS_TIME_WAIT || iter->state_seq <= threshold) {
+ 			if (delta >= iter->StateTimeOut) {				
+@@ -824,7 +825,7 @@
+ #endif
+ 
+ 				flag = 0; // indicating whether tcp_list.port_num needs to be substracted by 1.
+- 				hlist_for_each_entry(i0, &tcp_list.in_chain[port_hashfn(iter->newport)], in_node) {
++ 				hlist_for_each_entry(i0, l0, &tcp_list.in_chain[port_hashfn(iter->newport)], in_node) {
+  					if (i0->newport == iter->newport) {
+  						flag = 1;
+  											
+@@ -857,13 +858,14 @@
+ {
+ 	PTCP_STATE_CONTEXT iter;
+ 	struct hlist_node *loop;
++	struct hlist_node *temp;
+ 	int i;
+ 	
+ 	spin_lock_bh(&tcp_list.lock);
+ 	// Iterate all the map_tuple through out_chain only, in_chain contains the same info.
+ 	for (i = 0; i < IVI_HTABLE_SIZE; i++) {
+ 		if (!hlist_empty(&tcp_list.out_chain[i])) {
+-			hlist_for_each_entry_safe(iter, loop, &tcp_list.out_chain[i], out_node) {
++			hlist_for_each_entry_safe(iter, loop, temp, &tcp_list.out_chain[i], out_node) {
+ 				hlist_del(&iter->out_node);
+ 				hlist_del(&iter->in_node);
+ 				hlist_del(&iter->dest_node);
+@@ -887,10 +889,11 @@
+ 	int ret = 0;
+ 	int hash;
+ 	PTCP_STATE_CONTEXT iter;
++	struct hlist_node *temp;
+ 
+ 	hash = port_hashfn(port);
+ 	if (!hlist_empty(&tcp_list.in_chain[hash])) {
+-		hlist_for_each_entry(iter, &tcp_list.in_chain[hash], in_node) {
++		hlist_for_each_entry(iter, temp, &tcp_list.in_chain[hash], in_node) {
+ 			if (iter->newport == port) {
+ 				ret = 1;
+ 				break;
+@@ -1021,6 +1024,7 @@
+ {
+ 	int status, chance, i, rand_j, dsthash, hash, retport;
+ 	PTCP_STATE_CONTEXT iter, multiplex_state;
++	struct hlist_node *loop0, *loop;
+ 	
+ 	status = 0;
+ 	chance = TCP_MAX_LOOP_NUM;
+@@ -1039,14 +1043,14 @@
+ 		
+ 	for (i = 0; i < 31 && chance > 0; i++) {	
+ 		if (!hlist_empty(&tcp_list.dest_chain[hash])) {
+-			hlist_for_each_entry(multiplex_state, &tcp_list.dest_chain[hash], dest_node) {
++			hlist_for_each_entry(multiplex_state, loop0, &tcp_list.dest_chain[hash], dest_node) {
+ 				retport = multiplex_state->newport;
+ 				status = 1;
+ 					
+ 				/* don't worry:) we have to check whether this port has been multiplexed by another 
+ 				   connection with the same destination */
+ 				if (!hlist_empty(&tcp_list.dest_chain[dsthash])) {
+-					hlist_for_each_entry(iter, &tcp_list.dest_chain[dsthash], dest_node) {
++					hlist_for_each_entry(iter, loop, &tcp_list.dest_chain[dsthash], dest_node) {
+ 						if (iter->dstaddr == dstaddr && iter->dstport == dstp && iter->newport == retport) {
+ 							status = 0; // this port cannot be multiplexed
+ 							break;
+@@ -1089,7 +1093,8 @@
+ 	__be16 retport;
+ 	PTCP_STATE_CONTEXT StateContext;
+ 	PTCP_STATE_CONTEXT i0;
+-	struct hlist_node *loop;
++	struct hlist_node *loop, *l0;
++	struct hlist_node *temp;
+ 	FILTER_STATUS ftState;
+ 		
+ 	retport = 0;
+@@ -1105,7 +1110,7 @@
+ 
+ 	hash = v4addr_port_hashfn(oldaddr, oldp);
+ 	if (!hlist_empty(&tcp_list.out_chain[hash])) {
+-		hlist_for_each_entry_safe(StateContext, loop, &tcp_list.out_chain[hash], out_node) {
++		hlist_for_each_entry_safe(StateContext, loop, temp, &tcp_list.out_chain[hash], out_node) {
+ 			if (StateContext->oldport == oldp && StateContext->oldaddr == oldaddr) {
+ 				if (StateContext->dstaddr == dstaddr && StateContext->dstport == dstp) {
+ 					// Update state context.
+@@ -1140,7 +1145,7 @@
+ 						tcp_list.size--;
+ 						flag = 0; // indicating whether tcp_list.port_num needs to be substracted by 1.
+ 
+-						hlist_for_each_entry(i0, &tcp_list.in_chain[port_hashfn(StateContext->newport)], in_node) {
++						hlist_for_each_entry(i0, l0, &tcp_list.in_chain[port_hashfn(StateContext->newport)], in_node) {
+ 							if (i0->newport == StateContext->newport) {
+ 								flag = 1;
+ 								
+@@ -1258,7 +1263,8 @@
+ {
+ 	FILTER_STATUS ftState;
+ 	PTCP_STATE_CONTEXT  StateContext = NULL, i0;
+-	struct hlist_node  *loop;
++	struct hlist_node  *loop, *l0;
++	struct hlist_node  *temp;
+ 	int ret, hash, flag;
+ 	
+ 	refresh_tcp_map_list(0);
+@@ -1268,7 +1274,7 @@
+ 	*oldaddr = 0;
+ 	
+ 	hash = port_hashfn(newp);
+-	hlist_for_each_entry_safe(StateContext, loop, &tcp_list.in_chain[hash], in_node) {
++	hlist_for_each_entry_safe(StateContext, loop, temp, &tcp_list.in_chain[hash], in_node) {
+ 		// Found existing mapping info
+ 		if (StateContext->newport == newp && StateContext->dstaddr == dstaddr && StateContext->dstport == dstp)
+ 		{
+@@ -1308,7 +1314,7 @@
+ 				tcp_list.size--;
+ 				
+ 				flag = 0; // indicating whether tcp_list.port_num needs to be substracted by 1.
+- 				hlist_for_each_entry(i0, &tcp_list.in_chain[port_hashfn(StateContext->newport)], in_node) {
++ 				hlist_for_each_entry(i0, l0, &tcp_list.in_chain[port_hashfn(StateContext->newport)], in_node) {
+  					if (i0->newport == StateContext->newport) {
+  						flag = 1;
+  						
+Index: ivi-1.0/ivi_rule.c
+===================================================================
+--- ivi-1.0.orig/ivi_rule.c	2020-05-21 06:51:30.831039491 +0000
++++ ivi-1.0/ivi_rule.c	2020-07-28 07:09:47.841275206 +0000
+@@ -597,11 +597,12 @@
+ static struct tleaf_info *find_leaf_info(struct tleaf *l, int plen)
+ {
+ 	struct tleaf_info *p;
++	struct hlist_node *temp;
+ 	
+ 	if (!l) 
+ 		return NULL;
+ 		
+-	hlist_for_each_entry(p, &l->head, node) {
++	hlist_for_each_entry(p, temp, &l->head, node) {
+ 		if (p->plen == plen)
+ 			return p;
+ 	}
+@@ -613,11 +614,12 @@
+ 	struct tleaf_info *p = NULL;
+ 	struct tleaf_info *last = NULL;
+ 	struct hlist_head *head = &l->head;
++	struct hlist_node *temp;
+ 
+ 	if (hlist_empty(head)) {
+ 		hlist_add_head(&li->node, head);
+ 	} else {
+-		hlist_for_each_entry(p, head, node) {
++		hlist_for_each_entry(p, temp, head, node) {
+ 			if (li->plen > p->plen)
+ 				break;
+ 
+@@ -659,7 +661,8 @@
+ {
+ 	struct tleaf_info *li;
+ 	struct hlist_head *head = &l->head;
+-	hlist_for_each_entry(li, head, node) {
++	struct hlist_node *temp;
++	hlist_for_each_entry(li, temp, head, node) {
+ 		if (l->key == (key & li->mask_plen)) {
+ 			*prefix6 = li->prefix6;
+ 			if (plen4)
+@@ -1063,12 +1066,12 @@
+ static void trie_flush_leaf(struct tleaf *l)
+ {
+ 	struct tleaf_info *li = NULL;
+-	struct hlist_node *loop;
++	struct hlist_node *loop, *temp;
+ 
+ 	if (!l)
+ 		return;
+ 
+-	hlist_for_each_entry_safe(li, loop, &l->head, node) {
++	hlist_for_each_entry_safe(li, loop, temp, &l->head, node) {
+ 		hlist_del(&li->node);
+ 		tleaf_info_free(li);
+ 	}

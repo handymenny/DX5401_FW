@@ -1,0 +1,198 @@
+Index: ebtables-v2.0.8-2/extensions/Makefile
+===================================================================
+--- ebtables-v2.0.8-2.orig/extensions/Makefile	2020-10-26 23:34:41.057085518 -0700
++++ ebtables-v2.0.8-2/extensions/Makefile	2020-10-26 23:37:25.273082131 -0700
+@@ -8,6 +8,9 @@
+ ifneq ($(CONFIG_KERNEL_BRIDGE_EBT_NFQUEUE),)
+ EXT_FUNC+=nfqueue
+ endif
++ifneq ($(CONFIG_KERNEL_BRIDGE_EBT_DHCPOPT),)
++EXT_FUNC+=dhcpopt
++endif
+ EXT_TABLES+=filter nat broute
+ EXT_OBJS+=$(foreach T,$(EXT_FUNC), extensions/ebt_$(T).o)
+ EXT_OBJS+=$(foreach T,$(EXT_TABLES), extensions/ebtable_$(T).o)
+Index: ebtables-v2.0.8-2/include/linux/netfilter_bridge/ebt_dhcpopt.h
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ebtables-v2.0.8-2/include/linux/netfilter_bridge/ebt_dhcpopt.h	2020-10-26 23:40:02.329078892 -0700
+@@ -0,0 +1,18 @@
++#ifndef __LINUX_BRIDGE_EBT_DHCPOPT_H
++#define __LINUX_BRIDGE_EBT_DHCPOPT_H
++
++#define EBT_DHCP_OPTION 0x01
++
++#define EBT_DHCP_OPTION_MASK (EBT_DHCP_OPTION /* |*/)
++#define EBT_DHCPOPT_MATCH "dhcpopt"
++
++/* the same values are used for the invflags */
++struct ebt_dhcpopt_info
++{
++	uint8_t optionNum;
++	uint8_t  bitmask;
++	uint8_t  invflags;
++	char optionString[256];
++};
++#endif
++
+Index: ebtables-v2.0.8-2/extensions/ebt_dhcpopt.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ebtables-v2.0.8-2/extensions/ebt_dhcpopt.c	2020-10-26 23:42:26.517075918 -0700
+@@ -0,0 +1,156 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <getopt.h>
++#include <netdb.h>
++#include "../include/ebtables_u.h"
++#include <linux/netfilter_bridge/ebt_ip.h>
++#include <linux/netfilter_bridge/ebt_dhcpopt.h>
++
++#define IP_SOURCE '1'
++#define IP_DEST   '2'
++#define IP_myTOS  '3' /* include/bits/in.h seems to already define IP_TOS */
++#define IP_PROTO  '4'
++#define IP_SPORT  '5'
++#define IP_DPORT  '6'
++#define DHCP_OPTION '7'
++#define OPT_SOURCE 0x01
++#define OPT_DEST   0x02
++#define OPT_TOS    0x04
++#define OPT_PROTO  0x08
++#define OPT_SPORT  0x10
++#define OPT_DPORT  0x20
++#define OPT_DHCP_OPTION  0x40
++
++static struct option opts[] =
++{
++	{ "dhcp_option"           , required_argument, 0, DHCP_OPTION },
++	{ 0 }
++};
++
++static void print_help()
++{
++	printf(
++"DHCP options:\n"
++"--dhcp_option    [!] address[/mask]: ip source specification\n");
++}
++
++static void init(struct ebt_entry_match *match)
++{
++	struct ebt_dhcpopt_info *dhcpoptinfo = (struct ebt_dhcpopt_info *)match->data;
++
++	dhcpoptinfo->invflags = 0;
++	dhcpoptinfo->bitmask = 0;
++}
++
++static int parse(int c, char **argv, int argc, const struct ebt_u_entry *entry,
++   unsigned int *flags, struct ebt_entry_match **match)
++{
++	struct ebt_dhcpopt_info *dhcpoptinfo = (struct ebt_dhcpopt_info *)(*match)->data;
++	char *end;
++	long int i;
++
++	switch (c) {
++	case DHCP_OPTION:
++		ebt_check_option2(flags, OPT_DHCP_OPTION);
++		dhcpoptinfo->bitmask |= EBT_DHCP_OPTION;
++		if (ebt_check_inverse2(optarg))
++			dhcpoptinfo->invflags |= EBT_DHCP_OPTION;
++		if (optind > argc)
++			ebt_print_error2("Missing DHCP_OPTION argument");
++			strcpy(dhcpoptinfo->optionString,argv[optind - 1]);
++		break;
++
++	default:
++		return 0;
++	}
++	return 1;
++}
++
++static void final_check(const struct ebt_u_entry *entry,
++   const struct ebt_entry_match *match, const char *name,
++   unsigned int hookmask, unsigned int time)
++{
++#if 0
++ 	struct ebt_dhcpopt_info *dhcpoptinfo = (struct ebt_dhcpopt_info *)match->data;
++	if (entry->ethproto != ETH_P_IP || entry->invflags & EBT_IPROTO)
++		ebt_print_error2("For IP filtering the protocol must be "
++		            "specified as IPv4");
++#endif
++}
++
++static void print(const struct ebt_u_entry *entry,
++   const struct ebt_entry_match *match)
++{
++	struct ebt_dhcpopt_info *dhcpoptinfo = (struct ebt_dhcpopt_info *)match->data;
++
++	if (dhcpoptinfo->bitmask & EBT_DHCP_OPTION) {
++		printf("--dhcp_option ");
++		if (dhcpoptinfo->invflags & EBT_DHCP_OPTION)
++			printf("! ");
++
++		printf("%s ", dhcpoptinfo->optionString);
++	}
++}
++
++static int compare(const struct ebt_entry_match *m1,
++   const struct ebt_entry_match *m2)
++{
++	struct ebt_ip_info *ipinfo1 = (struct ebt_ip_info *)m1->data;
++	struct ebt_ip_info *ipinfo2 = (struct ebt_ip_info *)m2->data;
++
++	if (ipinfo1->bitmask != ipinfo2->bitmask)
++		return 0;
++	if (ipinfo1->invflags != ipinfo2->invflags)
++		return 0;
++	if (ipinfo1->bitmask & EBT_IP_SOURCE) {
++		if (ipinfo1->saddr != ipinfo2->saddr)
++			return 0;
++		if (ipinfo1->smsk != ipinfo2->smsk)
++			return 0;
++	}
++	if (ipinfo1->bitmask & EBT_IP_DEST) {
++		if (ipinfo1->daddr != ipinfo2->daddr)
++			return 0;
++		if (ipinfo1->dmsk != ipinfo2->dmsk)
++			return 0;
++	}
++	if (ipinfo1->bitmask & EBT_IP_TOS) {
++		if (ipinfo1->tos != ipinfo2->tos)
++			return 0;
++	}
++	if (ipinfo1->bitmask & EBT_IP_PROTO) {
++		if (ipinfo1->protocol != ipinfo2->protocol)
++			return 0;
++	}
++	if (ipinfo1->bitmask & EBT_IP_SPORT) {
++		if (ipinfo1->sport[0] != ipinfo2->sport[0] ||
++		   ipinfo1->sport[1] != ipinfo2->sport[1])
++			return 0;
++	}
++	if (ipinfo1->bitmask & EBT_IP_DPORT) {
++		if (ipinfo1->dport[0] != ipinfo2->dport[0] ||
++		   ipinfo1->dport[1] != ipinfo2->dport[1])
++			return 0;
++	}
++	return 1;
++}
++
++static struct ebt_u_match dhcpopt_match =
++{
++	.name		= EBT_DHCPOPT_MATCH,
++	.size		= sizeof(struct ebt_dhcpopt_info),
++	.help		= print_help,
++	.init		= init,
++	.parse		= parse,
++	.final_check	= final_check,
++	.print		= print,
++	.compare	= compare,
++	.extra_ops	= opts,
++};
++
++void _init(void)
++{
++	ebt_register_match(&dhcpopt_match);
++}
++

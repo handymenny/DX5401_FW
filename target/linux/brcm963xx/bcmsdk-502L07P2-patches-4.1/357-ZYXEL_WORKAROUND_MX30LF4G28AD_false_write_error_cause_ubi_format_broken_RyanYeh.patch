@@ -1,0 +1,119 @@
+Index: linux-4.1.52/drivers/mtd/mtdchar.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/mtdchar.c
++++ linux-4.1.52/drivers/mtd/mtdchar.c
+@@ -585,7 +585,11 @@ static int mtdchar_write_ioctl(struct mt
+ 		ops.oobbuf = NULL;
+ 	}
+ 
+-	ret = mtd_write_oob(mtd, (loff_t)req.start, &ops);
++	if((ret = mtd_write_oob(mtd, (loff_t)req.start, &ops)) != 0) {
++        printk(KERN_EMERG "%s: mtd_write_oob fail, ret=%d\n", __func__, ret);
++        printk(KERN_EMERG "%s: req.len=%llu, req.usr_data=%p, ops.len=%zu, ops.datbuf=%p\n", __func__, req.len, &req.usr_data, ops.len, &ops.datbuf);
++        printk(KERN_EMERG "%s: req.ooblen=%llu, req.usr_oob=%p, ops.ooblen=%zu, ops.oobbuf=%p\n", __func__, req.ooblen, &req.usr_oob, ops.ooblen, &ops.oobbuf);
++    }
+ 
+ 	kfree(ops.datbuf);
+ 	kfree(ops.oobbuf);
+Index: linux-4.1.52/drivers/mtd/nand/nand_base.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/nand/nand_base.c
++++ linux-4.1.52/drivers/mtd/nand/nand_base.c
+@@ -2376,6 +2376,7 @@ static int nand_write_page(struct mtd_in
+ 		int oob_required, int page, int cached, int raw)
+ {
+ 	int status, subpage;
++    uint8_t *vfy_buf;
+ 
+ 	if (!(chip->options & NAND_NO_SUBPAGE_WRITE) &&
+ 		chip->ecc.write_subpage)
+@@ -2394,8 +2395,10 @@ static int nand_write_page(struct mtd_in
+ 	else
+ 		status = chip->ecc.write_page(mtd, chip, buf, oob_required);
+ 
+-	if (status < 0)
+-		return status;
++    if (status < 0) {
++        //return status;
++        printk(KERN_EMERG "%s: chip->ecc.write_page failed, ret=%d, oob_required=%d\n", __func__, status, oob_required);
++    }
+ 
+ 	/*
+ 	 * Cached progamming disabled for now. Not sure if it's worth the
+@@ -2415,14 +2418,46 @@ static int nand_write_page(struct mtd_in
+ 			status = chip->errstat(mtd, chip, FL_WRITING, status,
+ 					       page);
+ 
+-		if (status & NAND_STATUS_FAIL)
+-			return -EIO;
++        if (status & NAND_STATUS_FAIL) {
++            //return -EIO;
++            printk(KERN_EMERG "%s: NAND_CMD_PAGEPROG failed, ret=%d\n", __func__, status);
++            goto verify_write_page;
++        }
+ 	} else {
+ 		chip->cmdfunc(mtd, NAND_CMD_CACHEDPROG, -1, -1);
+ 		status = chip->waitfunc(mtd, chip);
+ 	}
+ 
+ 	return 0;
++
++
++verify_write_page:
++    vfy_buf = kzalloc(data_len, GFP_KERNEL);
++    if(!vfy_buf) {
++        printk(KERN_EMERG "%s: allocate memory failed for nand write verification", __func__);
++        return -EIO;
++    }
++
++    /* Send command to read back the data */
++    chip->cmdfunc(mtd, NAND_CMD_READ0, 0, page);
++    if (unlikely(raw))
++        chip->ecc.read_page_raw(mtd, chip, vfy_buf, oob_required, page);
++    else
++        chip->ecc.read_page(mtd, chip, vfy_buf, oob_required, page);
++
++    if ((status = memcmp(buf, vfy_buf, data_len)) != 0) {
++        printk(KERN_EMERG "%s: verify failed !!!!!\n", __func__);
++        printk(KERN_EMERG "%s: write buf[%d] : \n", __func__, data_len);
++        print_hex_dump(KERN_ALERT, "", DUMP_PREFIX_OFFSET, 32, 1, buf , data_len, 1);
++        printk(KERN_EMERG "%s: read buf[%d] : \n", __func__, data_len);
++        print_hex_dump(KERN_ALERT, "", DUMP_PREFIX_OFFSET, 32, 1, vfy_buf , data_len, 1);
++    }
++    else
++        printk(KERN_EMERG "%s: verify success !!!!!\n", __func__);
++
++    kfree(vfy_buf);
++
++    return (status == 0) ? 0 : -EIO;
+ }
+ 
+ /**
+@@ -2582,8 +2617,10 @@ static int nand_do_write_ops(struct mtd_
+ 		ret = chip->write_page(mtd, chip, column, bytes, wbuf,
+ 					oob_required, page, cached,
+ 					(ops->mode == MTD_OPS_RAW));
+-		if (ret)
++		if (ret) {
++            printk(KERN_EMERG "%s: chip->write_page failed, ret=%d, oob_required=%d\n", __func__, ret, oob_required);
+ 			break;
++        }
+ 
+ 		writelen -= bytes;
+ 		if (!writelen)
+Index: linux-4.1.52/drivers/mtd/nand/brcmnand/brcmnand.c
+===================================================================
+--- linux-4.1.52.orig/drivers/mtd/nand/brcmnand/brcmnand.c
++++ linux-4.1.52/drivers/mtd/nand/brcmnand/brcmnand.c
+@@ -2215,9 +2215,10 @@ static int brcmnand_write(struct mtd_inf
+ #else
+ 			dev_info(ctrl->dev, "program failed at %llx\n",
+ 				(unsigned long long)addr);
++            printk(KERN_EMERG "%s: program failed at %llx, status=%d, oob_in=%d, ignore and keep going\n", __func__, addr, status, oob_in?1:0);
+ #endif
+ 			ret = -EIO;
+-			goto out;
++			//goto out;
+ 		}
+ 	}
+ out:
